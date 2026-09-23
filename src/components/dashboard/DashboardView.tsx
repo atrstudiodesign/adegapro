@@ -253,7 +253,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, appMod
       )}
 
       {/* 10 Operational KPI Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-3.5">
         {/* Card 1: Faturamento Período */}
         <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800/80">
           <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1">
