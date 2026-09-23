@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   TrendingUp,
   Zap,
-  Lock
+  Lock,
+  Headphones
 } from 'lucide-react';
 import { User } from '../../types';
 
@@ -91,7 +92,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'reports', label: 'Centro de Relatórios', icon: BarChart3, permission: 'reports.view' },
         { id: 'audit', label: 'Log de Auditoria', icon: ShieldCheck, permission: 'reports.view' },
         { id: 'integrations', label: 'Integrações (PIX/TEF)', icon: Cable, permission: 'settings.edit' },
-        { id: 'settings', label: 'Configurações Loja', icon: Settings, permission: 'settings.edit' }
+        { id: 'settings', label: 'Configurações Loja', icon: Settings, permission: 'settings.edit' },
+        { id: 'support', label: 'Suporte ATR Studio', icon: Headphones, permission: null }
       ]
     }
   ];
@@ -173,6 +175,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               ADEGA <span className="text-amber-400">PRO</span>
             </div>
             <div className="text-[10px] text-neutral-500 font-mono">v1.0 · Frente de Loja</div>
+            <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="text-[9px] text-amber-500 hover:text-amber-300">
+              Desenvolvido por ATR Studio
+            </a>
           </div>
         </div>
       </div>
