@@ -5,7 +5,7 @@ import { BrandLogo } from '../common/BrandLogo';
 import { PinAuthModal } from '../common/PinAuthModal';
 import { OfflineSyncControl } from '../common/OfflineSyncControl';
 import { PWAInstallButton } from '../common/PWAInstallButton';
-import { ShoppingCart, UserCheck, Bell, Store as StoreIcon, Lock } from 'lucide-react';
+import { ShoppingCart, UserCheck, Bell, Store as StoreIcon, Lock, Menu } from 'lucide-react';
 
 interface HeaderProps {
   currentTab: string;
@@ -14,6 +14,7 @@ interface HeaderProps {
   onUserChanged: (user: User) => void;
   currentSession?: CashSession;
   onLock?: () => void;
+  onMenuToggle?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,7 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onUserChanged,
   currentSession,
-  onLock
+  onLock,
+  onMenuToggle
 }) => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -34,9 +36,16 @@ export const Header: React.FC<HeaderProps> = ({
   }, [currentTab]);
 
   return (
-    <header className="h-16 px-6 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
+    <header className="min-h-14 sm:h-16 px-3 sm:px-4 lg:px-6 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md gap-2">
       {/* Zone 1: Single element Brand & Store name */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        <button
+          onClick={onMenuToggle}
+          aria-label="Abrir menu"
+          className="lg:hidden shrink-0 w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-800/80 text-neutral-200 grid place-items-center active:scale-95"
+        >
+          <Menu size={19} />
+        </button>
         <button
           onClick={() => onNavigate('dashboard')}
           className="flex items-center text-left focus-visible:outline-none"
@@ -77,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Zone 3: 1-2 Primary Action Buttons */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3 shrink-0">
         {/* Offline Sync Status & Service Worker Connection Controller */}
         <OfflineSyncControl />
 
@@ -88,10 +97,10 @@ export const Header: React.FC<HeaderProps> = ({
         {currentTab !== 'pos' ? (
           <button
             onClick={() => onNavigate('pos')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer active:scale-95"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer active:scale-95 min-h-10"
           >
             <ShoppingCart size={15} />
-            <span>Frente de Caixa (PDV)</span>
+            <span className="hidden md:inline">Frente de Caixa (PDV)</span>
           </button>
         ) : (
           <button
