@@ -31,6 +31,9 @@ import { LoginScreen } from './components/auth/LoginScreen';
 import { SaasAccessScreen } from './components/auth/SaasAccessScreen';
 import { AppMode, getAppMode, setAppMode } from './services/appMode';
 import { supabase } from './services/supabase';
+import { LegalConsentGate } from './components/legal/LegalConsentGate';
+import { LegalCenter } from './components/legal/LegalCenter';
+import { LegalDocKey } from './legal/legalDocuments';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -43,6 +46,8 @@ export default function App() {
   const [saasAuthenticated, setSaasAuthenticated] = useState(false);
   const [demoAccessGranted, setDemoAccessGranted] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [legalCleared, setLegalCleared] = useState(false);
+  const [legalDoc, setLegalDoc] = useState<LegalDocKey>('terms_of_use');
 
   useEffect(() => {
     let mounted = true;
@@ -54,6 +59,7 @@ export default function App() {
       if (hasSession) {
         setAppMode('PRODUCTION');
         setCurrentAppMode('PRODUCTION');
+        setLegalCleared(false);
         setIsLocked(true);
       }
       setSaasReady(true);
@@ -63,6 +69,7 @@ export default function App() {
       if (!mounted) return;
       const hasSession = Boolean(session);
       setSaasAuthenticated(hasSession);
+      if (!hasSession) setLegalCleared(false);
       if (!hasSession && appMode === 'PRODUCTION') {
         setSaasReady(true);
       }
@@ -152,6 +159,10 @@ export default function App() {
         }}
       />
     );
+  }
+
+  if (saasAuthenticated && appMode === 'PRODUCTION' && !legalCleared && !receiptHashId) {
+    return <LegalConsentGate onAccepted={() => setLegalCleared(true)} />;
   }
 
   // If a public customer opens the digital receipt URL
@@ -258,6 +269,13 @@ export default function App() {
           {currentTab === 'store-profile' && <StoreProfileView />}
           {currentTab === 'settings' && <SettingsView />}
           {currentTab === 'support' && <SupportView />}
+          {currentTab === 'legal' && (
+            <LegalCenter
+              active={legalDoc}
+              onSelect={setLegalDoc}
+              onBack={() => setCurrentTab('dashboard')}
+            />
+          )}
         </main>
       </div>
     </div>
