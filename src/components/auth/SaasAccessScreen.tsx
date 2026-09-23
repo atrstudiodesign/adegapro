@@ -152,7 +152,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   );
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white relative overflow-x-hidden">
+    <div className="min-h-dvh bg-neutral-950 text-white relative overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(120,53,15,0.16),transparent_30%)]"/>
       <header className="relative z-10 px-5 sm:px-8 py-5 max-w-7xl mx-auto flex items-center justify-between gap-4">
         <button onClick={() => setView('LANDING')} className="flex items-center gap-3 text-left">
@@ -175,7 +175,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[11px] font-black uppercase tracking-wider mb-6">
                 <Sparkles size={13}/> Plataforma completa para operação de loja
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.02] max-w-3xl">
+              <h1 className="text-3xl min-[420px]:text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.02] max-w-3xl">
                 Controle sua adega com <span className="text-amber-400">PDV, estoque e financeiro</span> no mesmo lugar.
               </h1>
               <p className="text-neutral-400 text-sm sm:text-base max-w-2xl mt-6 leading-relaxed">
@@ -205,7 +205,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                   <div><div className="text-xs text-neutral-500">Visão geral</div><div className="text-lg font-black">Operação em tempo real</div></div>
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-black text-emerald-300 bg-emerald-950 border border-emerald-800">ONLINE</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
                   <Feature icon={ShoppingCart} title="PDV rápido" desc="Venda, desconto, múltiplos pagamentos e comprovante."/>
                   <Feature icon={Boxes} title="Estoque" desc="Kardex, inventário, mínimos, perdas e compras."/>
                   <Feature icon={WalletCards} title="Financeiro" desc="Contas, caixa, fiado, fluxo e indicadores."/>
@@ -219,7 +219,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
 
       {view === 'LOGIN' && (
         <main className="relative z-10 max-w-md mx-auto px-5 pt-12 pb-20">
-          <div className="p-6 sm:p-7 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-2xl">
+          <div className="p-4 sm:p-7 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-2xl">
             <div className="mb-6"><h1 className="text-2xl font-black">Entrar no Adega Pro</h1><p className="text-sm text-neutral-400 mt-1">Acesse a conta principal da sua empresa.</p></div>
             {message && <div className={`mb-4 p-3 rounded-xl text-xs border ${message.type==='error'?'bg-rose-950/40 border-rose-800 text-rose-300':'bg-emerald-950/40 border-emerald-800 text-emerald-300'}`}>{message.text}</div>}
             <form onSubmit={login} className="space-y-4">
@@ -242,7 +242,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                 <Field icon={UserRound} label="Nome completo *" value={register.ownerName} onChange={v=>setRegister({...register,ownerName:v})}/>
                 <Field icon={Mail} label="E-mail *" type="email" value={register.email} onChange={v=>setRegister({...register,email:v})}/>
                 <Field icon={Phone} label="Telefone" value={register.phone} onChange={v=>setRegister({...register,phone:v})}/>
-                <div className="grid grid-cols-2 gap-2"><Field icon={LockKeyhole} label="Senha *" type="password" value={register.password} onChange={v=>setRegister({...register,password:v})}/><Field icon={LockKeyhole} label="Confirmar *" type="password" value={register.confirmPassword} onChange={v=>setRegister({...register,confirmPassword:v})}/></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2"><Field icon={LockKeyhole} label="Senha *" type="password" value={register.password} onChange={v=>setRegister({...register,password:v})}/><Field icon={LockKeyhole} label="Confirmar *" type="password" value={register.confirmPassword} onChange={v=>setRegister({...register,confirmPassword:v})}/></div>
               </div></section>
               <section><h2 className="text-xs font-black text-amber-400 uppercase tracking-wider mb-3">Dados da adega</h2><div className="grid sm:grid-cols-2 gap-3">
                 <Field icon={Store} label="Razão social *" value={register.legalName} onChange={v=>setRegister({...register,legalName:v})}/>
