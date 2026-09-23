@@ -163,7 +163,7 @@ export const ProductsView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
@@ -203,7 +203,7 @@ export const ProductsView: React.FC = () => {
       )}
 
       {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Search Input */}
         <div className="relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
@@ -397,7 +397,7 @@ export const ProductsView: React.FC = () => {
       {/* ---------------------------------------------------- */}
       {isModalOpen && editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[94dvh] overflow-hidden">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800 shrink-0">
               <h3 className="text-base font-bold text-white">
                 {editingProduct.id ? 'Editar Produto' : 'Cadastrar Novo Produto'}
@@ -409,8 +409,8 @@ export const ProductsView: React.FC = () => {
 
             <form onSubmit={handleSaveModal} className="flex-1 overflow-y-auto space-y-4 py-4 pr-1">
               {/* Name & Brand */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
                   <label className="text-xs text-neutral-400 block mb-1">Nome do Produto *</label>
                   <input
                     required
@@ -434,7 +434,7 @@ export const ProductsView: React.FC = () => {
               </div>
 
               {/* Barcode & SKU & Category */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">Código de Barras (EAN)</label>
                   <input
@@ -474,7 +474,7 @@ export const ProductsView: React.FC = () => {
               </div>
 
               {/* Prices & Margins */}
-              <div className="grid grid-cols-3 gap-3 bg-neutral-950 p-3.5 rounded-xl border border-neutral-800">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-neutral-950 p-3.5 rounded-xl border border-neutral-800">
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">Preço de Custo (R$)</label>
                   <input
@@ -519,7 +519,7 @@ export const ProductsView: React.FC = () => {
               </div>
 
               {/* Stock Controls */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">Estoque Atual</label>
                   <input
@@ -568,7 +568,7 @@ export const ProductsView: React.FC = () => {
               </div>
 
               {/* Supplier & Description */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">Fornecedor Principal</label>
                   <select
