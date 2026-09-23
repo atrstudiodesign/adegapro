@@ -449,10 +449,10 @@ export const PosScreen: React.FC<PosScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] bg-neutral-950 text-neutral-100 overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col h-full lg:h-[calc(100vh-4rem)] bg-neutral-950 text-neutral-100 overflow-hidden">
       {/* Top Banner Alert if Caixa Closed */}
       {!currentSession && (
-        <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-6 py-2 flex items-center justify-between text-xs font-semibold">
+        <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-3 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold">
           <div className="flex items-center gap-2">
             <AlertTriangle size={16} className="text-rose-400 animate-pulse" />
             <span>CAIXA FECHADO: É necessário abrir uma sessão de caixa para realizar vendas.</span>
@@ -467,11 +467,11 @@ export const PosScreen: React.FC<PosScreenProps> = ({
       )}
 
       {/* Main PDV Layout: Left Side (Products Catalog & Barcode) | Right Side (Cart & Totals) */}
-      <div className="flex-1 grid grid-cols-12 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden">
         {/* LEFT COLUMN: Fast Search, Barcode & Quick Categories (7 cols) */}
-        <div className="col-span-7 border-r border-neutral-800 flex flex-col p-4 bg-neutral-900/40 overflow-hidden">
+        <div className="lg:col-span-7 border-b lg:border-b-0 lg:border-r border-neutral-800 flex flex-col p-3 sm:p-4 bg-neutral-900/40 min-h-[55vh] lg:min-h-0 overflow-visible lg:overflow-hidden">
           {/* Barcode & Search Input Bar with Quick Sale Launcher */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
             <form onSubmit={handleSearchSubmit} className="relative flex-1">
               <div className="flex items-center bg-neutral-900 border-2 border-amber-500/80 rounded-xl px-4 py-2.5 shadow-lg focus-within:border-amber-400 transition-colors">
                 <Barcode className="text-amber-400 mr-3 shrink-0" size={24} />
@@ -624,7 +624,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
               <span>PRODUTOS MAIS VENDIDOS &amp; COMBOS</span>
               <span className="text-[10px] text-neutral-500">Toque ou clique para adicionar</span>
             </div>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {products.slice(0, 15).map(prod => (
                 <button
                   key={prod.id}
@@ -666,7 +666,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
         </div>
 
         {/* RIGHT COLUMN: Cart, Totals & Checkout (5 cols) */}
-        <div className="col-span-5 flex flex-col bg-neutral-950 p-4 overflow-hidden">
+        <div className="lg:col-span-5 flex flex-col bg-neutral-950 p-3 sm:p-4 min-h-[45vh] lg:min-h-0 overflow-visible lg:overflow-hidden">
           {/* Customer Bar */}
           <div className="flex items-center justify-between pb-3 mb-2 border-b border-neutral-800">
             <div className="flex items-center gap-2">
@@ -791,7 +791,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-2 mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <button
               onClick={clearSale}
               disabled={cart.length === 0}
@@ -825,7 +825,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
       {/* ---------------------------------------------------- */}
       {isCustomerModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <UserPlus size={18} className="text-amber-400" />
@@ -883,7 +883,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
       {/* ---------------------------------------------------- */}
       {isDiscountModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <h3 className="text-base font-bold text-white mb-4">Desconto &amp; Acréscimo (F4)</h3>
             <div className="space-y-4">
               <div>
@@ -928,7 +928,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
       {/* ---------------------------------------------------- */}
       {isPaymentModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[94dvh] overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800 shrink-0">
               <div>
@@ -943,7 +943,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
             </div>
 
             {/* Total Summary */}
-            <div className="grid grid-cols-3 gap-3 my-4 shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4 shrink-0">
               <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800">
                 <div className="text-[10px] text-neutral-500 font-bold uppercase">Total Venda</div>
                 <div className="text-lg font-mono font-bold text-white">R$ {total.toFixed(2)}</div>
@@ -959,7 +959,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
             </div>
 
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-6 gap-2 mb-4 shrink-0">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4 shrink-0">
               {[
                 { id: 'DINHEIRO', label: 'Dinheiro', icon: Banknote },
                 { id: 'PIX', label: 'PIX', icon: QrCode },
@@ -992,7 +992,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
 
             {/* Input Value for Payment Method */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">
                     Valor a lançar em {currentMethod} (R$)
@@ -1122,7 +1122,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
       {/* ---------------------------------------------------- */}
       {isReceiptModalOpen && completedSale && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800 shrink-0">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="text-emerald-400" size={20} />
@@ -1253,7 +1253,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
       {/* ---------------------------------------------------- */}
       {isSuspendedModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Clock size={18} className="text-amber-400" />
@@ -1345,7 +1345,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-5">
+            <div className="p-4 sm:p-6 space-y-5">
               {/* General Toggle & Volume */}
               <div className="bg-neutral-950/60 border border-neutral-800 p-4 rounded-xl space-y-4">
                 <div className="flex items-center justify-between">
