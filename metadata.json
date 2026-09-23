@@ -1,0 +1,6 @@
+{
+  "name": "Tome no seu Toba - Adega & Conveniência SaaS",
+  "description": "Sistema SaaS completo de gestão comercial e PDV de alta velocidade para adegas, conveniências e distribuidoras de bebidas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

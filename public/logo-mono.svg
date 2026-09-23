@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" fill="none">
+  <!-- Minimalist Thermal Print Brand Mark -->
+  <circle cx="25" cy="25" r="22" stroke="#000000" stroke-width="2" fill="none"/>
+  <circle cx="25" cy="25" r="18" stroke="#000000" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+  <text x="25" y="22" text-anchor="middle" font-family="monospace" font-weight="900" font-size="7">TOME NO SEU</text>
+  <text x="25" y="34" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="12">TOBA</text>
+
+  <text x="56" y="22" font-family="sans-serif" font-weight="900" font-size="14" fill="#000000">TOME NO SEU TOBA</text>
+  <text x="56" y="34" font-family="monospace" font-size="9" fill="#000000">ADEGA &amp; CONVENIÊNCIA</text>
+</svg>
