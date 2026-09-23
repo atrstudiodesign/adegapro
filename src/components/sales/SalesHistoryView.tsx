@@ -76,7 +76,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({ currentUser 
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
@@ -359,7 +359,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({ currentUser 
       {/* MODAL: Cancel Sale Confirmation */}
       {cancelModalSale && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Ban size={18} className="text-rose-400" />
