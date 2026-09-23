@@ -48,6 +48,20 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
     try {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (error) throw error;
+
+      const pendingRaw = localStorage.getItem('adega_pro_pending_onboarding');
+      if (pendingRaw) {
+        try {
+          const storeData = JSON.parse(pendingRaw);
+          const { error: bootstrapError } = await supabase.rpc('bootstrap_adega', { store_data: storeData });
+          if (bootstrapError && !String(bootstrapError.message).includes('already linked')) throw bootstrapError;
+          localStorage.removeItem('adega_pro_pending_onboarding');
+        } catch (bootstrapErr) {
+          console.error('Falha ao concluir onboarding:', bootstrapErr);
+          throw bootstrapErr;
+        }
+      }
+
       onAuthenticated();
     } catch (err:any) {
       setMessage({ type:'error', text: err?.message || 'Não foi possível entrar. Confira seus dados.' });
