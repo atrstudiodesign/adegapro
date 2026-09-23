@@ -6,7 +6,7 @@ export const SupportView: React.FC = () => {
   const whatsapp = 'https://wa.me/5511939026928?text=Ol%C3%A1%20ATR%20Studio%2C%20preciso%20de%20suporte%20no%20Adega%20Pro.';
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto bg-neutral-950">
       <div className="max-w-5xl mx-auto space-y-5">
         <div className="pb-4 border-b border-neutral-800">
           <h1 className="text-xl font-black text-white flex items-center gap-2">
