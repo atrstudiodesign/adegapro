@@ -110,7 +110,7 @@ export const PurchasesView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
           <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
@@ -124,7 +124,7 @@ export const PurchasesView: React.FC = () => {
 
         <button
           onClick={handleOpenNew}
-          className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md cursor-pointer transition-colors"
+          className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md cursor-pointer transition-colors"
         >
           <Plus size={16} />
           <span>Lançar Entrada de Mercadorias</span>
@@ -203,7 +203,7 @@ export const PurchasesView: React.FC = () => {
       {/* MODAL: New Purchase */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl flex flex-col max-h-[92vh]">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[94dvh]">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800 shrink-0">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <ShoppingBag size={18} className="text-amber-400" />
@@ -215,7 +215,7 @@ export const PurchasesView: React.FC = () => {
             </div>
 
             <form onSubmit={handleSavePurchase} className="flex-1 overflow-y-auto space-y-4 py-4 pr-1">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">Fornecedor *</label>
                   <select
@@ -272,7 +272,7 @@ export const PurchasesView: React.FC = () => {
 
                 <div className="space-y-2">
                   {items.map((it, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <select
                         value={it.productId}
                         onChange={e => updateItem(idx, 'productId', e.target.value)}
@@ -285,7 +285,7 @@ export const PurchasesView: React.FC = () => {
                         ))}
                       </select>
 
-                      <div className="w-20">
+                      <div className="w-full sm:w-20">
                         <input
                           type="number"
                           min="1"
@@ -296,7 +296,7 @@ export const PurchasesView: React.FC = () => {
                         />
                       </div>
 
-                      <div className="w-24">
+                      <div className="w-full sm:w-24">
                         <input
                           type="number"
                           step="0.01"
@@ -307,7 +307,7 @@ export const PurchasesView: React.FC = () => {
                         />
                       </div>
 
-                      <div className="w-24 text-right font-mono font-bold text-xs text-amber-400">
+                      <div className="w-full sm:w-24 text-left sm:text-right font-mono font-bold text-xs text-amber-400">
                         R$ {it.totalCost.toFixed(2)}
                       </div>
 
@@ -332,7 +332,7 @@ export const PurchasesView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-neutral-800 flex justify-end gap-2 shrink-0">
+              <div className="pt-3 border-t border-neutral-800 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
