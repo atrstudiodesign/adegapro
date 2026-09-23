@@ -72,7 +72,7 @@ export const DigitalReceiptView: React.FC<DigitalReceiptViewProps> = ({ receiptI
       </div>
 
       {/* Digital Receipt Card */}
-      <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-6 shadow-2xl space-y-5 text-neutral-200">
+      <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-5 text-neutral-200">
         {/* Header with Minimalist Logo */}
         <div className="text-center pb-4 border-b border-neutral-800">
           <div className="flex justify-center mb-2">
@@ -89,7 +89,7 @@ export const DigitalReceiptView: React.FC<DigitalReceiptViewProps> = ({ receiptI
         </div>
 
         {/* Date & Cashier Details */}
-        <div className="grid grid-cols-2 gap-2 text-xs py-2 border-b border-neutral-800/80 font-mono">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 text-xs py-2 border-b border-neutral-800/80 font-mono">
           <div>
             <span className="text-neutral-500 block text-[10px]">DATA E HORA</span>
             <span className="text-white">{new Date(sale.createdAt).toLocaleString('pt-BR')}</span>
