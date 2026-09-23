@@ -12,14 +12,20 @@ import {
   ArrowDownRight,
   Calendar,
   Layers,
-  Sparkles
+  Sparkles,
+  MonitorPlay,
+  Database,
+  RotateCcw
 } from 'lucide-react';
+import { AppMode } from '../../services/appMode';
 
 interface DashboardViewProps {
   onNavigate: (tab: string) => void;
+  appMode?: AppMode;
+  onChangeMode?: (mode: AppMode) => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
+export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, appMode = 'DEMO', onChangeMode }) => {
   const [filterPeriod, setFilterPeriod] = useState<'HOJE' | '7DIAS' | 'MES_ATUAL'>('HOJE');
 
   const products = db.getProducts();
@@ -151,6 +157,80 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
               {p.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Demo / Production Environment Control */}
+      <div className={`p-4 rounded-2xl border flex flex-col lg:flex-row lg:items-center justify-between gap-4 ${
+        appMode === 'DEMO'
+          ? 'bg-violet-950/30 border-violet-700/50'
+          : 'bg-emerald-950/20 border-emerald-800/50'
+      }`}>
+        <div className="flex items-start gap-3">
+          <div className={`w-10 h-10 rounded-xl grid place-items-center border ${
+            appMode === 'DEMO'
+              ? 'bg-violet-500/10 border-violet-500/30 text-violet-300'
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+          }`}>
+            {appMode === 'DEMO' ? <MonitorPlay size={20}/> : <Database size={20}/>}
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm font-black text-white">
+                {appMode === 'DEMO' ? 'Modo Demonstração Ativo' : 'Modo Produção'}
+              </h2>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                appMode === 'DEMO'
+                  ? 'text-violet-300 border-violet-700 bg-violet-950/60'
+                  : 'text-emerald-300 border-emerald-800 bg-emerald-950/60'
+              }`}>
+                {appMode === 'DEMO' ? 'DADOS FICTÍCIOS' : 'SUPABASE'}
+              </span>
+            </div>
+            <p className="text-xs text-neutral-400 mt-1 max-w-2xl">
+              {appMode === 'DEMO'
+                ? 'Use este ambiente para apresentar o sistema ao cliente sem alterar dados reais. Vendas, produtos e movimentações ficam isolados no modo demonstração.'
+                : 'Ambiente destinado aos dados reais da adega. Os módulos estão sendo conectados gradualmente ao banco Supabase com RLS e auditoria.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {appMode !== 'DEMO' && (
+            <button
+              onClick={() => onChangeMode?.('DEMO')}
+              className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2"
+            >
+              <MonitorPlay size={15}/>
+              Abrir Demo para Cliente
+            </button>
+          )}
+
+          {appMode === 'DEMO' && (
+            <>
+              <button
+                onClick={() => {
+                  const ok = window.confirm('Reiniciar os dados fictícios da demonstração? Isso não afeta o banco real.');
+                  if (!ok) return;
+                  Object.keys(localStorage)
+                    .filter(k => k.startsWith('toba_saas_v1_'))
+                    .forEach(k => localStorage.removeItem(k));
+                  window.location.reload();
+                }}
+                className="px-3.5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs font-bold flex items-center gap-2"
+              >
+                <RotateCcw size={14}/> Reiniciar Demo
+              </button>
+
+              <button
+                onClick={() => onChangeMode?.('PRODUCTION')}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2"
+              >
+                <Database size={15}/>
+                Ir para Produção
+              </button>
+            </>
+          )}
         </div>
       </div>
 
