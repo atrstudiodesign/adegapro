@@ -266,7 +266,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({ currentUser 
       {/* MODAL: Sale Details */}
       {selectedSale && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-2xl flex flex-col max-h-[94dvh] overflow-hidden">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white">
                 Detalhes da Venda #{selectedSale.saleNumber}
@@ -410,7 +410,7 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({ currentUser 
       {/* MODAL: NFC-e XML Preview */}
       {xmlModalSale && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[94dvh]">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <FileCode size={18} className="text-amber-400" />
