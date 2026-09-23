@@ -22,7 +22,8 @@ import {
   Zap,
   Lock,
   Headphones,
-  Store as StoreIcon
+  Store as StoreIcon,
+  Scale
 } from 'lucide-react';
 import { User } from '../../types';
 
@@ -99,7 +100,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'integrations', label: 'Integrações (PIX/TEF)', icon: Cable, permission: 'settings.edit' },
         { id: 'store-profile', label: 'Cadastro da Adega', icon: StoreIcon, permission: 'settings.edit' },
         { id: 'settings', label: 'Configurações Loja', icon: Settings, permission: 'settings.edit' },
-        { id: 'support', label: 'Suporte ATR Studio', icon: Headphones, permission: null }
+        { id: 'support', label: 'Suporte ATR Studio', icon: Headphones, permission: null },
+        { id: 'legal', label: 'Legal, LGPD & Licença', icon: Scale, permission: null }
       ]
     }
   ];
