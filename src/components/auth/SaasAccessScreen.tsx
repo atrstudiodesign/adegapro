@@ -4,6 +4,8 @@ import {
   Mail, Phone, ShieldCheck, ShoppingCart, Sparkles, Store, UserRound, WalletCards
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
+import { LegalCenter } from '../legal/LegalCenter';
+import { LEGAL_DOCS, LegalDocKey } from '../../legal/legalDocuments';
 
 type View = 'LANDING' | 'LOGIN' | 'REGISTER';
 
@@ -40,6 +42,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{type:'error'|'success'; text:string}|null>(null);
+  const [legalDoc, setLegalDoc] = useState<LegalDocKey | null>(null);
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,6 +145,10 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       ? {type:'error', text:error.message}
       : {type:'success', text:'Enviamos o link de recuperação para seu e-mail.'});
   };
+
+  if (legalDoc) {
+    return <LegalCenter active={legalDoc} onSelect={setLegalDoc} onBack={() => setLegalDoc(null)} />;
+  }
 
   const Feature = ({icon:Icon,title,desc}:{icon:any;title:string;desc:string}) => (
     <div className="p-4 rounded-2xl bg-neutral-900/70 border border-neutral-800/80">
@@ -252,16 +259,40 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                 <Field label="Cidade" value={register.city} onChange={v=>setRegister({...register,city:v})}/>
                 <Field label="UF" value={register.state} onChange={v=>setRegister({...register,state:v.toUpperCase().slice(0,2)})}/>
               </div></section>
-              <label className="flex items-start gap-3 p-3 rounded-xl bg-neutral-950/60 border border-neutral-800 text-xs text-neutral-400"><input type="checkbox" checked={register.accepted} onChange={e=>setRegister({...register,accepted:e.target.checked})} className="mt-0.5"/><span>Confirmo que os dados são verdadeiros e aceito os termos de uso e tratamento dos dados necessários para operação do Adega Pro.</span></label>
+              <div className="p-3.5 rounded-xl bg-neutral-950/60 border border-neutral-800 text-xs text-neutral-400 space-y-3">
+                <label className="flex items-start gap-3">
+                  <input type="checkbox" checked={register.accepted} onChange={e=>setRegister({...register,accepted:e.target.checked})} className="mt-0.5"/>
+                  <span>
+                    Declaro que os dados são verdadeiros e que li e concordo com os documentos contratuais vigentes do ADEGA PRO. O aceite definitivo será registrado de forma versionada após a autenticação.
+                  </span>
+                </label>
+                <div className="flex flex-wrap gap-x-3 gap-y-2 text-[11px]">
+                  {(Object.keys(LEGAL_DOCS) as LegalDocKey[]).map(key => (
+                    <button key={key} type="button" onClick={() => setLegalDoc(key)} className="text-amber-400 hover:text-amber-300 underline underline-offset-2">
+                      {LEGAL_DOCS[key].shortTitle}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="flex flex-col sm:flex-row gap-3"><button disabled={busy} className="sm:flex-1 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black">{busy?'Criando conta...':'Criar conta e cadastrar adega'}</button><button type="button" onClick={()=>setView('LOGIN')} className="px-5 py-3.5 rounded-xl border border-neutral-700 bg-neutral-950 text-sm font-bold">Já tenho conta</button></div>
             </form>
           </div>
         </main>
       )}
 
-      <footer className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 py-5 border-t border-neutral-900 text-[11px] text-neutral-500 flex flex-col sm:flex-row gap-2 items-center justify-between">
-        <span>© {new Date().getFullYear()} ADEGA PRO · Software de gestão.</span>
-        <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="hover:text-amber-400">Desenvolvido por ATR Studio · atrstudio.com.br</a>
+      <footer className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 py-5 border-t border-neutral-900 text-[11px] text-neutral-500 flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 items-center justify-between w-full">
+          <span>© {new Date().getFullYear()} ADEGA PRO · Software de gestão.</span>
+          <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="hover:text-amber-400">ATR Studio Design ME · CNPJ 54.173.829/0001-50 · atrstudio.com.br</a>
+        </div>
+        <div className="flex flex-wrap justify-center sm:justify-start gap-x-3 gap-y-1">
+          {(Object.keys(LEGAL_DOCS) as LegalDocKey[]).map(key => (
+            <button key={key} type="button" onClick={() => setLegalDoc(key)} className="hover:text-amber-400">
+              {LEGAL_DOCS[key].shortTitle}
+            </button>
+          ))}
+          <span>· atrstudiodesign@gmail.com · +55 11 93902-6928</span>
+        </div>
       </footer>
     </div>
   );
