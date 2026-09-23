@@ -24,7 +24,7 @@ export const StoreProfileView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto bg-neutral-950">
       <div className="max-w-6xl mx-auto space-y-5">
         <div className="pb-4 border-b border-neutral-800">
           <h1 className="text-xl font-black text-white flex items-center gap-2">
