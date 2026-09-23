@@ -92,7 +92,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
@@ -110,7 +110,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
             <>
               <button
                 onClick={() => setIsSangriaModal(true)}
-                className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 text-rose-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+                className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 text-rose-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <ArrowUpRight size={15} />
                 <span>Sangria (Retirada)</span>
@@ -118,7 +118,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
 
               <button
                 onClick={() => setIsSuprimentoModal(true)}
-                className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 text-emerald-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+                className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 text-emerald-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <ArrowDownLeft size={15} />
                 <span>Suprimento (Entrada)</span>
@@ -129,7 +129,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
                   setCountedCash(0);
                   setIsCloseModal(true);
                 }}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md cursor-pointer transition-colors"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md cursor-pointer transition-colors"
               >
                 <Lock size={15} />
                 <span>Fechar Caixa (Conferência Cega)</span>
@@ -141,7 +141,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
                 setInitialCash(100);
                 setIsOpenModal(true);
               }}
-              className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-colors"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-colors"
             >
               <Unlock size={16} />
               <span>Abrir Sessão de Caixa</span>
@@ -185,7 +185,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
           </div>
 
           {/* Quick Metrics of this Session */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4">
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 lg:grid-cols-5 gap-3 pt-4">
             <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800/80">
               <div className="text-[10px] text-neutral-500 font-bold uppercase">Fundo Inicial</div>
               <div className="text-base font-mono font-bold text-white">
@@ -382,7 +382,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
       {/* MODAL: Open Cash Session */}
       {isOpenModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Unlock size={18} className="text-amber-400" />
@@ -445,7 +445,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
       {/* MODAL: Sangria */}
       {isSangriaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <ArrowUpRight size={18} className="text-rose-400" />
@@ -510,7 +510,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
       {/* MODAL: Suprimento */}
       {isSuprimentoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <ArrowDownLeft size={18} className="text-emerald-400" />
@@ -571,7 +571,7 @@ export const CashView: React.FC<CashViewProps> = ({ currentUser, onSessionUpdate
       {/* MODAL: Blind Cash Closing */}
       {isCloseModal && currentSession && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Lock size={18} className="text-rose-400" />
