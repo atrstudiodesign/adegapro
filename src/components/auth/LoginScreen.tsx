@@ -80,11 +80,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
     }
   };
 
-  const handleQuickLogin = (user: User) => {
-    setSelectedUser(user);
-    verifyPin(user.pin, user);
-  };
-
   return (
     <div className="min-h-screen bg-neutral-950 text-white flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950 relative overflow-hidden">
       {/* Background Ambience & Lighting */}
@@ -323,20 +318,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
             </button>
           </div>
 
-          {/* Fast Unlock Helper / Direct Entry */}
-          <div className="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between gap-2">
-            <button
-              onClick={() => handleQuickLogin(selectedUser)}
-              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Acessar como {selectedUser.name.split(' ')[0]}</span>
-              <ArrowRight size={15} />
-            </button>
-          </div>
-
-          <div className="text-center mt-2.5">
+          {/* Security notice */}
+          <div className="mt-4 pt-3 border-t border-neutral-800 text-center">
             <span className="text-[10px] text-neutral-500 font-mono">
-              PIN Padrão: {selectedUser.pin} (Demonstração / Testes)
+              Digite o PIN completo para autenticar. O sistema não exibe nem preenche PINs automaticamente.
             </span>
           </div>
         </div>
@@ -348,8 +333,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
           <ShieldCheck size={14} className="text-amber-500" />
           <span>ADEGA PRO · Terminal Homologado e Criptografado</span>
         </div>
-        <div className="font-mono text-[10px]">
-          Frente de Loja · Versão 1.0.0 Produção · Atendimento 24h
+        <div className="flex flex-wrap items-center justify-center gap-2 font-mono text-[10px]">
+          <span>Frente de Loja · Versão 1.0.0</span>
+          <span>·</span>
+          <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="text-amber-400 hover:text-amber-300">
+            Desenvolvido por ATR Studio · atrstudio.com.br
+          </a>
         </div>
       </footer>
     </div>
