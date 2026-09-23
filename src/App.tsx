@@ -42,6 +42,7 @@ export default function App() {
   const [saasReady, setSaasReady] = useState(false);
   const [saasAuthenticated, setSaasAuthenticated] = useState(false);
   const [demoAccessGranted, setDemoAccessGranted] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -201,6 +202,7 @@ export default function App() {
         onUserChanged={handleUserChanged}
         currentSession={currentSession}
         onLock={() => setIsLocked(true)}
+        onMenuToggle={() => setMobileNavOpen(v => !v)}
       />
 
       {/* Main Workspace: Sidebar + Dynamic Module View */}
@@ -210,9 +212,11 @@ export default function App() {
           currentTab={currentTab}
           onNavigate={tab => setCurrentTab(tab)}
           currentUser={currentUser}
+          mobileOpen={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
         />
 
-        <main className="flex-1 flex flex-col overflow-hidden bg-neutral-950">
+        <main className="app-content flex-1 min-w-0 flex flex-col overflow-hidden bg-neutral-950">
           {currentTab === 'dashboard' && (
             <DashboardView
               onNavigate={tab => setCurrentTab(tab)}
