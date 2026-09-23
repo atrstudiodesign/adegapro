@@ -134,7 +134,7 @@ export const EmployeesView: React.FC = () => {
                 <KeyRound size={16} className="text-amber-400" />
                 <span className="text-neutral-400">PIN de Autenticação Rápida:</span>
                 <span className="font-mono font-bold text-white tracking-widest bg-neutral-800 px-2 py-0.5 rounded">
-                  {u.pin}
+                  {'••••'}
                 </span>
               </div>
 
