@@ -21,7 +21,8 @@ import {
   TrendingUp,
   Zap,
   Lock,
-  Headphones
+  Headphones,
+  Store as StoreIcon
 } from 'lucide-react';
 import { User } from '../../types';
 
@@ -92,6 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'reports', label: 'Centro de Relatórios', icon: BarChart3, permission: 'reports.view' },
         { id: 'audit', label: 'Log de Auditoria', icon: ShieldCheck, permission: 'reports.view' },
         { id: 'integrations', label: 'Integrações (PIX/TEF)', icon: Cable, permission: 'settings.edit' },
+        { id: 'store-profile', label: 'Cadastro da Adega', icon: StoreIcon, permission: 'settings.edit' },
         { id: 'settings', label: 'Configurações Loja', icon: Settings, permission: 'settings.edit' },
         { id: 'support', label: 'Suporte ATR Studio', icon: Headphones, permission: null }
       ]
