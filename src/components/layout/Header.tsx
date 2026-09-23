@@ -101,29 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>{currentUser.role === 'CAIXA' ? 'Mini Dash do Caixa' : 'Retornar ao Painel'}</span>
           </button>
         )}
-
-        {/* Quick User / Role Switcher for instant testing */}
-        <div className="relative">
-          <select
-            value={currentUser.id}
-            onChange={e => {
-              const selected = db.getUsers().find(u => u.id === e.target.value);
-              if (selected) {
-                db.setCurrentUser(selected);
-                onUserChanged(selected);
-              }
-            }}
-            className="bg-neutral-800/90 hover:bg-neutral-800 text-neutral-200 text-xs rounded-xl px-2.5 py-2 border border-neutral-700/80 focus:outline-none focus:border-amber-400 cursor-pointer font-medium max-w-[140px] sm:max-w-none"
-            title="Alternar perfil de usuário (Super Admin / Frente de Caixa)"
-          >
-            {db.getUsers().map(u => (
-              <option key={u.id} value={u.id} className="bg-neutral-900 text-white">
-                {u.name} ({u.role === 'ADMINISTRADOR' ? 'Super Admin' : u.role === 'CAIXA' ? 'Frente Caixa' : u.role})
-              </option>
-            ))}
-          </select>
-        </div>
-
+        {/* User changes must always pass through PIN authentication */}
         {/* Change Cashier / User via PIN */}
         <button
           onClick={() => setShowPinModal(true)}
