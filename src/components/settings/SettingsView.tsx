@@ -55,7 +55,7 @@ export const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       <div className="pb-4 border-b border-neutral-800">
         <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
           <Settings size={22} className="text-amber-400" />
