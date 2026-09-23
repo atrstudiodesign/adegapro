@@ -28,6 +28,7 @@ import { StoreProfileView } from './components/store/StoreProfileView';
 import { SupportView } from './components/support/SupportView';
 import { DigitalReceiptView } from './components/receipt/DigitalReceiptView';
 import { LoginScreen } from './components/auth/LoginScreen';
+import { AppMode, getAppMode, setAppMode } from './services/appMode';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -35,6 +36,7 @@ export default function App() {
   const [currentSession, setCurrentSession] = useState<CashSession | undefined>(db.getCurrentSession());
   const [receiptHashId, setReceiptHashId] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [appMode, setCurrentAppMode] = useState<AppMode>(() => getAppMode());
 
   // Monitor URL hash for public digital receipt routing: #/comprovante/:id
   useEffect(() => {
@@ -55,6 +57,12 @@ export default function App() {
 
   const handleSessionUpdated = () => {
     setCurrentSession(db.getCurrentSession());
+  };
+
+  const handleModeChange = (mode: AppMode) => {
+    setAppMode(mode);
+    setCurrentAppMode(mode);
+    setCurrentTab('dashboard');
   };
 
   const handleUserChanged = (user: User) => {
@@ -112,6 +120,11 @@ export default function App() {
           </div>
         </div>
       </div>
+      {appMode === 'DEMO' && (
+        <div className="bg-violet-600 text-white text-[11px] font-black tracking-[0.18em] uppercase text-center py-1.5 border-b border-violet-400/30">
+          Modo Demonstração · Dados fictícios e isolados · Não altera o banco real
+        </div>
+      )}
       {/* Universal Top Bar */}
       <Header
         currentTab={currentTab}
@@ -132,7 +145,13 @@ export default function App() {
         />
 
         <main className="flex-1 flex flex-col overflow-hidden bg-neutral-950">
-          {currentTab === 'dashboard' && <DashboardView onNavigate={tab => setCurrentTab(tab)} />}
+          {currentTab === 'dashboard' && (
+            <DashboardView
+              onNavigate={tab => setCurrentTab(tab)}
+              appMode={appMode}
+              onChangeMode={handleModeChange}
+            />
+          )}
           {currentTab === 'minidash' && (
             <CashierMiniDashView
               currentUser={currentUser}
