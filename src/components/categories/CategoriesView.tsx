@@ -16,7 +16,7 @@ export const CategoriesView: React.FC = () => {
     })), [categories, products, search]);
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-5 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-5 bg-neutral-950">
       <div className="flex items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
           <h1 className="text-xl font-black text-white flex items-center gap-2">
