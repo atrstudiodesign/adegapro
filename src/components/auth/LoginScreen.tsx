@@ -81,13 +81,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950 relative overflow-hidden">
+    <div className="min-h-dvh bg-neutral-950 text-white flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950 relative overflow-x-hidden overflow-y-auto">
       {/* Background Ambience & Lighting */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-600/10 via-neutral-950 to-neutral-950 pointer-events-none" />
       <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-amber-500/10 blur-[130px] rounded-full pointer-events-none" />
 
       {/* Top Bar with Store Status & Live Clock */}
-      <header className="relative z-10 w-full px-6 py-4 flex items-center justify-between border-b border-neutral-900 bg-neutral-950/60 backdrop-blur-md">
+      <header className="relative z-10 w-full px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3 border-b border-neutral-900 bg-neutral-950/60 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl overflow-hidden border border-amber-500/30 bg-neutral-900 shadow-md">
             <img
@@ -108,7 +108,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 sm:gap-6">
           <div className="hidden sm:flex items-center gap-2 text-xs">
             <span className="text-neutral-500">Status Caixa:</span>
             {currentSession ? (
@@ -132,12 +132,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
       </header>
 
       {/* Main Front Content */}
-      <main className="relative z-10 flex-1 flex flex-col lg:flex-row items-center justify-center p-6 gap-8 max-w-7xl mx-auto w-full">
+      <main className="relative z-10 flex-1 flex flex-col lg:flex-row items-center justify-center p-3 sm:p-6 gap-5 lg:gap-8 max-w-7xl mx-auto w-full">
         {/* Left Side: Stunning ADEGA PRO Brand Artwork & Pillars */}
         <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl">
           {/* Logo Showcase with Amber Aura */}
           <div className="relative mb-6">
-            <div className="w-48 sm:w-56 md:w-64 aspect-square rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.25)] border-2 border-amber-500/40 bg-neutral-900 group">
+            <div className="w-36 min-[420px]:w-44 sm:w-56 md:w-64 aspect-square rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.25)] border-2 border-amber-500/40 bg-neutral-900 group">
               <img
                 src="/adega-pro-logo.jpg"
                 alt="ADEGA PRO - Gestão Completa para Adegas e Conveniências"
@@ -197,7 +197,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
         </div>
 
         {/* Right Side: Fast Operator Selection & Security PIN Keypad */}
-        <div className="w-full max-w-md bg-neutral-900/90 border border-neutral-800/90 rounded-3xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl relative">
+        <div className="w-full max-w-md bg-neutral-900/90 border border-neutral-800/90 rounded-3xl p-4 sm:p-7 shadow-2xl backdrop-blur-xl relative">
           <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
             <div>
               <h2 className="text-base font-extrabold text-white flex items-center gap-2">
@@ -216,7 +216,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
             <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">
               Selecione o Operador
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
               {users.map(u => {
                 const isSelected = selectedUser.id === u.id;
                 return (
@@ -328,7 +328,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
       </main>
 
       {/* Footer Info */}
-      <footer className="relative z-10 w-full px-6 py-3 border-t border-neutral-900 bg-neutral-950/70 text-center text-[11px] text-neutral-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="relative z-10 w-full px-3 sm:px-6 py-3 border-t border-neutral-900 bg-neutral-950/70 text-center text-[11px] text-neutral-500 flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ShieldCheck size={14} className="text-amber-500" />
           <span>ADEGA PRO · Terminal Homologado e Criptografado</span>
