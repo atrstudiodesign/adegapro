@@ -76,7 +76,7 @@ export const CombosView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
           <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
@@ -249,7 +249,7 @@ export const CombosView: React.FC = () => {
               </div>
 
               {/* Price setting */}
-              <div className="grid grid-cols-2 gap-4 bg-neutral-950 p-3.5 rounded-xl border border-neutral-800">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-neutral-950 p-3.5 rounded-xl border border-neutral-800">
                 <div>
                   <div className="text-xs text-neutral-400 mb-1">Preço Individual Somado</div>
                   <div className="font-mono text-sm text-neutral-300">
