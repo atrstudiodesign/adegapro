@@ -31,12 +31,16 @@ interface SidebarProps {
   onNavigate: (tab: string) => void;
   currentUser: User;
   collapsed?: boolean;
+  mobileOpen?: boolean;
+  onClose?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onNavigate,
-  currentUser
+  currentUser,
+  mobileOpen = false,
+  onClose
 }) => {
   const isSuperAdmin = currentUser.role === 'ADMINISTRADOR' || (currentUser.role as string) === 'SUPER_ADMIN';
   const isCaixa = currentUser.role === 'CAIXA';
@@ -108,8 +112,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const activeGroups = isCaixa ? cashierMenuGroups : fullMenuGroups;
 
+  const navigate = (tab: string) => {
+    onNavigate(tab);
+    onClose?.();
+  };
+
   return (
-    <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col shrink-0 overflow-y-auto select-none">
+    <>
+      {mobileOpen && (
+        <button
+          aria-label="Fechar menu"
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[1px] lg:hidden"
+        />
+      )}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-[86vw] max-w-72 lg:w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col shrink-0 overflow-y-auto select-none shadow-2xl lg:shadow-none transition-transform duration-200 ease-out ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
       {/* Role Profile Badge Indicator */}
       <div className="p-3 mx-3 mt-3 rounded-2xl bg-neutral-950/80 border border-neutral-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -141,7 +160,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               return (
                 <button
                   key={item.id}
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => navigate(item.id)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
                     isActive
                       ? 'bg-amber-500 text-neutral-950 shadow-md font-bold'
@@ -183,6 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };
