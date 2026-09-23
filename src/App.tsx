@@ -24,6 +24,7 @@ import { ReportsView } from './components/reports/ReportsView';
 import { AuditView } from './components/audit/AuditView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
+import { StoreProfileView } from './components/store/StoreProfileView';
 import { SupportView } from './components/support/SupportView';
 import { DigitalReceiptView } from './components/receipt/DigitalReceiptView';
 import { LoginScreen } from './components/auth/LoginScreen';
@@ -156,6 +157,7 @@ export default function App() {
           {currentTab === 'reports' && <ReportsView />}
           {currentTab === 'audit' && <AuditView />}
           {currentTab === 'integrations' && <IntegrationsView />}
+          {currentTab === 'store-profile' && <StoreProfileView />}
           {currentTab === 'settings' && <SettingsView />}
           {currentTab === 'support' && <SupportView />}
         </main>
