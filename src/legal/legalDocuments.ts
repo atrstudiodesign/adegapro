@@ -5,13 +5,13 @@ export type LegalDocKey =
   | 'software_license'
   | 'legal_notice';
 
-export const LEGAL_VERSION = '2026.09.23';
+export const LEGAL_VERSION = '2026.09.23-r2';
 export const LEGAL_EFFECTIVE_DATE = '23 de setembro de 2026';
 
 export const LEGAL_PROVIDER = {
-  tradeName: 'ATR Studio Design',
-  legalName: 'ATR Studio Design ME',
-  cnpj: '54.173.829/0001-50',
+  tradeName: 'ATR Studio',
+  legalName: 'ATR STUDIO DESIGNER E ASSESSORIA INOVA SIMPLES I.S. - ME',
+  cnpj: '57.514.866/0001-38',
   website: 'https://atrstudio.com.br',
   email: 'atrstudiodesign@gmail.com',
   whatsapp: '+55 11 93902-6928',
@@ -32,7 +32,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
       {
         title: '1. Identificação, objeto e aceite',
         paragraphs: [
-          'Estes Termos disciplinam o acesso e a utilização do software ADEGA PRO, plataforma de gestão destinada a adegas, conveniências e operações correlatas, disponibilizada pela ATR Studio Design ME, CNPJ 54.173.829/0001-50.',
+          'Estes Termos disciplinam o acesso e a utilização do software ADEGA PRO, plataforma de gestão destinada a adegas, conveniências e operações correlatas, disponibilizada pela ATR STUDIO DESIGNER E ASSESSORIA INOVA SIMPLES I.S. - ME, CNPJ 57.514.866/0001-38.',
           'O aceite eletrônico, a criação de conta, o início de uma assinatura ou a utilização do ambiente de produção representa concordância com estes Termos, com a Política de Privacidade, a Política de Assinaturas, a Licença de Uso e o Aviso Legal vigentes na data do aceite.',
           'O usuário declara possuir capacidade civil e, quando agir em nome de pessoa jurídica, poderes suficientes para vinculá-la às condições contratadas.'
         ]
@@ -95,7 +95,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
       {
         title: '1. Papéis de tratamento e escopo',
         paragraphs: [
-          'A ATR Studio Design ME trata dados pessoais necessários à criação de conta, autenticação, suporte, segurança, faturamento, prevenção a fraudes, administração da assinatura e operação técnica do ADEGA PRO.',
+          'A ATR STUDIO DESIGNER E ASSESSORIA INOVA SIMPLES I.S. - ME trata dados pessoais necessários à criação de conta, autenticação, suporte, segurança, faturamento, prevenção a fraudes, administração da assinatura e operação técnica do ADEGA PRO.',
           'Quanto aos dados inseridos pelo estabelecimento sobre seus próprios clientes, funcionários e fornecedores, o estabelecimento poderá atuar como controlador e a ATR Studio como operadora, conforme a finalidade concreta e as instruções legítimas recebidas.',
           'O tratamento observará finalidade, adequação, necessidade, livre acesso, qualidade, transparência, segurança, prevenção, não discriminação e responsabilização.'
         ]
@@ -232,7 +232,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
       {
         title: '3. Contato e comunicações legais',
         paragraphs: [
-          'ATR Studio Design ME — CNPJ 54.173.829/0001-50 — São Paulo/SP — Brasil.',
+          'ATR STUDIO DESIGNER E ASSESSORIA INOVA SIMPLES I.S. - ME — CNPJ 57.514.866/0001-38 — São Paulo/SP — Brasil.',
           'Site: atrstudio.com.br — E-mail: atrstudiodesign@gmail.com — WhatsApp: +55 11 93902-6928.',
           'Comunicações contratuais, solicitações de privacidade e notificações técnicas poderão ser registradas pelos canais oficiais indicados acima e pelo módulo de suporte do sistema.'
         ]
