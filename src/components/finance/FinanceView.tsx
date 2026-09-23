@@ -73,7 +73,7 @@ export const FinanceView: React.FC = () => {
   const totalReceberPendente = receivables.filter(r => r.status === 'PENDENTE').reduce((acc, r) => acc + r.amount, 0);
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
           <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
@@ -102,7 +102,7 @@ export const FinanceView: React.FC = () => {
       )}
 
       {/* Financial Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
           <div className="text-[10px] font-bold text-neutral-500 uppercase">Total a Pagar (Pendente)</div>
           <div className="text-2xl font-black font-mono text-rose-400 mt-1">
@@ -360,7 +360,7 @@ export const FinanceView: React.FC = () => {
       {/* MODAL: New Payable */}
       {isNewPayableModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-4 sm:p-6 shadow-2xl max-h-[94dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <h3 className="text-base font-bold text-white">Cadastrar Conta a Pagar</h3>
               <button onClick={() => setIsNewPayableModal(false)} className="text-neutral-400 hover:text-white">
@@ -381,7 +381,7 @@ export const FinanceView: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">Valor (R$) *</label>
                   <input
