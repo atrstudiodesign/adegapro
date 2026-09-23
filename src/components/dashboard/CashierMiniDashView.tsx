@@ -287,7 +287,7 @@ export const CashierMiniDashView: React.FC<CashierMiniDashViewProps> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 pt-1">
             {/* Dinheiro */}
             <div className="p-3.5 rounded-2xl bg-neutral-950/80 border border-neutral-800 flex flex-col justify-between">
               <div className="flex items-center justify-between text-neutral-400 text-xs">
@@ -510,7 +510,7 @@ export const CashierMiniDashView: React.FC<CashierMiniDashViewProps> = ({
       {/* MODAL: Sangria / Suprimento */}
       {activeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-neutral-900 border border-neutral-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 text-white space-y-4">
+          <div className="bg-neutral-900 border border-neutral-700 rounded-3xl w-full max-w-md overflow-y-auto max-h-[94dvh] shadow-2xl p-4 sm:p-6 text-white space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
               <div className="flex items-center gap-2.5">
                 <div
