@@ -9,12 +9,14 @@ import { PosScreen } from './components/pos/PosScreen';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { CashierMiniDashView } from './components/dashboard/CashierMiniDashView';
 import { ProductsView } from './components/products/ProductsView';
+import { CategoriesView } from './components/categories/CategoriesView';
 import { CombosView } from './components/combos/CombosView';
 import { StockView } from './components/stock/StockView';
 import { InventoryView } from './components/inventory/InventoryView';
 import { CashView } from './components/cash/CashView';
 import { SalesHistoryView } from './components/sales/SalesHistoryView';
 import { PurchasesView } from './components/purchases/PurchasesView';
+import { SuppliersView } from './components/suppliers/SuppliersView';
 import { FinanceView } from './components/finance/FinanceView';
 import { CustomersView } from './components/customers/CustomersView';
 import { EmployeesView } from './components/employees/EmployeesView';
@@ -22,6 +24,7 @@ import { ReportsView } from './components/reports/ReportsView';
 import { AuditView } from './components/audit/AuditView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
+import { SupportView } from './components/support/SupportView';
 import { DigitalReceiptView } from './components/receipt/DigitalReceiptView';
 import { LoginScreen } from './components/auth/LoginScreen';
 
@@ -138,7 +141,7 @@ export default function App() {
           )}
           {currentTab === 'sales' && <SalesHistoryView currentUser={currentUser} />}
           {currentTab === 'products' && <ProductsView />}
-          {currentTab === 'categories' && <ProductsView />}
+          {currentTab === 'categories' && <CategoriesView />}
           {currentTab === 'combos' && <CombosView />}
           {currentTab === 'stock' && <StockView />}
           {currentTab === 'inventory' && <InventoryView />}
@@ -148,12 +151,13 @@ export default function App() {
           {currentTab === 'purchases' && <PurchasesView />}
           {currentTab === 'finance' && <FinanceView />}
           {currentTab === 'customers' && <CustomersView />}
-          {currentTab === 'suppliers' && <PurchasesView />}
+          {currentTab === 'suppliers' && <SuppliersView />}
           {currentTab === 'employees' && <EmployeesView />}
           {currentTab === 'reports' && <ReportsView />}
           {currentTab === 'audit' && <AuditView />}
           {currentTab === 'integrations' && <IntegrationsView />}
           {currentTab === 'settings' && <SettingsView />}
+          {currentTab === 'support' && <SupportView />}
         </main>
       </div>
     </div>
