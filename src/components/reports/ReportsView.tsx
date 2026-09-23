@@ -72,7 +72,7 @@ export const ReportsView: React.FC = () => {
   const lucroLiquido = lucroBruto - despesasOperacionais;
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
           <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
@@ -94,7 +94,7 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* Report Type Selector */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-2.5">
         {[
           { id: 'VENDAS_PERIODO', label: 'Vendas & Cupons', icon: Calendar },
           { id: 'PRODUTOS_LUCRO', label: 'Margem & Lucro Rótulos', icon: TrendingUp },
@@ -122,7 +122,7 @@ export const ReportsView: React.FC = () => {
 
       {/* Report Render Area */}
       {reportType === 'DRE_SIMPLIFICADO' ? (
-        <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl max-w-2xl space-y-4">
+        <div className="p-4 sm:p-6 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl max-w-2xl space-y-4">
           <h3 className="text-base font-bold text-white pb-3 border-b border-neutral-800">
             Demonstrativo de Resultado do Exercício (DRE Simplificado)
           </h3>
