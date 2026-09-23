@@ -28,7 +28,9 @@ import { StoreProfileView } from './components/store/StoreProfileView';
 import { SupportView } from './components/support/SupportView';
 import { DigitalReceiptView } from './components/receipt/DigitalReceiptView';
 import { LoginScreen } from './components/auth/LoginScreen';
+import { SaasAccessScreen } from './components/auth/SaasAccessScreen';
 import { AppMode, getAppMode, setAppMode } from './services/appMode';
+import { supabase } from './services/supabase';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -37,6 +39,39 @@ export default function App() {
   const [receiptHashId, setReceiptHashId] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [appMode, setCurrentAppMode] = useState<AppMode>(() => getAppMode());
+  const [saasReady, setSaasReady] = useState(false);
+  const [saasAuthenticated, setSaasAuthenticated] = useState(false);
+  const [demoAccessGranted, setDemoAccessGranted] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      const hasSession = Boolean(data.session);
+      setSaasAuthenticated(hasSession);
+      if (hasSession) {
+        setAppMode('PRODUCTION');
+        setCurrentAppMode('PRODUCTION');
+        setIsLocked(true);
+      }
+      setSaasReady(true);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      const hasSession = Boolean(session);
+      setSaasAuthenticated(hasSession);
+      if (!hasSession && appMode === 'PRODUCTION') {
+        setSaasReady(true);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   // Monitor URL hash for public digital receipt routing: #/comprovante/:id
   useEffect(() => {
@@ -84,6 +119,39 @@ export default function App() {
       }
     }
   }, [currentUser.role, currentTab]);
+
+  if (!saasReady) {
+    return (
+      <div className="min-h-screen bg-neutral-950 text-white grid place-items-center">
+        <div className="text-center">
+          <img src="/adega-pro-icon.jpg" alt="Adega Pro" className="w-14 h-14 rounded-2xl mx-auto mb-4 border border-amber-500/30" />
+          <div className="font-black">ADEGA <span className="text-amber-400">PRO</span></div>
+          <div className="text-xs text-neutral-500 mt-1">Preparando ambiente seguro...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!saasAuthenticated && !demoAccessGranted && !receiptHashId) {
+    return (
+      <SaasAccessScreen
+        onDemo={() => {
+          setAppMode('DEMO');
+          setCurrentAppMode('DEMO');
+          setDemoAccessGranted(true);
+          setIsLocked(false);
+          setCurrentTab('dashboard');
+        }}
+        onAuthenticated={() => {
+          setAppMode('PRODUCTION');
+          setCurrentAppMode('PRODUCTION');
+          setSaasAuthenticated(true);
+          setDemoAccessGranted(false);
+          setIsLocked(true);
+        }}
+      />
+    );
+  }
 
   // If a public customer opens the digital receipt URL
   if (receiptHashId) {
