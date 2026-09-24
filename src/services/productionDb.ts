@@ -385,6 +385,68 @@ async function settleCustomerCredit(customerId: string, amount: number, paymentM
   return data;
 }
 
+async function getCombos() {
+  const ctx = await getContext();
+  const { data: combos, error } = await supabase
+    .from('combos')
+    .select('id,tenant_id,product_id,name,price,active,valid_until,created_at,updated_at')
+    .eq('tenant_id', ctx.tenantId)
+    .order('name');
+  if (error) throw error;
+
+  const ids = (combos || []).map((x:any) => x.id);
+  let items:any[] = [];
+  if (ids.length) {
+    const { data, error: itemsError } = await supabase
+      .from('combo_items')
+      .select('combo_id,product_id,quantity')
+      .in('combo_id', ids);
+    if (itemsError) throw itemsError;
+    items = data || [];
+  }
+
+  const products = await getProducts();
+  const productMap = new Map(products.map(p => [p.id, p]));
+  return (combos || []).map((row:any) => {
+    const comboItems = items.filter(i => i.combo_id === row.id).map(i => ({
+      productId: i.product_id,
+      quantity: Number(i.quantity || 0)
+    }));
+    const originalPrice = comboItems.reduce((sum, item) => {
+      const p = productMap.get(item.productId);
+      return sum + (p ? p.salePrice * item.quantity : 0);
+    }, 0);
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      productId: row.product_id,
+      name: row.name,
+      price: Number(row.price || 0),
+      originalPrice,
+      items: comboItems,
+      active: Boolean(row.active),
+      validUntil: row.valid_until || undefined
+    };
+  });
+}
+
+async function saveCombo(input: { id?: string; name: string; price: number; items: Array<{productId:string; quantity:number}>; active?: boolean; validUntil?: string }) {
+  const ctx = await getContext();
+  const { data, error } = await supabase.rpc('save_combo', {
+    p_payload: {
+      id: input.id || null,
+      store_id: ctx.storeId,
+      name: input.name,
+      price: input.price,
+      active: input.active ?? true,
+      valid_until: input.validUntil || null,
+      items: input.items.map(i => ({ product_id: i.productId, quantity: i.quantity }))
+    }
+  });
+  if (error) throw error;
+  return data as string;
+}
+
 async function getInventoryAudits(limit = 100) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -752,6 +814,8 @@ export const productionDb = {
   settleCustomerCredit,
   getProducts,
   saveProduct,
+  getCombos,
+  saveCombo,
   getInventoryAudits,
   startInventoryAudit,
   finalizeInventoryAudit,
