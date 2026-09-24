@@ -46,6 +46,12 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   const [message, setMessage] = useState<{type:'error'|'success'; text:string}|null>(null);
   const [legalDoc, setLegalDoc] = useState<LegalDocKey | null>(null);
 
+  const navigateMarketing = (path: '/recursos'|'/produtos'|'/integracoes'|'/planos') => {
+    window.history.pushState({}, '', path);
+    const id = path.slice(1);
+    requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+
   const checkRateLimit = async (action: 'login'|'signup'|'recovery', identifier: string) => {
     const { data, error } = await supabase.functions.invoke('auth-rate-limit', {
       body: { action, identifier: identifier.trim().toLowerCase() }
@@ -189,10 +195,10 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             <img src="/adega-pro-logo.jpg" alt="ADEGA PRO" className="h-11 w-auto max-w-[190px] object-contain rounded-lg"/>
           </button>
           <nav className="hidden lg:flex items-center gap-7 text-[12px] font-bold text-neutral-400">
-            <a href="#recursos" className="hover:text-amber-400 transition-colors">Recursos</a>
-            <a href="#produtos" className="hover:text-amber-400 transition-colors">Produtos</a>
-            <a href="#integracoes" className="hover:text-amber-400 transition-colors">Integrações</a>
-            <a href="#planos" className="hover:text-amber-400 transition-colors">Planos</a>
+            <button type="button" onClick={() => navigateMarketing('/recursos')} className="hover:text-amber-400 transition-colors">Recursos</button>
+            <button type="button" onClick={() => navigateMarketing('/produtos')} className="hover:text-amber-400 transition-colors">Produtos</button>
+            <button type="button" onClick={() => navigateMarketing('/integracoes')} className="hover:text-amber-400 transition-colors">Integrações</button>
+            <button type="button" onClick={() => navigateMarketing('/planos')} className="hover:text-amber-400 transition-colors">Planos</button>
           </nav>
           <div className="flex items-center gap-2">
             <button onClick={() => setView('LOGIN')} className="hidden sm:block px-4 py-2.5 text-xs font-bold text-neutral-300 hover:text-white">Entrar</button>
