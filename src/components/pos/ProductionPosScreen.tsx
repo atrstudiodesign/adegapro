@@ -15,7 +15,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   useEffect(()=>{void load();},[]);
   const results=useMemo(()=>{const q=query.trim().toLowerCase();if(!q)return [];return products.filter(p=>p.name.toLowerCase().includes(q)||p.barcode.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)).slice(0,12);},[query,products]);
   const subtotal=cart.reduce((s,l)=>s+l.product.salePrice*l.quantity,0); const total=Math.max(0,subtotal-discount);
-  const add=(p:Product)=>{if(p.isCombo){setError('Combos ainda não estão liberados em produção até o estoque de componentes ser configurado.');return;}if(p.currentStock<=0){setError('Produto sem estoque.');return;}setCart(prev=>{const hit=prev.find(x=>x.product.id===p.id);return hit?prev.map(x=>x.product.id===p.id?{...x,quantity:x.quantity+1}:x):[...prev,{product:p,quantity:1}]});setQuery('');setError('');};
+  const add=(p:Product)=>{if(!p.isCombo&&p.currentStock<=0){setError('Produto sem estoque.');return;}setCart(prev=>{const hit=prev.find(x=>x.product.id===p.id);return hit?prev.map(x=>x.product.id===p.id?{...x,quantity:x.quantity+1}:x):[...prev,{product:p,quantity:1}]});setQuery('');setError('');};
   const qty=(id:string,d:number)=>setCart(prev=>prev.map(x=>x.product.id===id?{...x,quantity:Math.max(0,x.quantity+d)}:x).filter(x=>x.quantity>0));
   const finalize=async()=>{
     if(!currentSession){setError('Abra uma sessão de caixa antes de vender.');return;} if(cart.length===0||total<=0)return;
