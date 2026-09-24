@@ -379,6 +379,43 @@ async function settleCustomerCredit(customerId: string, amount: number, paymentM
   return data;
 }
 
+async function getInventoryAudits(limit = 100) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('inventory_audits')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .order('opened_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+async function startInventoryAudit(notes?: string) {
+  const ctx = await getContext();
+  const token = getOperatorToken();
+  if (!token) throw new Error('Sessão do operador não encontrada.');
+  const { data, error } = await supabase.rpc('start_inventory_audit', {
+    p_store_id: ctx.storeId,
+    p_operator_token: token,
+    p_notes: notes || null
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+async function finalizeInventoryAudit(auditId: string, counts: Array<{ product_id: string; counted_qty: number }>) {
+  const token = getOperatorToken();
+  if (!token) throw new Error('Sessão do operador não encontrada.');
+  const { data, error } = await supabase.rpc('finalize_inventory_audit', {
+    p_audit_id: auditId,
+    p_operator_token: token,
+    p_counts: counts
+  });
+  if (error) throw error;
+  return data;
+}
+
 async function getPurchases(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -688,6 +725,9 @@ export const productionDb = {
   settleCustomerCredit,
   getProducts,
   saveProduct,
+  getInventoryAudits,
+  startInventoryAudit,
+  finalizeInventoryAudit,
   getPurchases,
   confirmPurchase,
   getAccountsPayable,
