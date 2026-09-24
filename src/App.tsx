@@ -298,9 +298,9 @@ export default function App() {
           {currentTab === 'reports' && <ReportsView />}
           {currentTab === 'audit' && <AuditView />}
           {currentTab === 'integrations' && <IntegrationsView />}
-          {currentTab === 'store-profile' && <StoreProfileView />}
+          {currentTab === 'store-profile' && <StoreProfileView appMode={appMode} />}
           {currentTab === 'settings' && <SettingsView />}
-          {currentTab === 'support' && <SupportView />}
+          {currentTab === 'support' && <SupportView appMode={appMode} />}
           {currentTab === 'legal' && (
             <LegalCenter
               active={legalDoc}
