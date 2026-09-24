@@ -1,7 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, UserPlus } from 'lucide-react';
-import { supabase } from '../../services/supabase';
-import { productionDb } from '../../services/productionDb';
+import { platformSupabase } from '../../services/platformSupabase';
+import { platformDb } from '../../services/platformDb';
 import { PlatformControlView } from './PlatformControlView';
 
 export const PlatformAdminAccessScreen:React.FC=()=>{
@@ -17,22 +17,22 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
   const[message,setMessage]=useState('');
 
   const claimAndValidate=async()=>{
-    let ok=await productionDb.isPlatformAdmin();
+    let ok=await platformDb.isPlatformAdmin();
     if(!ok){
-      const {error:claimError}=await supabase.rpc('claim_platform_admin_invite');
+      try{await platformDb.claimPlatformAdminInvite();}catch(claimError:any){throw claimError;}
       if(claimError) throw new Error('Conta autenticada, mas sem autorização administrativa.');
-      ok=await productionDb.isPlatformAdmin();
+      ok=await platformDb.isPlatformAdmin();
     }
     if(!ok) throw new Error('Conta sem privilégio de administrador da plataforma.');
     setAllowed(true);
   };
 
   const validate=async()=>{
-    const {data}=await supabase.auth.getSession();
+    const {data}=await platformSupabase.auth.getSession();
     if(!data.session){setAllowed(false);setReady(true);return;}
     try{await claimAndValidate();}
     catch{
-      await supabase.auth.signOut();
+      await platformSupabase.auth.signOut();
       setAllowed(false);
       setError('Acesso não autorizado para esta conta.');
     }
@@ -44,7 +44,7 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
   const login=async(e:React.FormEvent)=>{
     e.preventDefault();setBusy(true);setError('');setMessage('');
     try{
-      const {error:authError}=await supabase.auth.signInWithPassword({email:email.trim(),password});
+      const {error:authError}=await platformSupabase.auth.signInWithPassword({email:email.trim(),password});
       if(authError)throw authError;
       await claimAndValidate();
     }catch(err:any){
@@ -57,7 +57,7 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
     try{
       if(password.length<8) throw new Error('Crie uma senha com pelo menos 8 caracteres.');
       if(password!==confirmPassword) throw new Error('As senhas não conferem.');
-      const {data,error:signupError}=await supabase.auth.signUp({
+      const {data,error:signupError}=await platformSupabase.auth.signUp({
         email:email.trim(),
         password,
         options:{emailRedirectTo:window.location.origin+'/atr-control'}
@@ -78,7 +78,7 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
 
   if(!ready)return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center"><div className="text-sm text-neutral-500">Validando acesso administrativo...</div></div>;
 
-  if(allowed)return <PlatformControlView onClose={()=>{void supabase.auth.signOut();window.history.pushState({}, '', '/');window.location.reload();}}/>;
+  if(allowed)return <PlatformControlView onClose={()=>{void platformSupabase.auth.signOut();window.history.pushState({}, '', '/');window.location.reload();}}/>;
 
   return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center p-4">
     <div className="w-full max-w-md p-6 sm:p-7 rounded-3xl bg-neutral-900 border border-neutral-800 shadow-2xl">
