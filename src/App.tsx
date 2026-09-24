@@ -48,6 +48,7 @@ export default function App() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [legalCleared, setLegalCleared] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDocKey>('terms_of_use');
+  const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>('LANDING');
 
   useEffect(() => {
     let mounted = true;
@@ -143,12 +144,14 @@ export default function App() {
   if (!saasAuthenticated && !demoAccessGranted && !receiptHashId) {
     return (
       <SaasAccessScreen
+        initialView={saasEntryView}
         onDemo={() => {
           setAppMode('DEMO');
           setCurrentAppMode('DEMO');
           setDemoAccessGranted(true);
           setIsLocked(false);
           setCurrentTab('dashboard');
+          setSaasEntryView('LANDING');
         }}
         onAuthenticated={() => {
           setAppMode('PRODUCTION');
@@ -233,6 +236,19 @@ export default function App() {
               onNavigate={tab => setCurrentTab(tab)}
               appMode={appMode}
               onChangeMode={handleModeChange}
+              onRequestProduction={() => {
+                setAppMode('PRODUCTION');
+                setCurrentAppMode('PRODUCTION');
+                if (saasAuthenticated) {
+                  setDemoAccessGranted(false);
+                  setLegalCleared(false);
+                  setIsLocked(true);
+                } else {
+                  setSaasEntryView('LOGIN');
+                  setDemoAccessGranted(false);
+                  setIsLocked(false);
+                }
+              }}
             />
           )}
           {currentTab === 'minidash' && (
