@@ -528,6 +528,24 @@ async function confirmPurchase(payload: Record<string, unknown>) {
   return data;
 }
 
+async function getExpiryAlerts(days = 30) {
+  const { data, error } = await supabase.rpc('get_expiry_alerts', { p_days: days });
+  if (error) throw error;
+  return data || [];
+}
+
+async function getSaleDetails(saleId: string) {
+  const { data, error } = await supabase.rpc('get_sale_details', { p_sale_id: saleId });
+  if (error) throw error;
+  return data;
+}
+
+async function getPurchaseDetails(purchaseId: string) {
+  const { data, error } = await supabase.rpc('get_purchase_details', { p_purchase_id: purchaseId });
+  if (error) throw error;
+  return data;
+}
+
 async function getAccountsPayable(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -845,9 +863,12 @@ export const productionDb = {
   finalizeInventoryAudit,
   getPurchases,
   confirmPurchase,
+  getPurchaseDetails,
+  getExpiryAlerts,
   getAccountsPayable,
   getAccountsReceivable,
   getSales,
+  getSaleDetails,
   getStockMovements,
   adjustStock,
   getFinancialTransactions,
