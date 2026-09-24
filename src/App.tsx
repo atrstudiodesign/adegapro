@@ -283,7 +283,7 @@ export default function App() {
           )}
           {currentTab === 'sales' && <SalesHistoryView currentUser={currentUser} />}
           {currentTab === 'products' && <ProductsView />}
-          {currentTab === 'categories' && <CategoriesView />}
+          {currentTab === 'categories' && <CategoriesView appMode={appMode} />}
           {currentTab === 'combos' && <CombosView />}
           {currentTab === 'stock' && <StockView />}
           {currentTab === 'inventory' && <InventoryView />}
@@ -293,7 +293,7 @@ export default function App() {
           {currentTab === 'purchases' && <PurchasesView />}
           {currentTab === 'finance' && <FinanceView />}
           {currentTab === 'customers' && <CustomersView />}
-          {currentTab === 'suppliers' && <SuppliersView />}
+          {currentTab === 'suppliers' && <SuppliersView appMode={appMode} />}
           {currentTab === 'employees' && <EmployeesView />}
           {currentTab === 'reports' && <ReportsView />}
           {currentTab === 'audit' && <AuditView />}
