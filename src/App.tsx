@@ -28,12 +28,14 @@ import { StoreProfileView } from './components/store/StoreProfileView';
 import { SupportView } from './components/support/SupportView';
 import { DigitalReceiptView } from './components/receipt/DigitalReceiptView';
 import { LoginScreen } from './components/auth/LoginScreen';
+import { ProductionOperatorLock } from './components/auth/ProductionOperatorLock';
 import { SaasAccessScreen } from './components/auth/SaasAccessScreen';
 import { AppMode, getAppMode, setAppMode } from './services/appMode';
 import { supabase } from './services/supabase';
 import { LegalConsentGate } from './components/legal/LegalConsentGate';
 import { LegalCenter } from './components/legal/LegalCenter';
 import { LegalDocKey } from './legal/legalDocuments';
+import { productionDb } from './services/productionDb';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -183,6 +185,17 @@ export default function App() {
 
   // If screen is locked / Frente de Tela do Sistema
   if (isLocked) {
+    if (appMode === 'PRODUCTION') {
+      return (
+        <ProductionOperatorLock
+          onLogin={(user) => {
+            setCurrentUser(user);
+            setIsLocked(false);
+          }}
+        />
+      );
+    }
+
     return (
       <LoginScreen
         currentSession={currentSession}
@@ -215,7 +228,10 @@ export default function App() {
         currentUser={currentUser}
         onUserChanged={handleUserChanged}
         currentSession={currentSession}
-        onLock={() => setIsLocked(true)}
+        onLock={() => {
+          if (appMode === 'PRODUCTION') void productionDb.revokeOperatorSession();
+          setIsLocked(true);
+        }}
         onMenuToggle={() => setMobileNavOpen(v => !v)}
       />
 
