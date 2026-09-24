@@ -44,7 +44,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     return (
       <div className={`flex items-center select-none ${className}`}>
         <img
-          src="/adega-pro-logo.jpg"
+          src="/adega-pro-brand.svg"
           alt="ADEGA PRO — Sistema para Adegas"
           className={`${dim.heroW} h-auto object-contain`}
           referrerPolicy="no-referrer"
@@ -61,7 +61,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       <div className={`relative flex flex-col items-center justify-center select-none ${className}`}>
         <div className={`relative ${dim.heroW} aspect-square rounded-3xl overflow-hidden shadow-2xl border border-amber-500/20 bg-neutral-950 group`}>
           <img
-            src="/adega-pro-logo.jpg"
+            src="/adega-pro-brand.svg"
             alt="ADEGA PRO"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             referrerPolicy="no-referrer"
@@ -82,7 +82,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       >
         {!imgError ? (
           <img
-            src="/adega-pro-icon.jpg"
+            src="/adega-pro-mark.svg"
             alt="ADEGA PRO Icon"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
