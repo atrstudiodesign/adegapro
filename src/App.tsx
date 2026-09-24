@@ -21,7 +21,9 @@ import { PurchasesView } from './components/purchases/PurchasesView';
 import { SuppliersView } from './components/suppliers/SuppliersView';
 import { FinanceView } from './components/finance/FinanceView';
 import { CustomersView } from './components/customers/CustomersView';
+import { ProductionCustomersView } from './components/customers/ProductionCustomersView';
 import { EmployeesView } from './components/employees/EmployeesView';
+import { ProductionEmployeesView } from './components/employees/ProductionEmployeesView';
 import { ReportsView } from './components/reports/ReportsView';
 import { AuditView } from './components/audit/AuditView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
@@ -321,9 +323,9 @@ export default function App() {
           )}
           {currentTab === 'purchases' && <PurchasesView />}
           {currentTab === 'finance' && <FinanceView />}
-          {currentTab === 'customers' && <CustomersView />}
+          {currentTab === 'customers' && (appMode === 'PRODUCTION' ? <ProductionCustomersView currentSession={currentSession} /> : <CustomersView />)}
           {currentTab === 'suppliers' && <SuppliersView appMode={appMode} />}
-          {currentTab === 'employees' && <EmployeesView />}
+          {currentTab === 'employees' && (appMode === 'PRODUCTION' ? <ProductionEmployeesView /> : <EmployeesView />)}
           {currentTab === 'reports' && <ReportsView />}
           {currentTab === 'audit' && <AuditView />}
           {currentTab === 'integrations' && <IntegrationsView />}
