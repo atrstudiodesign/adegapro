@@ -59,6 +59,30 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
 
   const selected = useMemo(() => operators.find(o => o.id === selectedId), [operators, selectedId]);
 
+  const createFirstOperator = async () => {
+    const name = window.prompt('Nome do primeiro operador/administrador:')?.trim();
+    if (!name) return;
+    const pin = window.prompt('Defina um PIN de 4 a 8 dígitos:') || '';
+    if (!/^\d{4,8}$/.test(pin)) {
+      setError('O PIN deve conter de 4 a 8 dígitos.');
+      return;
+    }
+    setChecking(true);
+    setError('');
+    try {
+      await productionDb.saveOperator({ name, role: 'ADMINISTRADOR', pin, active: true });
+      const rows = await productionDb.getOperators();
+      const active = (rows || []).filter((o:any) => o.active) as Operator[];
+      setOperators(active);
+      setSelectedId(active[0]?.id || '');
+      setPin('');
+    } catch (err:any) {
+      setError(err?.message || 'Não foi possível criar o primeiro operador.');
+    } finally {
+      setChecking(false);
+    }
+  };
+
   const submit = async () => {
     if (!selected || pin.length < 4) return;
     setChecking(true);
@@ -121,7 +145,15 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
 
         {operators.length === 0 ? (
           <div className="mt-5 p-4 rounded-xl border border-amber-800/60 bg-amber-950/20 text-sm text-amber-200">
-            Nenhum operador de produção foi cadastrado. Entre como administrador e cadastre um operador antes de liberar o PDV.
+            <p>Nenhum operador de produção foi cadastrado. Como esta conta é a administradora inicial, crie o primeiro operador para concluir a ativação.</p>
+            {error && <div className="mt-3 p-2 rounded-lg border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
+            <button
+              disabled={checking}
+              onClick={() => void createFirstOperator()}
+              className="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black text-sm"
+            >
+              {checking ? 'Criando operador...' : 'Criar primeiro operador'}
+            </button>
           </div>
         ) : (
           <>
