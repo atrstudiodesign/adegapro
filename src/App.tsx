@@ -10,6 +10,7 @@ import { ProductionPosScreen } from './components/pos/ProductionPosScreen';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { ProductionDashboardView } from './components/dashboard/ProductionDashboardView';
 import { CashierMiniDashView } from './components/dashboard/CashierMiniDashView';
+import { ProductionCashierMiniDashView } from './components/dashboard/ProductionCashierMiniDashView';
 import { ProductsView } from './components/products/ProductsView';
 import { CategoriesView } from './components/categories/CategoriesView';
 import { CombosView } from './components/combos/CombosView';
@@ -305,7 +306,7 @@ export default function App() {
               />
             )
           )}
-          {currentTab === 'minidash' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Mini Dashboard" /> : <CashierMiniDashView currentUser={currentUser} currentSession={currentSession} onNavigate={tab => setCurrentTab(tab)} />)}
+          {currentTab === 'minidash' && (appMode === 'PRODUCTION' ? <ProductionCashierMiniDashView onNavigate={tab => setCurrentTab(tab)} /> : <CashierMiniDashView currentUser={currentUser} currentSession={currentSession} onNavigate={tab => setCurrentTab(tab)} />)}
           {currentTab === 'pos' && (
             appMode === 'PRODUCTION' ? (
               <ProductionPosScreen
