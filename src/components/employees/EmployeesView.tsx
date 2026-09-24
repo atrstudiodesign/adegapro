@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { db } from '../../services/db';
-import { User, UserRole, PermissionKey } from '../../types';
-import { UserCog, KeyRound, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { User } from '../../types';
+import { UserCog, KeyRound, ShieldCheck } from 'lucide-react';
 
 export const EmployeesView: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(db.getUsers());
-  const [feedback] = useState<string | null>(null);
+  const users: User[] = db.getUsers();
 
   return (
     <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-6 bg-neutral-950">
@@ -16,7 +15,7 @@ export const EmployeesView: React.FC = () => {
             <span>Funcionários, PINs &amp; Controle de Acesso</span>
           </h1>
           <p className="text-xs text-neutral-400 mt-0.5">
-            Cadastre caixas, gerentes, configure PINs de 4 dígitos e permissões para cancelamentos e descontos.
+            Perfis demonstrativos fixos. PINs e permissões não podem ser modificados no modo Demo.
           </p>
         </div>
 
@@ -26,12 +25,6 @@ export const EmployeesView: React.FC = () => {
         </div>
       </div>
 
-      {feedback && (
-        <div className="p-3 bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
-          <CheckCircle2 size={16} className="text-emerald-400" />
-          <span>{feedback}</span>
-        </div>
-      )}
 
       {/* Users Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
