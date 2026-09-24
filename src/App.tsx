@@ -53,6 +53,7 @@ import { LegalCenter } from './components/legal/LegalCenter';
 import { LegalDocKey } from './legal/legalDocuments';
 import { ProductionModuleGuard } from './components/common/ProductionModuleGuard';
 import { productionDb } from './services/productionDb';
+import { PlatformControlView } from './components/admin/PlatformControlView';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -69,6 +70,8 @@ export default function App() {
   const [legalDoc, setLegalDoc] = useState<LegalDocKey>('terms_of_use');
   const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>('LANDING');
   const [commercialCleared, setCommercialCleared] = useState(false);
+  const [platformAdmin, setPlatformAdmin] = useState(false);
+  const [platformControlOpen, setPlatformControlOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -78,6 +81,7 @@ export default function App() {
       const hasSession = Boolean(data.session);
       setSaasAuthenticated(hasSession);
       if (hasSession) {
+        void productionDb.isPlatformAdmin().then(setPlatformAdmin).catch(() => setPlatformAdmin(false));
         setAppMode('PRODUCTION');
         setCurrentAppMode('PRODUCTION');
         setLegalCleared(false);
@@ -91,7 +95,8 @@ export default function App() {
       if (!mounted) return;
       const hasSession = Boolean(session);
       setSaasAuthenticated(hasSession);
-      if (!hasSession) { setLegalCleared(false); setCommercialCleared(false); }
+      if (hasSession) void productionDb.isPlatformAdmin().then(setPlatformAdmin).catch(() => setPlatformAdmin(false));
+      if (!hasSession) { setLegalCleared(false); setCommercialCleared(false); setPlatformAdmin(false); setPlatformControlOpen(false); }
       if (!hasSession && appMode === 'PRODUCTION') {
         setSaasReady(true);
       }
@@ -102,6 +107,18 @@ export default function App() {
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!platformAdmin || appMode !== 'PRODUCTION' || isLocked) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.altKey && event.code === 'KeyA') {
+        event.preventDefault();
+        setPlatformControlOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [platformAdmin, appMode, isLocked]);
 
   // Monitor URL hash for public digital receipt routing: #/comprovante/:id
   useEffect(() => {
@@ -243,6 +260,10 @@ export default function App() {
   }
 
   return (
+    <>
+    {platformControlOpen && platformAdmin && appMode === 'PRODUCTION' && (
+      <PlatformControlView onClose={() => setPlatformControlOpen(false)} />
+    )}
     <div className="min-h-screen bg-neutral-950 flex flex-col font-sans text-neutral-100 antialiased selection:bg-amber-500 selection:text-neutral-950 relative">
       <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden opacity-[0.025] select-none" aria-hidden="true">
         <div className="absolute inset-[-20%] grid place-items-center -rotate-12">
@@ -360,5 +381,6 @@ export default function App() {
         </main>
       </div>
     </div>
+    </>
   );
 }
