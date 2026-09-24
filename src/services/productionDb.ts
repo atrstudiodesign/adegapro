@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Category, Customer, Product, Store, Supplier } from '../types';
+import type { Category, Customer, Product, Store, Supplier, CashRegister, CashSession, CashMovement } from '../types';
 
 export interface ProductionContext {
   userId: string;
@@ -136,6 +136,47 @@ function mapProduct(row: any, currentStock = 0): Product {
     isCold: Boolean(row.is_cold),
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+
+function mapCashRegister(row: any): CashRegister {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    storeId: row.store_id,
+    number: row.number,
+    name: row.name,
+    status: row.status
+  };
+}
+
+function mapCashSession(row: any, register?: any, operator?: any): CashSession {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    storeId: row.store_id,
+    cashRegisterId: row.cash_register_id,
+    cashRegisterNumber: register?.number || 'Caixa',
+    operatorId: row.operator_ref || '',
+    operatorName: operator?.name || getOperatorProfile()?.name || 'Operador',
+    initialBalance: Number(row.initial_balance || 0),
+    openedAt: row.opened_at,
+    closedAt: row.closed_at || undefined,
+    status: row.status,
+    totalSales: Number(row.total_sales || 0),
+    totalCashSales: Number(row.total_cash_sales || 0),
+    totalPixSales: Number(row.total_pix_sales || 0),
+    totalCardDebitSales: Number(row.total_card_debit_sales || 0),
+    totalCardCreditSales: Number(row.total_card_credit_sales || 0),
+    totalVoucherSales: Number(row.total_voucher_sales || 0),
+    totalOtherSales: Number(row.total_other_sales || 0),
+    totalSangrias: Number(row.total_withdrawals || 0),
+    totalSuprimentos: Number(row.total_supplies || 0),
+    expectedCashInRegister: Number(row.expected_cash || 0),
+    countedCash: row.counted_cash == null ? undefined : Number(row.counted_cash),
+    cashDifference: row.cash_difference == null ? undefined : Number(row.cash_difference),
+    closureNotes: row.closure_notes || undefined
   };
 }
 
@@ -410,7 +451,7 @@ async function finalizeSale(payload: Record<string, unknown>) {
   return data;
 }
 
-async function getCashRegisters() {
+async function getCashRegisters(): Promise<CashRegister[]> {
   const ctx = await getContext();
   const { data, error } = await supabase
     .from('cash_registers')
@@ -419,13 +460,13 @@ async function getCashRegisters() {
     .eq('active', true)
     .order('number');
   if (error) throw error;
-  return data || [];
+  return (data || []).map(mapCashRegister);
 }
 
-async function getCurrentCashSession() {
+async function getCurrentCashSession(): Promise<CashSession | undefined> {
   const ctx = await getContext();
   const operator = getOperatorProfile();
-  if (!operator?.id) return null;
+  if (!operator?.id) return undefined;
   const { data, error } = await supabase
     .from('cash_sessions')
     .select('*')
@@ -436,7 +477,43 @@ async function getCurrentCashSession() {
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return data;
+  if (!data) return undefined;
+  const { data: register } = await supabase.from('cash_registers').select('number,name').eq('id', data.cash_register_id).maybeSingle();
+  return mapCashSession(data, register, operator);
+}
+
+async function getCashSessions(): Promise<CashSession[]> {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('cash_sessions')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .order('opened_at', { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  const registers = await getCashRegisters();
+  const regMap = new Map(registers.map(r => [r.id, r]));
+  return (data || []).map((row:any) => mapCashSession(row, regMap.get(row.cash_register_id), undefined));
+}
+
+async function getCashMovements(sessionId?: string): Promise<CashMovement[]> {
+  const ctx = await getContext();
+  let query = supabase.from('cash_movements').select('*').eq('store_id', ctx.storeId).order('created_at', { ascending: false });
+  if (sessionId) query = query.eq('cash_session_id', sessionId);
+  const { data, error } = await query.limit(200);
+  if (error) throw error;
+  return (data || []).map((row:any) => ({
+    id: row.id,
+    tenantId: row.tenant_id,
+    storeId: row.store_id,
+    sessionId: row.cash_session_id,
+    type: row.movement_type,
+    amount: Number(row.amount || 0),
+    reason: row.reason,
+    operatorId: row.operator_ref || '',
+    operatorName: getOperatorProfile()?.name || 'Operador',
+    createdAt: row.created_at
+  }));
 }
 
 async function openCashSession(registerId: string, _operatorId: string | null, initialBalance: number) {
@@ -503,6 +580,8 @@ export const productionDb = {
   finalizeSale,
   getCashRegisters,
   getCurrentCashSession,
+  getCashSessions,
+  getCashMovements,
   openCashSession,
   registerCashMovement,
   closeCashSession
