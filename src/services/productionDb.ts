@@ -132,7 +132,8 @@ function mapProduct(row: any, currentStock = 0): Product {
     maxStock: Number(row.max_stock || 0),
     supplierId: row.supplier_id || undefined,
     status: row.status,
-    imageUrl: row.image_path || undefined,
+    imageUrl: row.image_url || row.image_path || undefined,
+    imageSourceUrl: row.image_url || undefined,
     isCombo: Boolean(row.is_combo),
     isCold: Boolean(row.is_cold),
     createdAt: row.created_at,
@@ -333,7 +334,7 @@ async function getProducts(): Promise<Product[]> {
 
   const stock = new Map((balances || []).map((b:any) => [b.product_id, Number(b.quantity || 0)]));
   const rows = products || [];
-  const paths = rows.map((p:any) => p.image_path).filter(Boolean);
+  const paths = rows.filter((p:any) => p.image_path && !p.image_url).map((p:any) => p.image_path);
   const signedByPath = new Map<string,string>();
 
   if (paths.length) {
@@ -350,7 +351,8 @@ async function getProducts(): Promise<Product[]> {
 
   return rows.map((p:any) => ({
     ...mapProduct(p, stock.get(p.id) || 0),
-    imageUrl: p.image_path ? signedByPath.get(p.image_path) : undefined
+    imageUrl: p.image_url || (p.image_path ? signedByPath.get(p.image_path) : undefined),
+    imageSourceUrl: p.image_url || undefined
   }));
 }
 
@@ -365,6 +367,7 @@ async function saveProduct(product: Partial<Product> & { name: string; salePrice
     barcode: product.barcode || null,
     brand: product.brand || null,
     package_size: product.packageSize || null,
+    image_url: product.imageSourceUrl?.trim() || null,
     unit: product.unit || 'UN',
     cost_price: product.costPrice ?? 0,
     sale_price: product.salePrice,
@@ -423,7 +426,7 @@ async function uploadProductImage(productId: string, file: File): Promise<string
 
   const { error: saveError } = await supabase
     .from('products')
-    .update({ image_path: path, updated_at: new Date().toISOString() })
+    .update({ image_path: path, image_url: null, updated_at: new Date().toISOString() })
     .eq('id', productId)
     .eq('tenant_id', ctx.tenantId);
   if (saveError) throw saveError;
@@ -439,7 +442,7 @@ async function removeProductImage(productId: string) {
   const ctx = await getContext();
   const { data: product, error } = await supabase
     .from('products')
-    .select('image_path')
+    .select('image_path,image_url')
     .eq('id', productId)
     .eq('tenant_id', ctx.tenantId)
     .single();
@@ -449,7 +452,7 @@ async function removeProductImage(productId: string) {
   }
   const { error: updateError } = await supabase
     .from('products')
-    .update({ image_path: null, updated_at: new Date().toISOString() })
+    .update({ image_path: null, image_url: null, updated_at: new Date().toISOString() })
     .eq('id', productId)
     .eq('tenant_id', ctx.tenantId);
   if (updateError) throw updateError;
