@@ -8,6 +8,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { PosScreen } from './components/pos/PosScreen';
 import { ProductionPosScreen } from './components/pos/ProductionPosScreen';
 import { DashboardView } from './components/dashboard/DashboardView';
+import { ProductionDashboardView } from './components/dashboard/ProductionDashboardView';
 import { CashierMiniDashView } from './components/dashboard/CashierMiniDashView';
 import { ProductsView } from './components/products/ProductsView';
 import { CategoriesView } from './components/categories/CategoriesView';
@@ -27,6 +28,7 @@ import { ProductionEmployeesView } from './components/employees/ProductionEmploy
 import { ReportsView } from './components/reports/ReportsView';
 import { AuditView } from './components/audit/AuditView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
+import { ProductionIntegrationsView } from './components/integrations/ProductionIntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { StoreProfileView } from './components/store/StoreProfileView';
 import { SupportView } from './components/support/SupportView';
@@ -39,6 +41,7 @@ import { supabase } from './services/supabase';
 import { LegalConsentGate } from './components/legal/LegalConsentGate';
 import { LegalCenter } from './components/legal/LegalCenter';
 import { LegalDocKey } from './legal/legalDocuments';
+import { ProductionModuleGuard } from './components/common/ProductionModuleGuard';
 import { productionDb } from './services/productionDb';
 
 export default function App() {
@@ -263,32 +266,30 @@ export default function App() {
 
         <main className="app-content flex-1 min-w-0 flex flex-col overflow-hidden bg-neutral-950">
           {currentTab === 'dashboard' && (
-            <DashboardView
-              onNavigate={tab => setCurrentTab(tab)}
-              appMode={appMode}
-              onChangeMode={handleModeChange}
-              onRequestProduction={() => {
-                setAppMode('PRODUCTION');
-                setCurrentAppMode('PRODUCTION');
-                if (saasAuthenticated) {
-                  setDemoAccessGranted(false);
-                  setLegalCleared(false);
-                  setIsLocked(true);
-                } else {
-                  setSaasEntryView('LOGIN');
-                  setDemoAccessGranted(false);
-                  setIsLocked(false);
-                }
-              }}
-            />
+            appMode === 'PRODUCTION' ? (
+              <ProductionDashboardView onNavigate={tab => setCurrentTab(tab)} />
+            ) : (
+              <DashboardView
+                onNavigate={tab => setCurrentTab(tab)}
+                appMode={appMode}
+                onChangeMode={handleModeChange}
+                onRequestProduction={() => {
+                  setAppMode('PRODUCTION');
+                  setCurrentAppMode('PRODUCTION');
+                  if (saasAuthenticated) {
+                    setDemoAccessGranted(false);
+                    setLegalCleared(false);
+                    setIsLocked(true);
+                  } else {
+                    setSaasEntryView('LOGIN');
+                    setDemoAccessGranted(false);
+                    setIsLocked(false);
+                  }
+                }}
+              />
+            )
           )}
-          {currentTab === 'minidash' && (
-            <CashierMiniDashView
-              currentUser={currentUser}
-              currentSession={currentSession}
-              onNavigate={tab => setCurrentTab(tab)}
-            />
-          )}
+          {currentTab === 'minidash' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Mini Dashboard" /> : <CashierMiniDashView currentUser={currentUser} currentSession={currentSession} onNavigate={tab => setCurrentTab(tab)} />)}
           {currentTab === 'pos' && (
             appMode === 'PRODUCTION' ? (
               <ProductionPosScreen
@@ -307,9 +308,9 @@ export default function App() {
           {currentTab === 'sales' && <SalesHistoryView currentUser={currentUser} />}
           {currentTab === 'products' && <ProductsView appMode={appMode} />}
           {currentTab === 'categories' && <CategoriesView appMode={appMode} />}
-          {currentTab === 'combos' && <CombosView />}
-          {currentTab === 'stock' && <StockView />}
-          {currentTab === 'inventory' && <InventoryView />}
+          {currentTab === 'combos' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Combos & Kits" /> : <CombosView />)}
+          {currentTab === 'stock' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Movimentação de Estoque" /> : <StockView />)}
+          {currentTab === 'inventory' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Inventário Físico" /> : <InventoryView />)}
           {currentTab === 'cash' && (
             appMode === 'PRODUCTION' ? (
               <ProductionCashView
@@ -321,16 +322,16 @@ export default function App() {
               <CashView currentUser={currentUser} onSessionUpdated={handleSessionUpdated} />
             )
           )}
-          {currentTab === 'purchases' && <PurchasesView />}
-          {currentTab === 'finance' && <FinanceView />}
+          {currentTab === 'purchases' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Compras & NF Entrada" /> : <PurchasesView />)}
+          {currentTab === 'finance' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Financeiro" /> : <FinanceView />)}
           {currentTab === 'customers' && (appMode === 'PRODUCTION' ? <ProductionCustomersView currentSession={currentSession} /> : <CustomersView />)}
           {currentTab === 'suppliers' && <SuppliersView appMode={appMode} />}
           {currentTab === 'employees' && (appMode === 'PRODUCTION' ? <ProductionEmployeesView /> : <EmployeesView />)}
-          {currentTab === 'reports' && <ReportsView />}
-          {currentTab === 'audit' && <AuditView />}
-          {currentTab === 'integrations' && <IntegrationsView />}
+          {currentTab === 'reports' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Relatórios" /> : <ReportsView />)}
+          {currentTab === 'audit' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Auditoria" /> : <AuditView />)}
+          {currentTab === 'integrations' && (appMode === 'PRODUCTION' ? <ProductionIntegrationsView /> : <IntegrationsView />)}
           {currentTab === 'store-profile' && <StoreProfileView appMode={appMode} />}
-          {currentTab === 'settings' && <SettingsView />}
+          {currentTab === 'settings' && (appMode === 'PRODUCTION' ? <StoreProfileView appMode={appMode} /> : <SettingsView />)}
           {currentTab === 'support' && <SupportView appMode={appMode} />}
           {currentTab === 'legal' && (
             <LegalCenter
