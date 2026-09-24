@@ -32,7 +32,8 @@ import {
   Bell,
   Calculator,
   Edit2,
-  Tag
+  Tag,
+  Package
 } from 'lucide-react';
 import { QuickSaleModal } from './QuickSaleModal';
 import { VirtualNumpadModal, NumpadMode } from './VirtualNumpadModal';
