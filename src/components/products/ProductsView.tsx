@@ -18,7 +18,11 @@ import {
   AlertTriangle,
   X,
   CheckCircle2,
-  Layers
+  Layers,
+  Grid3X3,
+  List,
+  ImagePlus,
+  ImageOff
 } from 'lucide-react';
 
 interface ProductsViewProps { appMode?: AppMode; }
@@ -38,6 +42,9 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'GRID'|'LIST'>('GRID');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   const refreshProducts = async () => {
     setLoadError('');
@@ -93,11 +100,15 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
       maxStock: 120,
       status: 'ACTIVE'
     });
+    setImageFile(null);
+    setImagePreview('');
     setIsModalOpen(true);
   };
 
   const handleEdit = (p: Product) => {
     setEditingProduct({ ...p });
+    setImageFile(null);
+    setImagePreview(p.imageUrl || '');
     setIsModalOpen(true);
   };
 
@@ -110,6 +121,8 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
       barcode: String(7890000000000 + Math.floor(Math.random() * 100000000)),
       currentStock: 0
     });
+    setImageFile(null);
+    setImagePreview(p.imageUrl || '');
     setIsModalOpen(true);
   };
 
@@ -149,11 +162,17 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
       return;
     }
     try {
-      if (appMode === 'PRODUCTION') await productionDb.saveProduct(editingProduct as any);
-      else db.saveProduct(editingProduct as any);
+      if (appMode === 'PRODUCTION') {
+        const saved = await productionDb.saveProduct(editingProduct as any);
+        if (imageFile) await productionDb.uploadProductImage(saved.id, imageFile);
+      } else {
+        db.saveProduct(editingProduct as any);
+      }
       await refreshProducts();
       setIsModalOpen(false);
       setEditingProduct(null);
+      setImageFile(null);
+      setImagePreview('');
       setFeedback(appMode === 'PRODUCTION' ? 'Produto salvo no ambiente de produção.' : 'Produto salvo no modo demonstração.');
       setTimeout(() => setFeedback(null), 3000);
     } catch (err:any) { setLoadError(err?.message || 'Não foi possível salvar o produto.'); }
@@ -282,144 +301,77 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
         </select>
       </div>
 
-      {/* Products Data Table */}
-      <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl overflow-hidden shadow-lg">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-neutral-950/70 border-b border-neutral-800 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-              <tr>
-                <th className="py-3 px-4">Produto &amp; Marca</th>
-                <th className="py-3 px-3">EAN / SKU</th>
-                <th className="py-3 px-3">Categoria</th>
-                <th className="py-3 px-3 text-right">Custo</th>
-                <th className="py-3 px-3 text-right">Preço Venda</th>
-                <th className="py-3 px-3 text-right">Margem</th>
-                <th className="py-3 px-3 text-center">Estoque Atual</th>
-                <th className="py-3 px-3 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-800/60 font-medium">
-              {filteredProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="text-center py-12 text-neutral-500">
-                    Nenhum produto encontrado com os filtros selecionados.
-                  </td>
-                </tr>
-              ) : (
-                filteredProducts.map(p => {
-                  const cat = categories.find(c => c.id === p.categoryId);
-                  const isLow = !p.isCombo && p.currentStock > 0 && p.currentStock <= p.minStock;
-                  const isZero = !p.isCombo && p.currentStock <= 0;
-
-                  return (
-                    <tr key={p.id} className="hover:bg-neutral-850/60 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-white text-sm">{p.name}</div>
-                        <div className="text-[11px] text-neutral-400">
-                          {p.brand} {p.isCombo ? '· Kit Promocional' : ''}
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-3 font-mono text-[11px] text-neutral-300">
-                        <div>{p.barcode}</div>
-                        <div className="text-[10px] text-neutral-500">{p.sku}</div>
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <span className="text-neutral-300 font-medium">{cat?.name || 'Geral'}</span>
-                      </td>
-
-                      <td className="py-3.5 px-3 text-right font-mono text-neutral-400">
-                        R$ {p.costPrice.toFixed(2)}
-                      </td>
-
-                      <td className="py-3.5 px-3 text-right font-mono font-bold text-amber-400 text-sm">
-                        R$ {p.salePrice.toFixed(2)}
-                      </td>
-
-                      <td className="py-3.5 px-3 text-right font-mono text-emerald-400 text-[11px]">
-                        +{p.margin.toFixed(1)}%
-                      </td>
-
-                      <td className="py-3.5 px-3 text-center">
-                        <div className="font-mono font-bold text-sm">
-                          <span
-                            className={
-                              isZero
-                                ? 'text-rose-400'
-                                : isLow
-                                ? 'text-amber-400'
-                                : 'text-neutral-200'
-                            }
-                          >
-                            {p.currentStock} {p.unit}
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-neutral-500 font-mono">
-                          Mín: {p.minStock} · Máx: {p.maxStock}
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-3 text-center">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                            p.status === 'ACTIVE'
-                              ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/60'
-                              : 'bg-neutral-800 text-neutral-500'
-                          }`}
-                        >
-                          {p.status === 'ACTIVE' ? 'ATIVO' : 'INATIVO'}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleEdit(p)}
-                            title="Editar Produto"
-                            className="p-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-
-                          <button
-                            onClick={() => handleDuplicate(p)}
-                            title="Duplicar Produto"
-                            className="p-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Copy size={13} />
-                          </button>
-
-                          <button
-                            onClick={() => handleToggleStatus(p)}
-                            title={p.status === 'ACTIVE' ? 'Desativar Produto' : 'Ativar Produto'}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                              p.status === 'ACTIVE'
-                                ? 'bg-neutral-800 hover:bg-neutral-700 text-amber-400'
-                                : 'bg-emerald-950 hover:bg-emerald-900 text-emerald-300'
-                            }`}
-                          >
-                            <Power size={13} />
-                          </button>
-
-                          <button
-                            onClick={() => handleDelete(p)}
-                            title="Excluir ou Inativar"
-                            className="p-1.5 rounded-lg bg-neutral-800 hover:bg-rose-950 text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-[11px] text-neutral-500">
+          {filteredProducts.length} produto(s) · catálogo visual com estoque, preço e margem
+        </div>
+        <div className="flex items-center rounded-xl border border-neutral-800 bg-neutral-900 p-1">
+          <button type="button" onClick={()=>setViewMode('GRID')} className={`w-9 h-8 rounded-lg grid place-items-center ${viewMode==='GRID'?'bg-amber-500 text-neutral-950':'text-neutral-500 hover:text-white'}`} title="Visual em grade"><Grid3X3 size={15}/></button>
+          <button type="button" onClick={()=>setViewMode('LIST')} className={`w-9 h-8 rounded-lg grid place-items-center ${viewMode==='LIST'?'bg-amber-500 text-neutral-950':'text-neutral-500 hover:text-white'}`} title="Visual em lista"><List size={15}/></button>
         </div>
       </div>
+
+      {/* Products Catalog */}
+      {filteredProducts.length === 0 ? (
+        <div className="py-16 px-5 rounded-2xl bg-neutral-900 border border-neutral-800 text-center">
+          <Package size={34} className="mx-auto text-neutral-700"/>
+          <div className="mt-3 font-black text-white">Nenhum produto encontrado</div>
+          <div className="mt-1 text-xs text-neutral-500">Ajuste os filtros ou cadastre um novo produto.</div>
+          <button onClick={handleOpenNew} className="mt-5 px-4 py-2.5 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black"><Plus size={14} className="inline mr-1"/>Novo produto</button>
+        </div>
+      ) : viewMode === 'GRID' ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+          {filteredProducts.map(p => {
+            const cat = categories.find(c => c.id === p.categoryId);
+            const isLow = !p.isCombo && p.currentStock > 0 && p.currentStock <= p.minStock;
+            const isZero = !p.isCombo && p.currentStock <= 0;
+            return <article key={p.id} className="group rounded-2xl bg-neutral-900 border border-neutral-800 overflow-hidden hover:border-amber-500/40 transition-all">
+              <div className="relative aspect-[4/3] bg-neutral-950 overflow-hidden">
+                {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-contain p-3 group-hover:scale-[1.03] transition-transform" loading="lazy"/> :
+                  <div className="w-full h-full grid place-items-center bg-[radial-gradient(circle_at_center,rgba(245,158,11,.10),transparent_60%)]"><div className="text-center"><Package size={34} className="mx-auto text-neutral-700"/><div className="text-[9px] text-neutral-600 mt-2">Sem foto</div></div></div>}
+                <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+                  {p.isCombo && <span className="px-2 py-1 rounded-full bg-violet-950/90 border border-violet-700/70 text-[9px] font-black text-violet-200">COMBO</span>}
+                  {p.isCold && <span className="px-2 py-1 rounded-full bg-sky-950/90 border border-sky-700/70 text-[9px] font-black text-sky-200">GELADO</span>}
+                </div>
+                <span className={`absolute right-2 top-2 px-2 py-1 rounded-full text-[9px] font-black border ${p.status==='ACTIVE'?'bg-emerald-950/90 text-emerald-300 border-emerald-800':'bg-neutral-900 text-neutral-500 border-neutral-700'}`}>{p.status==='ACTIVE'?'ATIVO':'INATIVO'}</span>
+              </div>
+              <div className="p-3">
+                <div className="text-[10px] text-neutral-500 truncate">{cat?.name || 'Geral'}{p.brand ? ` · ${p.brand}` : ''}</div>
+                <h3 className="mt-1 font-black text-sm text-white leading-tight line-clamp-2 min-h-[2.25rem]">{p.name}</h3>
+                <div className="mt-3 flex items-end justify-between gap-2">
+                  <div><div className="text-[9px] text-neutral-500">Preço</div><div className="font-mono font-black text-amber-400 text-base">R$ {p.salePrice.toFixed(2)}</div></div>
+                  <div className="text-right"><div className="text-[9px] text-neutral-500">Margem</div><div className="font-mono text-[11px] text-emerald-400">+{p.margin.toFixed(1)}%</div></div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-neutral-800 flex items-center justify-between">
+                  <div><div className="text-[9px] text-neutral-500">Estoque</div><div className={`font-mono font-black text-xs ${isZero?'text-rose-400':isLow?'text-amber-400':'text-neutral-200'}`}>{p.currentStock} {p.unit}</div></div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={()=>handleEdit(p)} className="w-8 h-8 rounded-lg grid place-items-center bg-neutral-800 text-neutral-300 hover:text-white" title="Editar"><Edit2 size={13}/></button>
+                    <button onClick={()=>handleDuplicate(p)} className="w-8 h-8 rounded-lg grid place-items-center bg-neutral-800 text-neutral-400 hover:text-white" title="Duplicar"><Copy size={13}/></button>
+                    <button onClick={()=>void handleToggleStatus(p)} className="w-8 h-8 rounded-lg grid place-items-center bg-neutral-800 text-amber-400" title={p.status==='ACTIVE'?'Desativar':'Ativar'}><Power size={13}/></button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          })}
+        </div>
+      ) : (
+        <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs min-w-[900px]">
+              <thead className="bg-neutral-950/70 border-b border-neutral-800 text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                <tr><th className="py-3 px-4">Produto</th><th className="py-3 px-3">EAN / SKU</th><th className="py-3 px-3">Categoria</th><th className="py-3 px-3 text-right">Custo</th><th className="py-3 px-3 text-right">Venda</th><th className="py-3 px-3 text-right">Margem</th><th className="py-3 px-3 text-center">Estoque</th><th className="py-3 px-4 text-right">Ações</th></tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-800">
+                {filteredProducts.map(p=>{const cat=categories.find(c=>c.id===p.categoryId);return <tr key={p.id} className="hover:bg-neutral-800/40">
+                  <td className="p-3"><div className="flex items-center gap-3"><div className="w-12 h-12 rounded-xl bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0">{p.imageUrl?<img src={p.imageUrl} alt="" className="w-full h-full object-contain p-1"/>:<Package className="m-3 text-neutral-700" size={20}/>}</div><div><div className="font-bold text-white">{p.name}</div><div className="text-[10px] text-neutral-500">{p.brand}</div></div></div></td>
+                  <td className="p-3 font-mono text-[10px] text-neutral-400">{p.barcode}<br/>{p.sku}</td><td className="p-3">{cat?.name||'Geral'}</td><td className="p-3 text-right font-mono">R$ {p.costPrice.toFixed(2)}</td><td className="p-3 text-right font-mono font-black text-amber-400">R$ {p.salePrice.toFixed(2)}</td><td className="p-3 text-right font-mono text-emerald-400">+{p.margin.toFixed(1)}%</td><td className="p-3 text-center font-mono">{p.currentStock} {p.unit}</td>
+                  <td className="p-3"><div className="flex justify-end gap-1"><button onClick={()=>handleEdit(p)} className="p-2 rounded-lg bg-neutral-800"><Edit2 size={13}/></button><button onClick={()=>handleDuplicate(p)} className="p-2 rounded-lg bg-neutral-800"><Copy size={13}/></button><button onClick={()=>void handleToggleStatus(p)} className="p-2 rounded-lg bg-neutral-800 text-amber-400"><Power size={13}/></button><button onClick={()=>void handleDelete(p)} className="p-2 rounded-lg bg-neutral-800 text-rose-400"><Trash2 size={13}/></button></div></td>
+                </tr>})}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* ---------------------------------------------------- */}
       {/* MODAL: Create / Edit Product */}
@@ -437,6 +389,29 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
             </div>
 
             <form onSubmit={handleSaveModal} className="flex-1 overflow-y-auto space-y-4 py-4 pr-1">
+              <div className="grid sm:grid-cols-[180px_1fr] gap-4 p-4 rounded-2xl bg-neutral-950 border border-neutral-800">
+                <div className="aspect-square rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden grid place-items-center">
+                  {imagePreview ? <img src={imagePreview} alt="Prévia do produto" className="w-full h-full object-contain p-2"/> : <div className="text-center text-neutral-600"><ImagePlus size={30} className="mx-auto"/><div className="text-[10px] mt-2">Foto do produto</div></div>}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-black text-white">Imagem do produto</div>
+                  <div className="text-[10px] text-neutral-500 mt-1 leading-relaxed">Use uma foto frontal, fundo limpo, JPG/PNG/WebP de até 5MB. Em produção a imagem fica isolada por tenant no Storage.</div>
+                  <label className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black cursor-pointer">
+                    <Upload size={14}/> Selecionar foto
+                    <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e=>{
+                      const file=e.target.files?.[0]||null;
+                      setImageFile(file);
+                      if(file){const url=URL.createObjectURL(file);setImagePreview(url);}
+                    }}/>
+                  </label>
+                  {imagePreview && <button type="button" onClick={async()=>{
+                    if(editingProduct.id && appMode==='PRODUCTION' && !imageFile){
+                      try{await productionDb.removeProductImage(editingProduct.id);setImagePreview('');await refreshProducts();}catch(err:any){setLoadError(err?.message||'Não foi possível remover a imagem.');}
+                    } else {setImageFile(null);setImagePreview('');}
+                  }} className="mt-2 ml-2 px-3 py-2 rounded-xl border border-neutral-700 text-[10px] text-neutral-400 hover:text-rose-300"><ImageOff size={13} className="inline mr-1"/>Remover</button>}
+                </div>
+              </div>
+
               {/* Name & Brand */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
