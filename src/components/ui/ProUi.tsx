@@ -28,3 +28,31 @@ export const ProductThumb=({src,alt,size='md'}:{src?:string;alt:string;size?:'sm
   const sz={sm:'w-10 h-10',md:'w-14 h-14',lg:'w-20 h-20'}[size];
   return <div className={`${sz} shrink-0 rounded-xl overflow-hidden border border-neutral-800 bg-neutral-950 grid place-items-center`}>{src?<img src={src} alt={alt} className="w-full h-full object-contain p-1" loading="lazy"/>:<PackageOpen size={18} className="text-neutral-700"/>}</div>
 };
+
+
+export const AlertCard=({title,description,tone='warning',action}:{title:string;description:string;tone?:'warning'|'danger'|'success'|'info';action?:React.ReactNode})=>{
+  const cls={warning:'border-amber-800/50 bg-amber-950/20',danger:'border-rose-800/50 bg-rose-950/20',success:'border-emerald-800/50 bg-emerald-950/20',info:'border-sky-800/50 bg-sky-950/20'}[tone];
+  return <div className={`p-4 rounded-2xl border ${cls}`}><div className="font-black text-sm text-white">{title}</div><div className="text-xs text-neutral-400 mt-1 leading-relaxed">{description}</div>{action&&<div className="mt-3">{action}</div>}</div>;
+};
+
+export const SearchInput=({value,onChange,placeholder='Buscar...'}:{value:string;onChange:(value:string)=>void;placeholder?:string})=>
+  <div className="relative"><input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-xl bg-neutral-900 border border-neutral-800 px-3.5 py-2.5 text-xs text-white outline-none focus:border-amber-500 placeholder:text-neutral-600"/></div>;
+
+export const FilterBar=({children}:{children:React.ReactNode})=>
+  <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-neutral-900/80 border border-neutral-800">{children}</div>;
+
+export const DataTableFrame=({children}:{children:React.ReactNode})=>
+  <div className="rounded-2xl bg-neutral-900 border border-neutral-800 overflow-hidden"><div className="overflow-x-auto">{children}</div></div>;
+
+export const ModalShell=({open,title,description,onClose,children,maxWidth='max-w-3xl'}:{open:boolean;title:string;description?:string;onClose:()=>void;children:React.ReactNode;maxWidth?:string})=>{
+  if(!open)return null;
+  return <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 grid place-items-center" role="dialog" aria-modal="true"><div className={`w-full ${maxWidth} max-h-[94dvh] overflow-hidden rounded-2xl bg-neutral-900 border border-neutral-800 shadow-2xl flex flex-col`}><div className="p-4 border-b border-neutral-800 flex items-start justify-between gap-3"><div><div className="font-black text-white">{title}</div>{description&&<div className="text-[10px] text-neutral-500 mt-1">{description}</div>}</div><button type="button" onClick={onClose} className="w-8 h-8 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white">×</button></div><div className="p-4 overflow-y-auto">{children}</div></div></div>;
+};
+
+export const ConfirmDialog=({open,title,description,confirmLabel='Confirmar',cancelLabel='Cancelar',danger=false,onConfirm,onCancel}:{open:boolean;title:string;description:string;confirmLabel?:string;cancelLabel?:string;danger?:boolean;onConfirm:()=>void;onCancel:()=>void})=>
+  <ModalShell open={open} title={title} description={description} onClose={onCancel} maxWidth="max-w-md"><div className="flex justify-end gap-2"><button onClick={onCancel} className="px-4 py-2 rounded-xl bg-neutral-800 text-xs font-bold">{cancelLabel}</button><button onClick={onConfirm} className={`px-4 py-2 rounded-xl text-xs font-black ${danger?'bg-rose-600 text-white':'bg-amber-500 text-neutral-950'}`}>{confirmLabel}</button></div></ModalShell>;
+
+export const Drawer=({open,onClose,title,children}:{open:boolean;onClose:()=>void;title:string;children:React.ReactNode})=>{
+  if(!open)return null;
+  return <div className="fixed inset-0 z-50"><button aria-label="Fechar painel" onClick={onClose} className="absolute inset-0 bg-black/70"/><aside className="absolute inset-y-0 right-0 w-[92vw] max-w-xl bg-neutral-900 border-l border-neutral-800 shadow-2xl flex flex-col"><div className="p-4 border-b border-neutral-800 flex justify-between"><h2 className="font-black">{title}</h2><button onClick={onClose} className="text-neutral-400">×</button></div><div className="p-4 overflow-y-auto flex-1">{children}</div></aside></div>;
+};
