@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, AlertTriangle, Package, ScanLine } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
-import type { CashSession, Customer, Product, User } from '../../types';
+import type { CashSession, Category, Customer, Product, User } from '../../types';
 
 interface Props { currentUser: User; currentSession?: CashSession; onNavigate: (tab:string)=>void; }
 type Line={product:Product;quantity:number};
@@ -9,6 +9,8 @@ type Line={product:Product;quantity:number};
 export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,onNavigate})=>{
   const [products,setProducts]=useState<Product[]>([]);
   const [customers,setCustomers]=useState<Customer[]>([]);
+  const [categories,setCategories]=useState<Category[]>([]);
+  const [selectedCategory,setSelectedCategory]=useState('ALL');
   const [query,setQuery]=useState('');
   const [cart,setCart]=useState<Line[]>([]);
   const [customerId,setCustomerId]=useState('');
@@ -21,9 +23,10 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
   const load=async()=>{
     try{
-      const [p,c]=await Promise.all([productionDb.getProducts(),productionDb.getCustomers()]);
+      const [p,c,cats]=await Promise.all([productionDb.getProducts(),productionDb.getCustomers(),productionDb.getCategories()]);
       setProducts(p.filter(x=>x.status==='ACTIVE'));
       setCustomers(c);
+      setCategories(cats.filter(x=>x.active));
     }catch(e:any){
       setError(e?.message||'Falha ao carregar PDV.');
     }
@@ -33,11 +36,12 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
   const visibleProducts=useMemo(()=>{
     const q=query.trim().toLowerCase();
-    const base=q
+    let base=q
       ? products.filter(p=>p.name.toLowerCase().includes(q)||p.barcode.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q))
       : products;
+    if(selectedCategory!=='ALL') base=base.filter(p=>p.categoryId===selectedCategory);
     return base.slice(0,30);
-  },[query,products]);
+  },[query,products,selectedCategory]);
 
   const subtotal=cart.reduce((s,l)=>s+l.product.salePrice*l.quantity,0);
   const total=Math.max(0,subtotal-discount);
@@ -107,6 +111,11 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         </div>
       </div>
 
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <button onClick={()=>setSelectedCategory('ALL')} className={`shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black ${selectedCategory==='ALL'?'bg-amber-500 border-amber-400 text-neutral-950':'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}`}>TODOS</button>
+        {categories.map(cat=><button key={cat.id} onClick={()=>setSelectedCategory(cat.id)} className={`shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black ${selectedCategory===cat.id?'bg-amber-500 border-amber-400 text-neutral-950':'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}`}>{cat.name.toUpperCase()}</button>)}
+      </div>
+
       <div className="mt-4 flex items-center justify-between">
         <div className="text-[11px] text-neutral-500">{query ? 'Resultados da busca' : 'Catálogo de produtos'} · {visibleProducts.length} exibidos</div>
         <div className="text-[10px] text-neutral-600">Toque no produto para adicionar</div>
@@ -124,7 +133,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
               {p.isCold&&<span className="absolute right-2 top-2 px-2 py-1 rounded-full bg-sky-950 border border-sky-700 text-[8px] font-black text-sky-200">GELADO</span>}
             </div>
             <div className="p-2.5">
-              <div className="text-[9px] text-neutral-500 truncate">{p.brand||p.sku}</div>
+              <div className="text-[9px] text-neutral-500 truncate">{p.brand||p.sku}{p.packageSize?` · ${p.packageSize}`:''}</div>
               <div className="mt-1 text-[11px] sm:text-xs font-black leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
               <div className="mt-2 flex items-end justify-between gap-2">
                 <span className="font-mono font-black text-amber-400 text-sm">R$ {p.salePrice.toFixed(2)}</span>
