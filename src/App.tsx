@@ -6,6 +6,7 @@ import { Sidebar } from './components/layout/Sidebar';
 
 // Views
 import { PosScreen } from './components/pos/PosScreen';
+import { ProductionPosScreen } from './components/pos/ProductionPosScreen';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { CashierMiniDashView } from './components/dashboard/CashierMiniDashView';
 import { ProductsView } from './components/products/ProductsView';
@@ -14,6 +15,7 @@ import { CombosView } from './components/combos/CombosView';
 import { StockView } from './components/stock/StockView';
 import { InventoryView } from './components/inventory/InventoryView';
 import { CashView } from './components/cash/CashView';
+import { ProductionCashView } from './components/cash/ProductionCashView';
 import { SalesHistoryView } from './components/sales/SalesHistoryView';
 import { PurchasesView } from './components/purchases/PurchasesView';
 import { SuppliersView } from './components/suppliers/SuppliersView';
@@ -286,11 +288,19 @@ export default function App() {
             />
           )}
           {currentTab === 'pos' && (
-            <PosScreen
-              currentUser={currentUser}
-              currentSession={currentSession}
-              onNavigate={tab => setCurrentTab(tab)}
-            />
+            appMode === 'PRODUCTION' ? (
+              <ProductionPosScreen
+                currentUser={currentUser}
+                currentSession={currentSession}
+                onNavigate={tab => setCurrentTab(tab)}
+              />
+            ) : (
+              <PosScreen
+                currentUser={currentUser}
+                currentSession={currentSession}
+                onNavigate={tab => setCurrentTab(tab)}
+              />
+            )
           )}
           {currentTab === 'sales' && <SalesHistoryView currentUser={currentUser} />}
           {currentTab === 'products' && <ProductsView appMode={appMode} />}
@@ -299,7 +309,15 @@ export default function App() {
           {currentTab === 'stock' && <StockView />}
           {currentTab === 'inventory' && <InventoryView />}
           {currentTab === 'cash' && (
-            <CashView currentUser={currentUser} onSessionUpdated={handleSessionUpdated} />
+            appMode === 'PRODUCTION' ? (
+              <ProductionCashView
+                currentUser={currentUser}
+                currentSession={currentSession}
+                onSessionUpdated={handleSessionUpdated}
+              />
+            ) : (
+              <CashView currentUser={currentUser} onSessionUpdated={handleSessionUpdated} />
+            )
           )}
           {currentTab === 'purchases' && <PurchasesView />}
           {currentTab === 'finance' && <FinanceView />}
