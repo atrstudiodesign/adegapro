@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import { Layers, Plus, RefreshCw, Save, X } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
+import { EmptyState, MetricCard, PageHeader, StatusBadge } from '../ui/ProUi';
 
 type P={id:string;name:string;salePrice:number;currentStock:number;unit:string;isCombo?:boolean;status:string};
 type Item={productId:string;quantity:number};
@@ -38,20 +39,16 @@ export const ProductionCombosView:React.FC=()=>{
     }catch(err:any){setError(err?.message||'Não foi possível salvar o combo.');}finally{setBusy(false);}
   };
 
-  return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5 bg-neutral-950 text-white">
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-neutral-800">
-      <div><h1 className="text-xl font-black flex items-center gap-2"><Layers size={22} className="text-amber-400"/>Combos & Kits</h1>
-      <p className="text-xs text-neutral-400 mt-1">Em produção, a venda baixa automaticamente o estoque de cada componente.</p></div>
-      <div className="flex gap-2"><button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button>
-      <button onClick={()=>start()} disabled={busy||available.length===0} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><Plus size={15}/>Novo combo</button></div>
-    </div>
+  const avgDiscount=combos.length?combos.reduce((s,c)=>s+(c.originalPrice>0?(1-c.price/c.originalPrice)*100:0),0)/combos.length:0;
+  return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5 text-white">
+    <PageHeader eyebrow="Catálogo" title="Combos & kits" description="A venda do combo baixa automaticamente o estoque físico de cada componente." actions={<div className="flex gap-2"><button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button><button onClick={()=>start()} disabled={busy||available.length===0} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><Plus size={15}/>Novo combo</button></div>}/>
     {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{combos.map(c=><article key={c.id} className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
-      <div className="flex justify-between gap-3"><div><h3 className="font-bold">{c.name}</h3><p className="text-[11px] text-neutral-500 mt-1">{c.items.length} componente(s)</p></div><span className="text-amber-400 font-mono font-black">R$ {c.price.toFixed(2)}</span></div>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3"><MetricCard label="Combos" value={combos.length} icon={Layers}/><MetricCard label="Ativos" value={combos.filter(c=>c.active).length} icon={Layers} tone="emerald"/><MetricCard label="Produtos disponíveis" value={available.length} icon={Layers}/><MetricCard label="Desconto médio" value={avgDiscount.toFixed(1)+'%'} icon={Layers} tone="violet"/></div>
+    {combos.length===0&&!busy?<EmptyState title="Nenhum combo cadastrado" description="Crie kits promocionais mantendo a baixa transacional dos componentes." action={<button onClick={()=>start()} disabled={available.length===0} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black">Novo combo</button>}/>:<div className="grid grid-cols-1 md:grid-cols-2 gap-4">{combos.map(c=><article key={c.id} className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
+      <div className="flex justify-between gap-3"><div><h3 className="font-bold">{c.name}</h3><p className="text-[11px] text-neutral-500 mt-1">{c.items.length} componente(s)</p></div><div className="text-right"><span className="text-amber-400 font-mono font-black">R$ {c.price.toFixed(2)}</span><div className="mt-1"><StatusBadge tone={c.active?'success':'neutral'}>{c.active?'ATIVO':'INATIVO'}</StatusBadge></div></div></div>
       <div className="mt-4 space-y-2">{c.items.map((i,idx)=>{const p=products.find(x=>x.id===i.productId);return <div key={idx} className="flex justify-between text-xs bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2"><span>{i.quantity}x {p?.name||'Produto'}</span><span className="text-neutral-500">Estoque {p?.currentStock??0}</span></div>})}</div>
       <div className="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between"><span className="text-xs text-neutral-500">Avulso R$ {c.originalPrice.toFixed(2)}</span><button onClick={()=>start(c)} className="px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-bold">Editar</button></div>
-    </article>)}
-    {!busy&&combos.length===0&&<div className="md:col-span-2 p-8 text-center rounded-2xl border border-neutral-800 text-neutral-500">Nenhum combo cadastrado em produção.</div>}</div>
+    </article>)}</div>}
 
     {open&&<div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-4"><div className="w-full max-w-xl max-h-[94dvh] overflow-hidden rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col">
       <div className="p-4 border-b border-neutral-800 flex justify-between"><h2 className="font-black">{editing?'Editar combo':'Novo combo'}</h2><button onClick={()=>setOpen(false)}><X size={18}/></button></div>
