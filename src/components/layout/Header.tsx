@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../services/db';
+import { productionDb } from '../../services/productionDb';
+import type { AppMode } from '../../services/appMode';
 import { User, CashSession } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
 import { PinAuthModal } from '../common/PinAuthModal';
@@ -15,6 +17,7 @@ interface HeaderProps {
   currentSession?: CashSession;
   onLock?: () => void;
   onMenuToggle?: () => void;
+  appMode?: AppMode;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,19 +27,30 @@ export const Header: React.FC<HeaderProps> = ({
   onUserChanged,
   currentSession,
   onLock,
-  onMenuToggle
+  onMenuToggle,
+  appMode = 'DEMO'
 }) => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const store = db.getStore();
+  const [store,setStore]=useState(()=>db.getStore());
 
   useEffect(() => {
-    const notifs = db.getNotifications();
+    const notifs = appMode === 'DEMO' ? db.getNotifications() : [];
     setUnreadNotifications(notifs.filter(n => !n.read).length);
-  }, [currentTab]);
+  }, [currentTab, appMode]);
+
+  useEffect(() => {
+    let alive = true;
+    if (appMode === 'PRODUCTION') {
+      productionDb.getStore().then(s => { if (alive) setStore(s); }).catch(() => {});
+    } else {
+      setStore(db.getStore());
+    }
+    return () => { alive = false; };
+  }, [appMode]);
 
   return (
-    <header className="min-h-14 sm:h-16 px-3 sm:px-4 lg:px-6 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md gap-2">
+    <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a]/95 border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 backdrop-blur-xl gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
       {/* Zone 1: Single element Brand & Store name */}
       <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <button
