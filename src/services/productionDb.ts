@@ -383,6 +383,66 @@ async function settleCustomerCredit(customerId: string, amount: number, paymentM
   return data;
 }
 
+async function getSales(limit = 200) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('sales')
+    .select('id,sale_number,total,subtotal,discount,surcharge,status,digital_receipt_id,customer_id,operator_ref,created_at')
+    .eq('store_id', ctx.storeId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+async function getStockMovements(limit = 300) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('stock_movements')
+    .select('id,product_id,movement_type,quantity,previous_stock,next_stock,reason,document_ref,created_at')
+    .eq('store_id', ctx.storeId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+async function adjustStock(productId: string, quantity: number, reason: string) {
+  const ctx = await getContext();
+  const { data, error } = await supabase.rpc('set_stock_balance', {
+    p_store_id: ctx.storeId,
+    p_product_id: productId,
+    p_quantity: quantity,
+    p_reason: reason
+  });
+  if (error) throw error;
+  return data;
+}
+
+async function getFinancialTransactions(limit = 300) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('financial_transactions')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+async function getAuditLogs(limit = 300) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('audit_logs')
+    .select('*')
+    .eq('tenant_id', ctx.tenantId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
 async function createSupportTicket(subject: string, category: string, description: string) {
   const ctx = await getContext();
   const { data, error } = await supabase.from('support_tickets').insert({
@@ -585,6 +645,11 @@ export const productionDb = {
   settleCustomerCredit,
   getProducts,
   saveProduct,
+  getSales,
+  getStockMovements,
+  adjustStock,
+  getFinancialTransactions,
+  getAuditLogs,
   createSupportTicket,
   getOperators,
   saveOperator,
