@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/recursos", "destination": "/index.html" },
+    { "source": "/produtos", "destination": "/index.html" },
+    { "source": "/integracoes", "destination": "/index.html" },
+    { "source": "/planos", "destination": "/index.html" },
+    { "source": "/entrar", "destination": "/index.html" },
+    { "source": "/cadastro", "destination": "/index.html" },
+    { "source": "/atr-control", "destination": "/index.html" },
+    { "source": "/comprovante/:id", "destination": "/index.html" }
+  ]
+}
