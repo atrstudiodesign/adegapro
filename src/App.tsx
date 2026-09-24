@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { db } from './services/db';
 import { User, CashSession } from './types';
 import { Header } from './components/layout/Header';
@@ -383,6 +384,7 @@ export default function App() {
           )}
         </main>
       </div>
+      <SpeedInsights />
     </div>
   );
 }
