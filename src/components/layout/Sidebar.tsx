@@ -43,7 +43,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   mobileOpen = false,
   onClose
 }) => {
-  const isSuperAdmin = currentUser.role === 'ADMINISTRADOR' || (currentUser.role as string) === 'SUPER_ADMIN';
+  const isPlatformAdmin = (currentUser.role as string) === 'SUPER_ADMIN';
+  const isTenantAdmin = currentUser.role === 'ADMINISTRADOR';
+  const isAdmin = isPlatformAdmin || isTenantAdmin;
   const isCaixa = currentUser.role === 'CAIXA';
 
   // Front-of-store cashier specific menu groups (as requested: PDV, cadastro de produtos, vendas do dia, total de saídas mini dash)
@@ -60,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   ];
 
-  // Full system menu groups for Super Admin and managers
+  // Full tenant menu groups for administrators and managers
   const fullMenuGroups = [
     {
       group: 'OPERAÇÃO',
@@ -108,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const hasPermission = (permission: string | null) => {
     if (!permission) return true;
-    if (isSuperAdmin) return true;
+    if (isAdmin) return true;
     return currentUser.permissions.includes(permission as any);
   };
 
@@ -136,13 +138,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center gap-2">
           <div
             className={`w-2.5 h-2.5 rounded-full ${
-              isSuperAdmin ? 'bg-amber-400 ring-2 ring-amber-400/30' : 'bg-emerald-400 ring-2 ring-emerald-400/30'
+              isAdmin ? 'bg-amber-400 ring-2 ring-amber-400/30' : 'bg-emerald-400 ring-2 ring-emerald-400/30'
             }`}
           />
           <div className="truncate">
             <div className="text-[11px] font-extrabold text-white truncate">{currentUser.name}</div>
             <div className="text-[10px] text-amber-400 font-mono">
-              {isSuperAdmin ? 'SUPER ADMIN (TOTAL)' : isCaixa ? 'FRENTE DE CAIXA' : currentUser.role}
+              {isPlatformAdmin ? 'SUPER ADMIN · ATR' : isTenantAdmin ? 'ADMINISTRADOR DA ADEGA' : isCaixa ? 'FRENTE DE CAIXA' : currentUser.role}
             </div>
           </div>
         </div>
