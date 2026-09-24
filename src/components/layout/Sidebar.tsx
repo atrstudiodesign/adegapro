@@ -130,11 +130,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[1px] lg:hidden"
         />
       )}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-[86vw] max-w-72 lg:w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col shrink-0 overflow-y-auto select-none shadow-2xl lg:shadow-none transition-transform duration-200 ease-out ${
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-[86vw] max-w-72 lg:w-64 bg-[#0a0a0a] border-r border-amber-500/10 flex flex-col shrink-0 overflow-y-auto select-none shadow-2xl lg:shadow-none transition-transform duration-200 ease-out ${
         mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
       {/* Role Profile Badge Indicator */}
-      <div className="p-3 mx-3 mt-3 rounded-2xl bg-neutral-950/80 border border-neutral-800 flex items-center justify-between">
+      <div className="p-3 mx-3 mt-3 rounded-2xl bg-neutral-950 border border-neutral-800/90 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div
             className={`w-2.5 h-2.5 rounded-full ${
@@ -167,10 +167,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => navigate(item.id)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
                     isActive
-                      ? 'bg-amber-500 text-neutral-950 shadow-md font-bold'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-neutral-950 shadow-md shadow-amber-950/20 font-bold'
                       : item.highlight
                       ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20'
-                      : 'text-neutral-400 hover:text-white hover:bg-neutral-800/70'
+                      : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -185,7 +185,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Tenant Footer Info */}
-      <div className="mt-auto p-4 border-t border-neutral-800/80 bg-neutral-950/60 text-[11px] text-neutral-400">
+      <div className="mt-auto p-4 border-t border-amber-500/10 bg-black text-[11px] text-neutral-400">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl overflow-hidden border border-amber-500/30 bg-neutral-900 shrink-0 shadow-sm">
             <img
