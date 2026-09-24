@@ -50,8 +50,8 @@ function setStorage<T>(key: string, value: T): void {
 
 export const DEFAULT_TENANT: Tenant = {
   id: 'tenant-toba-001',
-  name: 'Adega Modelo Comércio de Bebidas LTDA',
-  cnpj: '48.912.834/0001-92',
+  name: 'Sua Empresa X Comércio de Bebidas LTDA',
+  cnpj: '00.000.000/0001-91',
   plan: 'ENTERPRISE',
   active: true,
   createdAt: '2026-01-10T08:00:00.000Z'
@@ -60,18 +60,18 @@ export const DEFAULT_TENANT: Tenant = {
 export const DEFAULT_STORE: Store = {
   id: 'store-matriz-01',
   tenantId: 'tenant-toba-001',
-  name: 'Adega Modelo - Matriz',
-  tradeName: 'Adega Modelo',
-  cnpj: '48.912.834/0001-92',
-  stateRegistration: '112.498.530.119',
-  phone: '(11) 98765-4321',
-  whatsapp: '(11) 98765-4321',
-  email: 'demo@adegapro.app',
-  address: 'Av. das Bebidas Geladas, 1200 - Centro',
+  name: 'Sua Empresa X - Matriz',
+  tradeName: 'Sua Empresa X',
+  cnpj: '00.000.000/0001-91',
+  stateRegistration: '000.000.000.000',
+  phone: '(11) 90000-0000',
+  whatsapp: '(11) 90000-0000',
+  email: 'contato@suaempresax.exemplo',
+  address: 'Av. Exemplo, 1000 - Centro',
   city: 'São Paulo',
   state: 'SP',
   zipCode: '01310-100',
-  instagram: '@adegamodelo',
+  instagram: '@suaempresax',
   openingHours: 'Seg a Dom: 10:00 às 04:00',
   logoUrl: '/adega-pro-mark.svg',
   thermalWidth: '80mm',
@@ -88,7 +88,7 @@ export const INITIAL_USERS: User[] = [
     tenantId: 'tenant-toba-001',
     storeId: 'store-matriz-01',
     name: 'Carlos Oliveira (Proprietário)',
-    email: 'admin@tomenoseutoba.com.br',
+    email: 'admin@suaempresax.exemplo',
     phone: '(11) 99999-0001',
     role: 'ADMINISTRADOR',
     pin: '9999',
@@ -108,7 +108,7 @@ export const INITIAL_USERS: User[] = [
     tenantId: 'tenant-toba-001',
     storeId: 'store-matriz-01',
     name: 'Fernanda Lima (Gerente)',
-    email: 'gerente@tomenoseutoba.com.br',
+    email: 'gerente@suaempresax.exemplo',
     phone: '(11) 99999-0002',
     role: 'GERENTE',
     pin: '2233',
@@ -127,7 +127,7 @@ export const INITIAL_USERS: User[] = [
     tenantId: 'tenant-toba-001',
     storeId: 'store-matriz-01',
     name: 'Lucas Pereira (Operador Caixa)',
-    email: 'lucas.caixa@tomenoseutoba.com.br',
+    email: 'caixa@suaempresax.exemplo',
     phone: '(11) 99999-0003',
     role: 'CAIXA',
     pin: '1234',
@@ -719,7 +719,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'CMB-CHURR-01',
     barcode: '7890000000010',
     categoryId: 'cat-combos',
-    brand: 'Adega Modelo',
+    brand: 'Sua Empresa X',
     unit: 'UN',
     costPrice: 43.90,
     salePrice: 69.90,
@@ -740,7 +740,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'CMB-RED-02',
     barcode: '7890000000027',
     categoryId: 'cat-combos',
-    brand: 'Adega Modelo',
+    brand: 'Sua Empresa X',
     unit: 'UN',
     costPrice: 100.40,
     salePrice: 149.90,
@@ -833,9 +833,9 @@ export const INITIAL_INTEGRATIONS: IntegrationsConfig = {
   pix: {
     enabled: true,
     provider: 'BANCO_CENTRAL_STATIC',
-    pixKey: '48.912.834/0001-92',
+    pixKey: '00.000.000/0001-91',
     keyType: 'CNPJ',
-    merchantName: 'TOME NO SEU TOBA ADEGA',
+    merchantName: 'SUA EMPRESA X',
     merchantCity: 'SAO PAULO',
     webhookUrl: '/api/webhooks/payment',
     lastSync: new Date().toISOString(),
@@ -845,7 +845,7 @@ export const INITIAL_INTEGRATIONS: IntegrationsConfig = {
     enabled: false,
     provider: 'SITEF',
     terminalIp: '192.168.1.150',
-    terminalId: 'TOBA001',
+    terminalId: 'DEMO001',
     merchantCode: '984123',
     testMode: true,
     allowManualCardFallback: true,
@@ -856,8 +856,8 @@ export const INITIAL_INTEGRATIONS: IntegrationsConfig = {
     enabled: false,
     model: 'NFCe',
     environment: 'HOMOLOGACAO',
-    cnpj: '48.912.834/0001-92',
-    stateRegistration: '112.498.530.119',
+    cnpj: '00.000.000/0001-91',
+    stateRegistration: '000.000.000.000',
     cscToken: 'A1B2C3D4E5F6G7H8I9J0',
     cscId: '000001',
     series: 1,
@@ -882,6 +882,21 @@ class DatabaseService {
   private ensureInitialized() {
     if (!localStorage.getItem(STORAGE_KEY_PREFIX + 'tenant')) {
       this.resetToSeed();
+      return;
+    }
+
+    // One-time demo branding migration. Keeps operational demo data,
+    // but removes obsolete company identity persisted in older browsers.
+    const tenant = getStorage<Tenant>('tenant', DEFAULT_TENANT);
+    const store = getStorage<Store>('store', DEFAULT_STORE);
+    const hasLegacyBrand = [tenant.name, store.name, store.tradeName, store.email, store.receiptFooter]
+      .some(value => /tome no seu toba|tomenoseutoba/i.test(String(value || '')));
+
+    if (hasLegacyBrand) {
+      setStorage('tenant', { ...tenant, name: DEFAULT_TENANT.name, cnpj: DEFAULT_TENANT.cnpj });
+      setStorage('store', { ...store, ...DEFAULT_STORE });
+      setStorage('users', INITIAL_USERS);
+      setStorage('integrations', INITIAL_INTEGRATIONS);
     }
   }
 
@@ -1200,7 +1215,7 @@ class DatabaseService {
         salePrice: combo.price,
         costPrice: originalPrice * 0.6,
         categoryId: 'cat-combos',
-        brand: 'Adega Modelo',
+        brand: 'Sua Empresa X',
         unit: 'UN',
         currentStock: 50,
         minStock: 5,
