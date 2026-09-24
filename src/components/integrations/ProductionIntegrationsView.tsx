@@ -1,0 +1,16 @@
+import React from 'react';
+import { Cable, CheckCircle2, Clock3, ShieldCheck, WifiOff } from 'lucide-react';
+
+const Capability=({title,status,detail,ready}:{title:string;status:string;detail:string;ready:boolean})=><div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="flex items-start justify-between gap-3"><div><h2 className="font-bold text-white">{title}</h2><p className="text-xs text-neutral-400 mt-1 leading-relaxed">{detail}</p></div><span className={ready?'text-[10px] font-black px-2 py-1 rounded-full border border-emerald-800 bg-emerald-950/40 text-emerald-300':'text-[10px] font-black px-2 py-1 rounded-full border border-amber-800 bg-amber-950/40 text-amber-300'}>{status}</span></div></div>;
+
+export const ProductionIntegrationsView:React.FC=()=> <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5 bg-neutral-950">
+  <div className="pb-4 border-b border-neutral-800"><h1 className="text-xl font-black text-white flex items-center gap-2"><Cable size={22} className="text-amber-400"/>Integrações de Produção</h1><p className="text-xs text-neutral-400 mt-1">Nenhuma integração financeira ou fiscal é simulada no ambiente real.</p></div>
+  <div className="p-4 rounded-2xl border border-emerald-800/50 bg-emerald-950/20 flex items-start gap-3"><ShieldCheck size={19} className="text-emerald-400 shrink-0"/><div><div className="text-sm font-bold text-white">Supabase operacional</div><div className="text-xs text-neutral-400 mt-1">Autenticação, RLS, banco multi-tenant, storage, auditoria, operadores e transações de PDV estão na infraestrutura de produção.</div></div></div>
+  <div className="grid md:grid-cols-2 gap-4">
+    <Capability title="PIX integrado" status="PENDENTE DE PROVEDOR" ready={false} detail="O PDV pode registrar PIX com confirmação manual. Cobrança dinâmica e confirmação automática exigirão API e webhook assinado de um PSP homologado."/>
+    <Capability title="TEF / PinPad" status="NÃO HOMOLOGADO" ready={false} detail="A simulação TEF permanece restrita ao modo demonstração. Produção não gera NSU ou autorização fictícia."/>
+    <Capability title="NFC-e / Fiscal" status="NÃO HOMOLOGADO" ready={false} detail="Produção não emite XML fiscal fictício. Certificado A1, CSC e transmissão deverão residir somente em backend/serviço fiscal homologado."/>
+    <Capability title="Offline transacional" status="PENDENTE" ready={false} detail="O sincronizador local legado é apenas demonstração. Vendas reais exigirão outbox em IndexedDB, idempotência e confirmação do servidor."/>
+  </div>
+  <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-400 space-y-2"><div className="flex items-center gap-2 text-white font-bold"><Clock3 size={15} className="text-amber-400"/>Próximas homologações externas</div><p>1. Escolher PSP PIX. 2. Escolher TEF. 3. Escolher provedor fiscal/NFC-e. 4. Definir estratégia offline real. Até isso ocorrer, o sistema bloqueia a apresentação de simulações como integrações de produção.</p></div>
+</div>;
