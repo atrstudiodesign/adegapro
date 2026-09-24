@@ -633,6 +633,13 @@ async function getAccountsReceivable(limit = 200) {
   return data || [];
 }
 
+async function getDashboardAnalytics() {
+  const ctx = await getContext();
+  const { data, error } = await supabase.rpc('get_store_dashboard_analytics', { p_store_id: ctx.storeId });
+  if (error) throw error;
+  return data || {};
+}
+
 async function getSales(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -964,6 +971,7 @@ export const productionDb = {
   getExpiryAlerts,
   getAccountsPayable,
   getAccountsReceivable,
+  getDashboardAnalytics,
   getSales,
   getSaleDetails,
   getStockMovements,
