@@ -40,6 +40,21 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     );
   }
 
+  if (variant === 'full') {
+    return (
+      <div className={`flex items-center select-none ${className}`}>
+        <img
+          src="/adega-pro-logo.jpg"
+          alt="ADEGA PRO — Sistema para Adegas"
+          className={`${dim.heroW} h-auto object-contain`}
+          referrerPolicy="no-referrer"
+          onError={() => setImgError(true)}
+        />
+        {imgError && <div className={`font-black tracking-tight text-white uppercase ${dim.text}`}>ADEGA <span className="text-amber-400">PRO</span></div>}
+      </div>
+    );
+  }
+
   // Hero / Full Artwork Mode
   if (variant === 'hero') {
     return (
@@ -91,7 +106,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           </div>
           {showSubtitle && (
             <span className={`font-bold text-neutral-400 tracking-wider uppercase ${dim.sub}`}>
-              Gestão &amp; Conveniência
+              Sistema para Adegas
             </span>
           )}
         </div>
