@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Headphones, MessageCircle, Send, ExternalLink, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { PageHeader, StatusBadge } from '../ui/ProUi';
 import type { AppMode } from '../../services/appMode';
 import { productionDb } from '../../services/productionDb';
 
@@ -35,19 +36,9 @@ export const SupportView: React.FC<SupportViewProps> = ({ appMode = 'DEMO' }) =>
   };
 
   return (
-    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
       <div className="max-w-5xl mx-auto space-y-5">
-        <div className="pb-4 border-b border-neutral-800 flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-black text-white flex items-center gap-2">
-              <Headphones size={22} className="text-amber-400"/> Suporte Técnico ATR Studio
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">Canal oficial para dúvidas operacionais, falhas e incidentes técnicos.</p>
-          </div>
-          <span className={`text-[10px] font-black px-2 py-1 rounded-full border ${appMode === 'PRODUCTION' ? 'text-emerald-300 border-emerald-800 bg-emerald-950/50' : 'text-violet-300 border-violet-800 bg-violet-950/50'}`}>
-            {appMode === 'PRODUCTION' ? 'CHAMADO NO SUPABASE' : 'SIMULAÇÃO DEMO'}
-          </span>
-        </div>
+        <PageHeader eyebrow="Atendimento" title="Suporte técnico ATR Studio" description="Canal oficial para dúvidas operacionais, falhas e incidentes técnicos." actions={<StatusBadge tone={appMode==='PRODUCTION'?'success':'info'}>{appMode==='PRODUCTION'?'CHAMADO NO SUPABASE':'SIMULAÇÃO DEMO'}</StatusBadge>}/>
 
         <div className="grid md:grid-cols-2 gap-4">
           <a href={whatsapp} target="_blank" rel="noreferrer" className="p-5 rounded-2xl bg-emerald-950/30 border border-emerald-800/60 hover:border-emerald-500 transition-colors">
