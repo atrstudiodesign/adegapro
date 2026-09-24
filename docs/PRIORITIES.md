@@ -29,14 +29,14 @@
 - [x] Relatórios base.
 - [x] Auditoria.
 - [x] Suporte.
-- [ ] Combos em produção: bloqueados até implementar baixa de componentes.
-- [ ] Mini dashboard específico do caixa: usa o dashboard geral de produção até migração dedicada.
+- [x] Combos em produção com composição e baixa transacional dos componentes.
+- [x] Mini dashboard específico do caixa em produção.
 
 ## P2 — Qualidade, governança e CI/CD
 - [x] Branch google-ai-studio.
 - [x] CI com TypeScript, testes e build.
 - [x] CODEOWNERS.
-- [x] Testes de identidade jurídica e guardas arquiteturais.
+- [x] Testes de identidade jurídica e guardas arquiteturais (`tests/architecture.test.ts`).
 - [x] Documentação de arquitetura.
 - [ ] Proteção obrigatória da main: depende de configuração administrativa do GitHub; o conector atual não expõe escrita de branch protection.
 
@@ -48,5 +48,5 @@
 - [ ] TEF homologado.
 - [ ] Emissão NFC-e real/homologada.
 - [ ] Offline transacional real com IndexedDB/outbox/idempotência.
-- [ ] Billing/gateway de assinatura.
-- [ ] Control Plane completo da ATR Studio para licenças, tenants e suporte.
+- [~] Billing: estrutura `billing_subscriptions` + ledger `billing_events` criada; falta conectar PSP/gateway real e webhook do provedor.
+- [~] Control Plane: base de licenças, entitlement e billing pronta; interface administrativa completa ainda pendente.
