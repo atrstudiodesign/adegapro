@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight, BarChart3, Boxes, CheckCircle2, Eye, EyeOff, LockKeyhole,
   Mail, Phone, ShieldCheck, ShoppingCart, Sparkles, Store, UserRound, WalletCards,
@@ -37,7 +37,11 @@ const emptyRegister: RegisterForm = {
 };
 
 export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAuthenticated, initialView = 'LANDING' }) => {
-  const [view, setView] = useState<View>(initialView);
+  const [view, setView] = useState<View>(() => {
+    if (window.location.pathname === '/entrar') return 'LOGIN';
+    if (window.location.pathname === '/cadastro') return 'REGISTER';
+    return initialView;
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [register, setRegister] = useState<RegisterForm>(emptyRegister);
@@ -47,10 +51,36 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   const [legalDoc, setLegalDoc] = useState<LegalDocKey | null>(null);
 
   const navigateMarketing = (path: '/recursos'|'/produtos'|'/integracoes'|'/planos') => {
+    setView('LANDING');
     window.history.pushState({}, '', path);
     const id = path.slice(1);
-    requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    ));
   };
+
+  const navigateView = (next: View) => {
+    setView(next);
+    const path = next === 'LOGIN' ? '/entrar' : next === 'REGISTER' ? '/cadastro' : '/';
+    window.history.pushState({}, '', path);
+    if (next === 'LANDING') window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const syncFromPath = () => {
+      const path = window.location.pathname;
+      if (path === '/entrar') { setView('LOGIN'); return; }
+      if (path === '/cadastro') { setView('REGISTER'); return; }
+      setView('LANDING');
+      const section = ['recursos','produtos','integracoes','planos'].find(x => path === '/' + x);
+      if (section) requestAnimationFrame(() => requestAnimationFrame(() =>
+        document.getElementById(section)?.scrollIntoView({ block: 'start' })
+      ));
+    };
+    syncFromPath();
+    window.addEventListener('popstate', syncFromPath);
+    return () => window.removeEventListener('popstate', syncFromPath);
+  }, []);
 
   const checkRateLimit = async (action: 'login'|'signup'|'recovery', identifier: string) => {
     const { data, error } = await supabase.functions.invoke('auth-rate-limit', {
@@ -145,7 +175,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
           type:'success',
           text:'Conta criada. Confirme o e-mail enviado pelo Supabase e depois entre para concluir o cadastro da adega.'
         });
-        setView('LOGIN');
+        navigateView('LOGIN');
         setEmail(register.email);
       }
     } catch (err:any) {
@@ -191,7 +221,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(120,53,15,0.16),transparent_30%)]"/>
       <header className="relative z-20 border-b border-white/5 bg-black/65 backdrop-blur-xl sticky top-0">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between gap-4">
-          <button onClick={() => setView('LANDING')} className="flex items-center gap-3 text-left">
+          <button onClick={() => navigateView('LANDING')} className="flex items-center gap-3 text-left">
             <img src="/adega-pro-logo.jpg" alt="ADEGA PRO" className="h-11 w-auto max-w-[190px] object-contain rounded-lg"/>
           </button>
           <nav className="hidden lg:flex items-center gap-7 text-[12px] font-bold text-neutral-400">
@@ -201,8 +231,8 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             <button type="button" onClick={() => navigateMarketing('/planos')} className="hover:text-amber-400 transition-colors">Planos</button>
           </nav>
           <div className="flex items-center gap-2">
-            <button onClick={() => setView('LOGIN')} className="hidden sm:block px-4 py-2.5 text-xs font-bold text-neutral-300 hover:text-white">Entrar</button>
-            <button onClick={() => setView('REGISTER')} className="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 text-neutral-950 text-xs font-black shadow-lg shadow-amber-950/30">Comece agora</button>
+            <button onClick={() => navigateView('LOGIN')} className="hidden sm:block px-4 py-2.5 text-xs font-bold text-neutral-300 hover:text-white">Entrar</button>
+            <button onClick={() => navigateView('REGISTER')} className="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 text-neutral-950 text-xs font-black shadow-lg shadow-amber-950/30">Comece agora</button>
           </div>
         </div>
       </header>
@@ -223,7 +253,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                   PDV, estoque, compras, clientes, financeiro, relatórios, vendas online e integrações em uma experiência única para sua operação.
                 </p>
                 <div className="flex flex-wrap gap-3 mt-7">
-                  <button onClick={() => setView('REGISTER')} className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-neutral-950 font-black text-sm flex items-center gap-2 shadow-xl shadow-amber-950/30">
+                  <button onClick={() => navigateView('REGISTER')} className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-neutral-950 font-black text-sm flex items-center gap-2 shadow-xl shadow-amber-950/30">
                     Cadastrar minha adega <ArrowRight size={17}/>
                   </button>
                   <button onClick={onDemo} className="px-5 py-3.5 rounded-xl bg-violet-950/40 hover:bg-violet-900/50 border border-violet-700/50 text-violet-200 font-black text-sm">
