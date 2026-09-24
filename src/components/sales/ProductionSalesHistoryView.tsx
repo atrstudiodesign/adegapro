@@ -1,16 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { Receipt, RefreshCw } from 'lucide-react';
+import React,{useEffect,useState} from 'react';
+import { Receipt, RefreshCw, Eye, X, CreditCard, Package } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 
 export const ProductionSalesHistoryView:React.FC=()=>{
- const [rows,setRows]=useState<any[]>([]);const[busy,setBusy]=useState(false);const[error,setError]=useState('');
- const load=async()=>{setBusy(true);setError('');try{setRows(await productionDb.getSales());}catch(e:any){setError(e?.message||'Falha ao carregar vendas.');}finally{setBusy(false);}};useEffect(()=>{void load();},[]);
- return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5 bg-neutral-950">
-  <div className="flex items-start justify-between gap-3 pb-4 border-b border-neutral-800"><div><h1 className="text-xl font-black text-white flex items-center gap-2"><Receipt size={22} className="text-amber-400"/>Vendas de Produção</h1><p className="text-xs text-neutral-400 mt-1">Histórico carregado diretamente do Supabase.</p></div><button disabled={busy} onClick={()=>void load()} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs text-neutral-300 flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button></div>
+ const[rows,setRows]=useState<any[]>([]);
+ const[busy,setBusy]=useState(false);
+ const[error,setError]=useState('');
+ const[details,setDetails]=useState<any>(null);
+
+ const load=async()=>{setBusy(true);setError('');try{setRows(await productionDb.getSales());}catch(e:any){setError(e?.message||'Falha ao carregar vendas.');}finally{setBusy(false);}};
+ useEffect(()=>{void load();},[]);
+
+ const open=async(id:string)=>{setBusy(true);setError('');try{setDetails(await productionDb.getSaleDetails(id));}catch(e:any){setError(e?.message||'Falha ao abrir o cupom.');}finally{setBusy(false);}};
+
+ return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5 bg-neutral-950 text-white">
+  <div className="flex items-start justify-between gap-3 pb-4 border-b border-neutral-800"><div><h1 className="text-xl font-black flex items-center gap-2"><Receipt size={22} className="text-amber-400"/>Vendas & Cupons</h1><p className="text-xs text-neutral-400 mt-1">Histórico real com itens, pagamentos, operador e rastreio de lote.</p></div><button disabled={busy} onClick={()=>void load()} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs text-neutral-300 flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button></div>
   {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
-  <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-neutral-950/70 text-neutral-400 uppercase"><tr><th className="p-3">Venda</th><th className="p-3">Data</th><th className="p-3">Status</th><th className="p-3 text-right">Desconto</th><th className="p-3 text-right">Total</th></tr></thead><tbody className="divide-y divide-neutral-800">
-   {rows.map(r=><tr key={r.id}><td className="p-3 font-mono text-white">#{r.sale_number}</td><td className="p-3 text-neutral-300">{new Date(r.created_at).toLocaleString('pt-BR')}</td><td className="p-3"><span className={r.status==='PAGA'?'text-emerald-400':'text-neutral-400'}>{r.status}</span></td><td className="p-3 text-right font-mono">R$ {Number(r.discount||0).toFixed(2)}</td><td className="p-3 text-right font-mono font-black text-amber-400">R$ {Number(r.total||0).toFixed(2)}</td></tr>)}
-   {rows.length===0&&<tr><td colSpan={5} className="p-8 text-center text-neutral-500">Nenhuma venda em produção.</td></tr>}
+  <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-neutral-950/70 text-neutral-400 uppercase"><tr><th className="p-3">Venda</th><th className="p-3">Data</th><th className="p-3">Status</th><th className="p-3 text-right">Desconto</th><th className="p-3 text-right">Total</th><th className="p-3"></th></tr></thead><tbody className="divide-y divide-neutral-800">
+   {rows.map(r=><tr key={r.id}><td className="p-3 font-mono text-white">#{r.sale_number}</td><td className="p-3 text-neutral-300">{new Date(r.created_at).toLocaleString('pt-BR')}</td><td className="p-3"><span className={r.status==='PAGA'?'text-emerald-400':'text-neutral-400'}>{r.status}</span></td><td className="p-3 text-right font-mono">R$ {Number(r.discount||0).toFixed(2)}</td><td className="p-3 text-right font-mono font-black text-amber-400">R$ {Number(r.total||0).toFixed(2)}</td><td className="p-3 text-right"><button onClick={()=>void open(r.id)} className="px-2.5 py-1.5 rounded-lg bg-neutral-800 text-neutral-200 inline-flex items-center gap-1"><Eye size={13}/>Ver cupom</button></td></tr>)}
+   {rows.length===0&&<tr><td colSpan={6} className="p-8 text-center text-neutral-500">Nenhuma venda em produção.</td></tr>}
   </tbody></table></div></div>
+
+  {details&&<div className="fixed inset-0 z-50 bg-black/85 grid place-items-center p-3"><div className="w-full max-w-3xl max-h-[94dvh] overflow-y-auto rounded-2xl bg-neutral-900 border border-neutral-800 p-5">
+    <div className="flex items-start justify-between gap-3 pb-4 border-b border-neutral-800"><div><h2 className="text-lg font-black">Cupom #{details.sale?.sale_number}</h2><p className="text-xs text-neutral-500 mt-1">{new Date(details.sale?.created_at).toLocaleString('pt-BR')} · {details.operator?.name||'Operador'}</p></div><button onClick={()=>setDetails(null)}><X size={18}/></button></div>
+    <div className="mt-4 space-y-2"><div className="text-xs font-black text-neutral-400 uppercase tracking-wider flex items-center gap-2"><Package size={14}/>Itens</div>{(details.items||[]).map((i:any)=><div key={i.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><div className="flex justify-between gap-3"><strong>{i.product_name}</strong><span className="font-mono font-bold">R$ {Number(i.subtotal||0).toFixed(2)}</span></div><div className="text-neutral-500 mt-1">{Number(i.quantity)} × R$ {Number(i.unit_price||0).toFixed(2)}{Number(i.discount||0)>0?` · desconto R$ ${Number(i.discount).toFixed(2)}`:''}</div></div>)}</div>
+    <div className="mt-5 space-y-2"><div className="text-xs font-black text-neutral-400 uppercase tracking-wider flex items-center gap-2"><CreditCard size={14}/>Pagamentos</div>{(details.payments||[]).map((p:any)=><div key={p.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs flex flex-wrap justify-between gap-2"><span>{p.method} · {p.provider||'MANUAL'}</span><span className="font-mono font-bold">R$ {Number(p.amount||0).toFixed(2)}{Number(p.change_amount||0)>0?` · troco R$ ${Number(p.change_amount).toFixed(2)}`:''}</span>{(p.authorization_code||p.nsu)&&<span className="w-full text-neutral-500">Autorização {p.authorization_code||'—'} · NSU {p.nsu||'—'}</span>}</div>)}</div>
+    {(details.batch_consumptions||[]).length>0&&<div className="mt-5"><div className="text-xs font-black text-neutral-400 uppercase tracking-wider">Rastreabilidade de lote</div><div className="mt-2 grid sm:grid-cols-2 gap-2">{details.batch_consumptions.map((b:any,idx:number)=><div key={idx} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-[11px] text-neutral-400">Lote {b.lot_number||'—'} · qtd {Number(b.quantity)} · validade {b.expiry_date?new Date(b.expiry_date+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</div>)}</div></div>}
+    <div className="mt-5 p-4 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2"><div className="flex justify-between text-xs text-neutral-400"><span>Subtotal</span><span>R$ {Number(details.sale?.subtotal||0).toFixed(2)}</span></div><div className="flex justify-between text-xs text-neutral-400"><span>Desconto</span><span>- R$ {Number(details.sale?.discount||0).toFixed(2)}</span></div><div className="flex justify-between text-lg font-black pt-2 border-t border-neutral-800"><span>Total</span><span className="text-amber-400">R$ {Number(details.sale?.total||0).toFixed(2)}</span></div></div>
+  </div></div>}
  </div>;
 };
