@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../../services/db';
 import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
+import { compressProductImage } from '../../utils/imageCompression';
 import { Product, Category, Supplier } from '../../types';
 import {
   Package,
@@ -164,7 +165,10 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
     try {
       if (appMode === 'PRODUCTION') {
         const saved = await productionDb.saveProduct(editingProduct as any);
-        if (imageFile) await productionDb.uploadProductImage(saved.id, imageFile);
+        if (imageFile) {
+          const optimized = await compressProductImage(imageFile);
+          await productionDb.uploadProductImage(saved.id, optimized);
+        }
       } else {
         db.saveProduct(editingProduct as any);
       }
@@ -422,7 +426,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
                     value={editingProduct.name || ''}
                     onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
                     className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2 text-white text-xs focus:border-amber-400 focus:outline-none"
-                    placeholder="Ex: Cerveja Corona Extra 330ml"
+                    placeholder="Ex: Cerveja Corona Extra"
                   />
                 </div>
                 <div>
