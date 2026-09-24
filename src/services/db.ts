@@ -45,12 +45,12 @@ function setStorage<T>(key: string, value: T): void {
 }
 
 // ----------------------------------------------------
-// DEFAULT SEED DATA ("TOME NO SEU TOBA - ADEGA & CONVENIÊNCIA")
+// DEFAULT SEED DATA (ADEGA PRO DEMO)
 // ----------------------------------------------------
 
 export const DEFAULT_TENANT: Tenant = {
   id: 'tenant-toba-001',
-  name: 'Tome no seu Toba Comércio de Bebidas LTDA',
+  name: 'Adega Modelo Comércio de Bebidas LTDA',
   cnpj: '48.912.834/0001-92',
   plan: 'ENTERPRISE',
   active: true,
@@ -60,22 +60,22 @@ export const DEFAULT_TENANT: Tenant = {
 export const DEFAULT_STORE: Store = {
   id: 'store-matriz-01',
   tenantId: 'tenant-toba-001',
-  name: 'Tome no seu Toba - Matriz',
-  tradeName: 'Adega & Conveniência Tome no seu Toba',
+  name: 'Adega Modelo - Matriz',
+  tradeName: 'Adega Modelo',
   cnpj: '48.912.834/0001-92',
   stateRegistration: '112.498.530.119',
   phone: '(11) 98765-4321',
   whatsapp: '(11) 98765-4321',
-  email: 'contato@tomenoseutoba.com.br',
+  email: 'demo@adegapro.app',
   address: 'Av. das Bebidas Geladas, 1200 - Centro',
   city: 'São Paulo',
   state: 'SP',
   zipCode: '01310-100',
-  instagram: '@adegatomenoseutoba',
+  instagram: '@adegamodelo',
   openingHours: 'Seg a Dom: 10:00 às 04:00',
-  logoUrl: '/logo.svg',
+  logoUrl: '/adega-pro-mark.svg',
   thermalWidth: '80mm',
-  receiptFooter: 'Obrigado pela preferência! Volte sempre à Tome no seu Toba.',
+  receiptFooter: 'Obrigado pela preferência! Volte sempre!',
   allowSellWithoutStock: false,
   requireCustomer: false,
   requirePasswordForCancel: true,
@@ -719,7 +719,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'CMB-CHURR-01',
     barcode: '7890000000010',
     categoryId: 'cat-combos',
-    brand: 'Tome no seu Toba',
+    brand: 'Adega Modelo',
     unit: 'UN',
     costPrice: 43.90,
     salePrice: 69.90,
@@ -740,7 +740,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'CMB-RED-02',
     barcode: '7890000000027',
     categoryId: 'cat-combos',
-    brand: 'Tome no seu Toba',
+    brand: 'Adega Modelo',
     unit: 'UN',
     costPrice: 100.40,
     salePrice: 149.90,
@@ -980,7 +980,7 @@ class DatabaseService {
         action: 'SISTEMA_INICIALIZADO',
         entity: 'Tenant',
         entityId: DEFAULT_TENANT.id,
-        details: 'Ambiente Tome no seu Toba configurado e pronto para produção',
+        details: 'Ambiente ADEGA PRO DEMO configurado e pronto para uso',
         createdAt: new Date().toISOString()
       }
     ]);
@@ -1200,7 +1200,7 @@ class DatabaseService {
         salePrice: combo.price,
         costPrice: originalPrice * 0.6,
         categoryId: 'cat-combos',
-        brand: 'Tome no seu Toba',
+        brand: 'Adega Modelo',
         unit: 'UN',
         currentStock: 50,
         minStock: 5,
