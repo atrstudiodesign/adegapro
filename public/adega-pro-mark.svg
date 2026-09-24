@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="ADEGA PRO">
+<defs><linearGradient id="w" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e5e7eb"/></linearGradient></defs>
+<rect width="128" height="128" rx="28" fill="#090909"/>
+<path d="M64 14 20 104h27l8-20h19l8 20h28L71 14Z" fill="url(#w)"/>
+<path d="M59 39h12v15c0 5 3 9 6 13v31H51V67c3-4 8-8 8-13Z" fill="#b30d15"/>
+<rect x="61" y="32" width="8" height="10" rx="1.5" fill="#8c0b12"/>
+<rect x="8" y="8" width="112" height="112" rx="23" fill="none" stroke="#f59e0b" stroke-opacity=".35"/>
+</svg>
