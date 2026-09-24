@@ -1,0 +1,11 @@
+import React,{useEffect,useState} from 'react';
+import { BadgeCheck, LockKeyhole } from 'lucide-react';
+import { productionDb } from '../../services/productionDb';
+
+export const CommercialAccessGate:React.FC<{onAllowed:()=>void}>=({onAllowed})=>{
+ const[state,setState]=useState<any>(null);const[error,setError]=useState('');
+ useEffect(()=>{let alive=true;productionDb.getEntitlement().then(data=>{if(!alive)return;if(data?.active){onAllowed();return;}setState(data);}).catch(e=>alive&&setError(e?.message||'Não foi possível validar a licença comercial.'));return()=>{alive=false;};},[onAllowed]);
+ if(error)return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center p-4"><div className="max-w-md p-6 rounded-3xl bg-neutral-900 border border-rose-900"><h1 className="font-black text-rose-300">Validação comercial indisponível</h1><p className="text-sm text-neutral-400 mt-2">{error}</p></div></div>;
+ if(!state)return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center"><div className="text-sm text-neutral-400 flex items-center gap-2"><BadgeCheck size={17} className="text-amber-400"/>Validando licença comercial...</div></div>;
+ return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center p-4"><div className="w-full max-w-lg p-6 rounded-3xl bg-neutral-900 border border-amber-900/60 shadow-2xl"><div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 grid place-items-center text-amber-400"><LockKeyhole size={22}/></div><h1 className="text-xl font-black mt-4">Acesso de produção suspenso</h1><p className="text-sm text-neutral-400 mt-2 leading-relaxed">Não existe uma licença comercial ativa para este tenant neste momento. Dados permanecem preservados; o bloqueio impede novas operações até reativação contratual.</p><div className="mt-4 p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-neutral-400">Suporte comercial: atrstudiodesign@gmail.com · +55 11 93902-6928</div></div></div>;
+};
