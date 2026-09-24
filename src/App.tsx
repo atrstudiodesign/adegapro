@@ -13,6 +13,7 @@ import { CashierMiniDashView } from './components/dashboard/CashierMiniDashView'
 import { ProductsView } from './components/products/ProductsView';
 import { CategoriesView } from './components/categories/CategoriesView';
 import { CombosView } from './components/combos/CombosView';
+import { ProductionCombosView } from './components/combos/ProductionCombosView';
 import { StockView } from './components/stock/StockView';
 import { ProductionStockView } from './components/stock/ProductionStockView';
 import { InventoryView } from './components/inventory/InventoryView';
@@ -323,7 +324,7 @@ export default function App() {
           {currentTab === 'sales' && (appMode === 'PRODUCTION' ? <ProductionSalesHistoryView /> : <SalesHistoryView currentUser={currentUser} />)}
           {currentTab === 'products' && <ProductsView appMode={appMode} />}
           {currentTab === 'categories' && <CategoriesView appMode={appMode} />}
-          {currentTab === 'combos' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Combos & Kits" /> : <CombosView />)}
+          {currentTab === 'combos' && (appMode === 'PRODUCTION' ? <ProductionCombosView /> : <CombosView />)}
           {currentTab === 'stock' && (appMode === 'PRODUCTION' ? <ProductionStockView /> : <StockView />)}
           {currentTab === 'inventory' && (appMode === 'PRODUCTION' ? <ProductionInventoryView /> : <InventoryView />)}
           {currentTab === 'cash' && (
