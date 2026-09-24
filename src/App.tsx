@@ -14,19 +14,24 @@ import { ProductsView } from './components/products/ProductsView';
 import { CategoriesView } from './components/categories/CategoriesView';
 import { CombosView } from './components/combos/CombosView';
 import { StockView } from './components/stock/StockView';
+import { ProductionStockView } from './components/stock/ProductionStockView';
 import { InventoryView } from './components/inventory/InventoryView';
 import { CashView } from './components/cash/CashView';
 import { ProductionCashView } from './components/cash/ProductionCashView';
 import { SalesHistoryView } from './components/sales/SalesHistoryView';
+import { ProductionSalesHistoryView } from './components/sales/ProductionSalesHistoryView';
 import { PurchasesView } from './components/purchases/PurchasesView';
 import { SuppliersView } from './components/suppliers/SuppliersView';
 import { FinanceView } from './components/finance/FinanceView';
+import { ProductionFinanceView } from './components/finance/ProductionFinanceView';
 import { CustomersView } from './components/customers/CustomersView';
 import { ProductionCustomersView } from './components/customers/ProductionCustomersView';
 import { EmployeesView } from './components/employees/EmployeesView';
 import { ProductionEmployeesView } from './components/employees/ProductionEmployeesView';
 import { ReportsView } from './components/reports/ReportsView';
+import { ProductionReportsView } from './components/reports/ProductionReportsView';
 import { AuditView } from './components/audit/AuditView';
+import { ProductionAuditView } from './components/audit/ProductionAuditView';
 import { IntegrationsView } from './components/integrations/IntegrationsView';
 import { ProductionIntegrationsView } from './components/integrations/ProductionIntegrationsView';
 import { SettingsView } from './components/settings/SettingsView';
@@ -305,11 +310,11 @@ export default function App() {
               />
             )
           )}
-          {currentTab === 'sales' && <SalesHistoryView currentUser={currentUser} />}
+          {currentTab === 'sales' && (appMode === 'PRODUCTION' ? <ProductionSalesHistoryView /> : <SalesHistoryView currentUser={currentUser} />)}
           {currentTab === 'products' && <ProductsView appMode={appMode} />}
           {currentTab === 'categories' && <CategoriesView appMode={appMode} />}
           {currentTab === 'combos' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Combos & Kits" /> : <CombosView />)}
-          {currentTab === 'stock' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Movimentação de Estoque" /> : <StockView />)}
+          {currentTab === 'stock' && (appMode === 'PRODUCTION' ? <ProductionStockView /> : <StockView />)}
           {currentTab === 'inventory' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Inventário Físico" /> : <InventoryView />)}
           {currentTab === 'cash' && (
             appMode === 'PRODUCTION' ? (
@@ -323,12 +328,12 @@ export default function App() {
             )
           )}
           {currentTab === 'purchases' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Compras & NF Entrada" /> : <PurchasesView />)}
-          {currentTab === 'finance' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Financeiro" /> : <FinanceView />)}
+          {currentTab === 'finance' && (appMode === 'PRODUCTION' ? <ProductionFinanceView /> : <FinanceView />)}
           {currentTab === 'customers' && (appMode === 'PRODUCTION' ? <ProductionCustomersView currentSession={currentSession} /> : <CustomersView />)}
           {currentTab === 'suppliers' && <SuppliersView appMode={appMode} />}
           {currentTab === 'employees' && (appMode === 'PRODUCTION' ? <ProductionEmployeesView /> : <EmployeesView />)}
-          {currentTab === 'reports' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Relatórios" /> : <ReportsView />)}
-          {currentTab === 'audit' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Auditoria" /> : <AuditView />)}
+          {currentTab === 'reports' && (appMode === 'PRODUCTION' ? <ProductionReportsView /> : <ReportsView />)}
+          {currentTab === 'audit' && (appMode === 'PRODUCTION' ? <ProductionAuditView /> : <AuditView />)}
           {currentTab === 'integrations' && (appMode === 'PRODUCTION' ? <ProductionIntegrationsView /> : <IntegrationsView />)}
           {currentTab === 'store-profile' && <StoreProfileView appMode={appMode} />}
           {currentTab === 'settings' && (appMode === 'PRODUCTION' ? <StoreProfileView appMode={appMode} /> : <SettingsView />)}
