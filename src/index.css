@@ -194,3 +194,53 @@ button, input, select, textarea {
     top: 0;
   }
 }
+
+
+/* ADEGA PRO premium design system */
+:root {
+  --ap-bg: #080808;
+  --ap-surface: #101010;
+  --ap-surface-2: #171717;
+  --ap-border: rgba(255,255,255,.08);
+  --ap-border-gold: rgba(245,158,11,.20);
+  --ap-gold: #f59e0b;
+  --ap-gold-soft: #fbbf24;
+  --ap-text: #fafafa;
+  --ap-muted: #737373;
+}
+
+body {
+  background: var(--ap-bg);
+  color: var(--ap-text);
+}
+
+.app-content {
+  background:
+    radial-gradient(circle at 85% 0%, rgba(245,158,11,.035), transparent 28%),
+    var(--ap-bg);
+}
+
+.ap-panel {
+  background: linear-gradient(180deg, rgba(23,23,23,.98), rgba(12,12,12,.98));
+  border: 1px solid var(--ap-border);
+  border-radius: 1rem;
+}
+
+.ap-card {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: 1rem;
+}
+
+.ap-card:hover {
+  border-color: var(--ap-border-gold);
+}
+
+.ap-gold-text {
+  color: var(--ap-gold-soft);
+}
+
+.ap-money {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
