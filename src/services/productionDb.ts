@@ -180,26 +180,6 @@ function mapCashSession(row: any, register?: any, operator?: any): CashSession {
   };
 }
 
-async function isPlatformAdmin() {
-  const { data, error } = await supabase.rpc('is_platform_admin');
-  if (error) return false;
-  return Boolean(data);
-}
-
-async function getPlatformControlSnapshot() {
-  const { data, error } = await supabase.rpc('get_platform_control_snapshot');
-  if (error) throw error;
-  return data;
-}
-
-async function setPlatformTenantAccess(tenantId: string, active: boolean, licenseStatus?: 'ACTIVE'|'SUSPENDED'|'ENDED'|'CANCELLED'|'DRAFT') {
-  const { error } = await supabase.rpc('set_platform_tenant_access', {
-    p_tenant_id: tenantId,
-    p_active: active,
-    p_license_status: licenseStatus || null
-  });
-  if (error) throw error;
-}
 
 async function getEntitlement() {
   const { data, error } = await supabase.rpc('get_my_entitlement');
@@ -875,9 +855,6 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
 
 export const productionDb = {
   getContext,
-  isPlatformAdmin,
-  getPlatformControlSnapshot,
-  setPlatformTenantAccess,
   getEntitlement,
   getStore,
   saveStore,
