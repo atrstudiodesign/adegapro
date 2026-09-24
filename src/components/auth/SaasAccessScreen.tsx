@@ -304,7 +304,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       <footer className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 py-5 border-t border-neutral-900 text-[11px] text-neutral-500 flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row gap-2 items-center justify-between w-full">
           <span>© {new Date().getFullYear()} ADEGA PRO · Software de gestão.</span>
-          <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="hover:text-amber-400">CNPJ 57.514.866/0001-38 · atrstudio.com.br</a>
+          <span>CNPJ 57.514.866/0001-38 · <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="hover:text-amber-400">atrstudio.com.br</a></span>
         </div>
         <div className="flex flex-wrap justify-center sm:justify-start gap-x-3 gap-y-1">
           {(Object.keys(LEGAL_DOCS) as LegalDocKey[]).map(key => (
@@ -312,7 +312,6 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               {LEGAL_DOCS[key].shortTitle}
             </button>
           ))}
-          <span>· CNPJ 57.514.866/0001-38 · atrstudio.com.br</span>
         </div>
       </footer>
     </div>
