@@ -42,6 +42,7 @@ import { SupportView } from './components/support/SupportView';
 import { DigitalReceiptView } from './components/receipt/DigitalReceiptView';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { ProductionOperatorLock } from './components/auth/ProductionOperatorLock';
+import { CommercialAccessGate } from './components/auth/CommercialAccessGate';
 import { SaasAccessScreen } from './components/auth/SaasAccessScreen';
 import { AppMode, getAppMode, setAppMode } from './services/appMode';
 import { supabase } from './services/supabase';
@@ -65,6 +66,7 @@ export default function App() {
   const [legalCleared, setLegalCleared] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDocKey>('terms_of_use');
   const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>('LANDING');
+  const [commercialCleared, setCommercialCleared] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +79,7 @@ export default function App() {
         setAppMode('PRODUCTION');
         setCurrentAppMode('PRODUCTION');
         setLegalCleared(false);
+        setCommercialCleared(false);
         setIsLocked(true);
       }
       setSaasReady(true);
@@ -86,7 +89,7 @@ export default function App() {
       if (!mounted) return;
       const hasSession = Boolean(session);
       setSaasAuthenticated(hasSession);
-      if (!hasSession) setLegalCleared(false);
+      if (!hasSession) { setLegalCleared(false); setCommercialCleared(false); }
       if (!hasSession && appMode === 'PRODUCTION') {
         setSaasReady(true);
       }
@@ -182,6 +185,7 @@ export default function App() {
           setCurrentAppMode('PRODUCTION');
           setSaasAuthenticated(true);
           setDemoAccessGranted(false);
+          setCommercialCleared(false);
           setIsLocked(true);
         }}
       />
@@ -190,6 +194,10 @@ export default function App() {
 
   if (saasAuthenticated && appMode === 'PRODUCTION' && !legalCleared && !receiptHashId) {
     return <LegalConsentGate onAccepted={() => setLegalCleared(true)} />;
+  }
+
+  if (saasAuthenticated && appMode === 'PRODUCTION' && legalCleared && !commercialCleared && !receiptHashId) {
+    return <CommercialAccessGate onAllowed={() => setCommercialCleared(true)} />;
   }
 
   // If a public customer opens the digital receipt URL
