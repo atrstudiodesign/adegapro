@@ -329,8 +329,28 @@ async function getProducts(): Promise<Product[]> {
   ]);
   if (pError) throw pError;
   if (bError) throw bError;
+
   const stock = new Map((balances || []).map((b:any) => [b.product_id, Number(b.quantity || 0)]));
-  return (products || []).map((p:any) => mapProduct(p, stock.get(p.id) || 0));
+  const rows = products || [];
+  const paths = rows.map((p:any) => p.image_path).filter(Boolean);
+  const signedByPath = new Map<string,string>();
+
+  if (paths.length) {
+    const { data: signed, error: signedError } = await supabase.storage
+      .from('product-images')
+      .createSignedUrls(paths, 60 * 60);
+    if (!signedError) {
+      (signed || []).forEach((item:any, index:number) => {
+        const path = paths[index];
+        if (path && item?.signedUrl) signedByPath.set(path, item.signedUrl);
+      });
+    }
+  }
+
+  return rows.map((p:any) => ({
+    ...mapProduct(p, stock.get(p.id) || 0),
+    imageUrl: p.image_path ? signedByPath.get(p.image_path) : undefined
+  }));
 }
 
 async function saveProduct(product: Partial<Product> & { name: string; salePrice: number }): Promise<Product> {
@@ -370,6 +390,67 @@ async function saveProduct(product: Partial<Product> & { name: string; salePrice
   }
 
   return mapProduct(data, product.currentStock || 0);
+}
+
+async function uploadProductImage(productId: string, file: File): Promise<string> {
+  const ctx = await getContext();
+  if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+    throw new Error('Imagem inválida. Use PNG, JPG ou WebP.');
+  }
+  if (file.size > 5 * 1024 * 1024) throw new Error('A imagem do produto deve ter no máximo 5MB.');
+
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('id,tenant_id,image_path')
+    .eq('id', productId)
+    .eq('tenant_id', ctx.tenantId)
+    .single();
+  if (productError || !product) throw productError || new Error('Produto não encontrado.');
+
+  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+  const path = `${ctx.tenantId}/${productId}/main.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('product-images')
+    .upload(path, file, { upsert: true, contentType: file.type, cacheControl: '3600' });
+  if (uploadError) throw uploadError;
+
+  if (product.image_path && product.image_path !== path) {
+    await supabase.storage.from('product-images').remove([product.image_path]);
+  }
+
+  const { error: saveError } = await supabase
+    .from('products')
+    .update({ image_path: path, updated_at: new Date().toISOString() })
+    .eq('id', productId)
+    .eq('tenant_id', ctx.tenantId);
+  if (saveError) throw saveError;
+
+  const { data: signed, error: signedError } = await supabase.storage
+    .from('product-images')
+    .createSignedUrl(path, 60 * 60);
+  if (signedError) throw signedError;
+  return signed.signedUrl;
+}
+
+async function removeProductImage(productId: string) {
+  const ctx = await getContext();
+  const { data: product, error } = await supabase
+    .from('products')
+    .select('image_path')
+    .eq('id', productId)
+    .eq('tenant_id', ctx.tenantId)
+    .single();
+  if (error) throw error;
+  if (product?.image_path) {
+    await supabase.storage.from('product-images').remove([product.image_path]);
+  }
+  const { error: updateError } = await supabase
+    .from('products')
+    .update({ image_path: null, updated_at: new Date().toISOString() })
+    .eq('id', productId)
+    .eq('tenant_id', ctx.tenantId);
+  if (updateError) throw updateError;
 }
 
 async function settleCustomerCredit(customerId: string, amount: number, paymentMethod: 'DINHEIRO'|'PIX'|'DEBITO'|'CREDITO', cashSessionId?: string) {
@@ -868,6 +949,8 @@ export const productionDb = {
   settleCustomerCredit,
   getProducts,
   saveProduct,
+  uploadProductImage,
+  removeProductImage,
   getCombos,
   saveCombo,
   getInventoryAudits,
