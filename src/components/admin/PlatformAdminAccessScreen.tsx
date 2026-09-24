@@ -19,8 +19,11 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
   const claimAndValidate=async()=>{
     let ok=await platformDb.isPlatformAdmin();
     if(!ok){
-      try{await platformDb.claimPlatformAdminInvite();}catch(claimError:any){throw claimError;}
-      if(claimError) throw new Error('Conta autenticada, mas sem autorização administrativa.');
+      try{
+        await platformDb.claimPlatformAdminInvite();
+      }catch{
+        throw new Error('Conta autenticada, mas sem autorização administrativa.');
+      }
       ok=await platformDb.isPlatformAdmin();
     }
     if(!ok) throw new Error('Conta sem privilégio de administrador da plataforma.');
