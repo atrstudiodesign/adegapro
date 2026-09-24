@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl overflow-hidden border border-amber-500/30 bg-neutral-900 shrink-0 shadow-sm">
             <img
-              src="/adega-pro-icon.jpg"
+              src="/adega-pro-mark.svg"
               alt="ADEGA PRO"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
