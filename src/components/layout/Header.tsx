@@ -33,21 +33,35 @@ export const Header: React.FC<HeaderProps> = ({
   const [showPinModal, setShowPinModal] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [store,setStore]=useState(()=>db.getStore());
-
-  useEffect(() => {
-    const notifs = appMode === 'DEMO' ? db.getNotifications() : [];
-    setUnreadNotifications(notifs.filter(n => !n.read).length);
-  }, [currentTab, appMode]);
+  const [runtimeStatus,setRuntimeStatus]=useState<'ONLINE'|'CHECKING'|'ATTENTION'>('CHECKING');
 
   useEffect(() => {
     let alive = true;
     if (appMode === 'PRODUCTION') {
-      productionDb.getStore().then(s => { if (alive) setStore(s); }).catch(() => {});
+      setRuntimeStatus('CHECKING');
+      Promise.all([
+        productionDb.getStore(),
+        productionDb.getProducts(),
+        productionDb.getExpiryAlerts(30)
+      ]).then(([s, products, expiry]) => {
+        if (!alive) return;
+        setStore(s);
+        const low = products.filter(p => !p.isCombo && p.currentStock <= p.minStock).length;
+        const alerts = low + expiry.length;
+        setUnreadNotifications(alerts);
+        setRuntimeStatus(alerts > 0 ? 'ATTENTION' : 'ONLINE');
+      }).catch(() => {
+        if (!alive) return;
+        setRuntimeStatus('ATTENTION');
+      });
     } else {
       setStore(db.getStore());
+      const notifs = db.getNotifications();
+      setUnreadNotifications(notifs.filter(n => !n.read).length);
+      setRuntimeStatus('ONLINE');
     }
     return () => { alive = false; };
-  }, [appMode]);
+  }, [currentTab, appMode]);
 
   return (
     <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a]/95 border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 backdrop-blur-xl gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
@@ -149,13 +163,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Quick Notifications Indicator */}
         <button
-          onClick={() => onNavigate('products')}
-          title="Ver alertas de estoque"
+          onClick={() => onNavigate(appMode === 'PRODUCTION' ? 'dashboard' : 'products')}
+          title={unreadNotifications > 0 ? `${unreadNotifications} alerta(s) operacional(is)` : 'Sem alertas operacionais'}
           className="relative p-2 rounded-lg bg-neutral-800/60 hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
         >
           <Bell size={16} />
           {unreadNotifications > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-400" />
+            <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-neutral-950 text-[8px] font-black grid place-items-center">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
           )}
         </button>
       </div>
