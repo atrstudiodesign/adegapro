@@ -544,6 +544,26 @@ async function getOperators() {
   return data || [];
 }
 
+async function getOperatorFeatures(operatorId: string) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('operator_feature_access')
+    .select('feature_key,enabled')
+    .eq('store_id', ctx.storeId)
+    .eq('operator_id', operatorId);
+  if (error) throw error;
+  return data || [];
+}
+
+async function setOperatorFeature(operatorId: string, featureKey: string, enabled: boolean) {
+  const { error } = await supabase.rpc('set_operator_feature', {
+    p_operator_id: operatorId,
+    p_feature_key: featureKey,
+    p_enabled: enabled
+  });
+  if (error) throw error;
+}
+
 async function saveOperator(input: { id?: string; name: string; role: string; pin: string; active?: boolean }) {
   const ctx = await getContext();
   const { data, error } = await supabase.rpc('save_operator', {
@@ -739,6 +759,8 @@ export const productionDb = {
   getAuditLogs,
   createSupportTicket,
   getOperators,
+  getOperatorFeatures,
+  setOperatorFeature,
   saveOperator,
   verifyOperatorPin,
   revokeOperatorSession,
