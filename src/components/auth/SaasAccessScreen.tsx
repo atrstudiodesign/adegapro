@@ -12,6 +12,7 @@ type View = 'LANDING' | 'LOGIN' | 'REGISTER';
 interface SaasAccessScreenProps {
   onDemo: () => void;
   onAuthenticated: () => void;
+  initialView?: View;
 }
 
 type RegisterForm = {
@@ -34,8 +35,8 @@ const emptyRegister: RegisterForm = {
   legalName: '', tradeName: '', cnpj: '', whatsapp: '', city: '', state: '', accepted: false
 };
 
-export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAuthenticated }) => {
-  const [view, setView] = useState<View>('LANDING');
+export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAuthenticated, initialView = 'LANDING' }) => {
+  const [view, setView] = useState<View>(initialView);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [register, setRegister] = useState<RegisterForm>(emptyRegister);
@@ -44,11 +45,25 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   const [message, setMessage] = useState<{type:'error'|'success'; text:string}|null>(null);
   const [legalDoc, setLegalDoc] = useState<LegalDocKey | null>(null);
 
+  const checkRateLimit = async (action: 'login'|'signup'|'recovery', identifier: string) => {
+    const { data, error } = await supabase.rpc('check_auth_rate_limit', {
+      p_action: action,
+      p_identifier: identifier.trim().toLowerCase(),
+      p_user_agent: navigator.userAgent
+    });
+    if (error) throw error;
+    if (data && data.allowed === false) {
+      const minutes = Math.max(1, Math.ceil((data.retry_after_seconds || 60) / 60));
+      throw new Error(`Muitas tentativas. Aguarde aproximadamente ${minutes} minuto(s) antes de tentar novamente.`);
+    }
+  };
+
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setBusy(true);
     try {
+      await checkRateLimit('login', email);
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (error) throw error;
 
@@ -89,6 +104,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
 
     setBusy(true);
     try {
+      await checkRateLimit('signup', register.email);
       const { data, error } = await supabase.auth.signUp({
         email: register.email.trim(),
         password: register.password,
@@ -137,6 +153,13 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       setMessage({type:'error', text:'Informe seu e-mail para recuperar a senha.'}); return;
     }
     setBusy(true); setMessage(null);
+    try {
+      await checkRateLimit('recovery', email);
+    } catch (err:any) {
+      setBusy(false);
+      setMessage({type:'error', text:err?.message || 'Muitas solicitações. Tente novamente mais tarde.'});
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: window.location.origin
     });
