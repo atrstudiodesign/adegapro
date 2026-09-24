@@ -5,7 +5,7 @@ export type LegalDocKey =
   | 'software_license'
   | 'legal_notice';
 
-export const LEGAL_VERSION = '2026.09.23-r2';
+export const LEGAL_VERSION = '2026.09.23-r3';
 export const LEGAL_EFFECTIVE_DATE = '23 de setembro de 2026';
 
 export const LEGAL_PROVIDER = {
@@ -40,7 +40,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
       {
         title: '2. Natureza da licença e limites de uso',
         paragraphs: [
-          'O ADEGA PRO é licenciado, e não vendido. A contratação concede licença limitada, revogável nos casos previstos contratualmente, não exclusiva, não transferível e restrita à quantidade de usuários, lojas, caixas e recursos abrangidos pelo plano contratado.',
+          'O ADEGA PRO poderá ser contratado em modalidades distintas, conforme proposta comercial ou instrumento específico: assinatura SaaS recorrente; licença de uso integral; licença de módulos ou funcionalidades parciais; desenvolvimento personalizado; implantação dedicada; ou aquisição com entrega de ativos específicos expressamente definidos em contrato.',
           'É vedado copiar, sublicenciar, alugar, ceder, comercializar, disponibilizar credenciais a terceiros não autorizados, contornar controles de acesso, extrair código-fonte, realizar engenharia reversa fora das hipóteses legalmente admitidas, remover marcas, avisos de titularidade, mecanismos de auditoria, marcas d’água ou controles de segurança.',
           'É proibido usar o sistema para prática ilícita, fraude, simulação fiscal, lavagem de dinheiro, violação de direitos de terceiros, armazenamento deliberado de conteúdo ilegal ou tentativa de acesso a dados de outros clientes.'
         ]
@@ -148,9 +148,12 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
     version: LEGAL_VERSION,
     sections: [
       {
-        title: '1. Planos e renovação',
+        title: '1. Modalidades comerciais, planos e renovação',
         paragraphs: [
-          'A assinatura confere acesso aos módulos e limites descritos na oferta comercial vigente. Recursos adicionais, integrações de terceiros, homologações e serviços personalizados podem possuir cobrança própria.',
+          'O ADEGA PRO pode ser comercializado por assinatura recorrente, licença de uso integral, licença parcial por módulos, projeto personalizado, implantação dedicada ou outra modalidade descrita em proposta comercial. Cada contratação deve identificar objetivamente o que está incluído, limites de usuários/lojas, suporte, atualizações, hospedagem, integrações, prazo e preço.',
+          'Na modalidade de assinatura, o acesso é condicionado à vigência e adimplência do plano. Na modalidade de licença integral ou parcial, a extensão dos direitos de uso, eventual prazo indeterminado, instalação dedicada, atualizações futuras, manutenção e hospedagem dependerão exclusivamente do instrumento comercial correspondente.',
+          'A compra de uma licença integral ou parcial não implica automaticamente cessão de marca, código-fonte, propriedade intelectual, banco estrutural, ferramentas internas ou direito de revenda. Esses direitos somente integram a operação quando constarem expressamente do contrato específico.',
+          'Recursos adicionais, integrações de terceiros, homologações e serviços personalizados podem possuir cobrança própria.',
           'Planos recorrentes poderão ser renovados automaticamente quando isso tiver sido informado de forma clara na contratação e permitido pela legislação aplicável.',
           'Alterações de preço, escopo ou plano deverão ser comunicadas de forma transparente e observarão o contrato, a oferta e os direitos legalmente aplicáveis.'
         ]
@@ -172,7 +175,16 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         ]
       },
       {
-        title: '4. Dados após o término',
+        title: '4. Licenciamento integral, parcial e projetos personalizados',
+        paragraphs: [
+          'Contratações integrais ou parciais poderão compreender módulos, funcionalidades, customizações, implantação dedicada, treinamento, suporte, hospedagem, documentação, APIs, código-fonte ou outros ativos somente quando expressamente listados na proposta ou contrato.',
+          'Em projetos personalizados, componentes preexistentes da ATR Studio, bibliotecas, frameworks internos, know-how, rotinas genéricas, infraestrutura e componentes reutilizáveis permanecem de titularidade da ATR Studio, salvo cessão expressa em sentido contrário.',
+          'Quando houver cessão total ou parcial de direitos patrimoniais ou entrega de código-fonte, o instrumento específico deverá definir com precisão os direitos cedidos, limitações, exclusividade ou não exclusividade, possibilidade de alteração, revenda, sublicenciamento, suporte posterior e responsabilidades pela manutenção.',
+          'A ausência de previsão escrita de cessão será interpretada como concessão de licença de uso no escopo contratado, sem transferência implícita de propriedade intelectual.'
+        ]
+      },
+      {
+        title: '5. Dados após o término',
         paragraphs: [
           'Após o encerramento, dados poderão permanecer por período limitado para exportação, cumprimento de obrigação legal, segurança, auditoria ou defesa de direitos, conforme a Política de Privacidade.',
           'O contratante deve realizar exportações necessárias antes do encerramento definitivo. A existência de rotinas de backup não equivale a serviço de arquivamento permanente do cliente.'
@@ -189,7 +201,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         title: '1. Titularidade',
         paragraphs: [
           'O software ADEGA PRO, sua arquitetura, código, identidade visual, fluxos, documentação, banco de dados estrutural, componentes originais, materiais de interface e elementos de marca são protegidos pela legislação brasileira aplicável à propriedade intelectual, inclusive software e direitos autorais.',
-          'A contratação não transfere titularidade, código-fonte, marca, know-how, documentação interna, segredos comerciais ou direitos de exploração além da licença expressamente concedida.'
+          'A contratação padrão não transfere titularidade, código-fonte, marca, know-how, documentação interna, segredos comerciais ou direitos patrimoniais além do escopo expressamente concedido. Qualquer cessão de direitos patrimoniais, entrega de código-fonte, exclusividade, white-label, transferência integral ou parcial de ativos somente ocorrerá quando prevista de forma expressa, escrita e individualizada em proposta ou contrato específico, com definição de preço, escopo, território, prazo, manutenção, atualizações e direitos remanescentes da ATR Studio.'
         ]
       },
       {
