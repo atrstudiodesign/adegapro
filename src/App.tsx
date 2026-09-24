@@ -291,6 +291,7 @@ export default function App() {
           setIsLocked(true);
         }}
         onMenuToggle={() => setMobileNavOpen(v => !v)}
+        appMode={appMode}
       />
 
       {/* Main Workspace: Sidebar + Dynamic Module View */}
