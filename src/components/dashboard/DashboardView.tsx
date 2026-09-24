@@ -23,9 +23,10 @@ interface DashboardViewProps {
   onNavigate: (tab: string) => void;
   appMode?: AppMode;
   onChangeMode?: (mode: AppMode) => void;
+  onRequestProduction?: () => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, appMode = 'DEMO', onChangeMode }) => {
+export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, appMode = 'DEMO', onChangeMode, onRequestProduction }) => {
   const [filterPeriod, setFilterPeriod] = useState<'HOJE' | '7DIAS' | 'MES_ATUAL'>('HOJE');
 
   const products = db.getProducts();
@@ -223,7 +224,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, appMod
               </button>
 
               <button
-                onClick={() => onChangeMode?.('PRODUCTION')}
+                onClick={() => onRequestProduction ? onRequestProduction() : onChangeMode?.('PRODUCTION')}
                 className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2"
               >
                 <Database size={15}/>
