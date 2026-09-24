@@ -4,6 +4,7 @@ import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
 import type { Store } from '../../types';
 import { Store as StoreIcon, Upload, Save, ShieldCheck, ExternalLink, Loader2 } from 'lucide-react';
+import { PageHeader, StatusBadge } from '../ui/ProUi';
 
 interface StoreProfileViewProps { appMode?: AppMode; }
 
@@ -75,19 +76,9 @@ export const StoreProfileView: React.FC<StoreProfileViewProps> = ({ appMode = 'D
   };
 
   return (
-    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto bg-neutral-950">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
       <div className="max-w-6xl mx-auto space-y-5">
-        <div className="pb-4 border-b border-neutral-800 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-black text-white flex items-center gap-2">
-              <StoreIcon size={22} className="text-amber-400"/> Cadastro da Adega
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">Identidade e dados da sua loja. A marca da adega é independente da marca ADEGA PRO.</p>
-          </div>
-          <span className={`text-[10px] font-black px-2 py-1 rounded-full border ${appMode === 'PRODUCTION' ? 'text-emerald-300 border-emerald-800 bg-emerald-950/50' : 'text-violet-300 border-violet-800 bg-violet-950/50'}`}>
-            {appMode === 'PRODUCTION' ? 'SUPABASE' : 'DEMO LOCAL'}
-          </span>
-        </div>
+        <PageHeader eyebrow="Administração" title="Cadastro da adega" description="Identidade e dados da sua loja. A marca do estabelecimento permanece independente da marca ADEGA PRO." actions={<StatusBadge tone={appMode==='PRODUCTION'?'success':'info'}>{appMode==='PRODUCTION'?'SUPABASE':'DEMO LOCAL'}</StatusBadge>}/>
 
         <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-start gap-3">
           <ShieldCheck size={18} className="text-amber-400 shrink-0 mt-0.5"/>
