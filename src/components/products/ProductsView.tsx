@@ -46,6 +46,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
   const [viewMode, setViewMode] = useState<'GRID'|'LIST'>('GRID');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [imageLink, setImageLink] = useState<string>('');
 
   const refreshProducts = async () => {
     setLoadError('');
@@ -105,6 +106,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
     });
     setImageFile(null);
     setImagePreview('');
+    setImageLink('');
     setIsModalOpen(true);
   };
 
@@ -112,6 +114,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
     setEditingProduct({ ...p });
     setImageFile(null);
     setImagePreview(p.imageUrl || '');
+    setImageLink(p.imageSourceUrl || '');
     setIsModalOpen(true);
   };
 
@@ -126,6 +129,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
     });
     setImageFile(null);
     setImagePreview(p.imageUrl || '');
+    setImageLink(p.imageSourceUrl || '');
     setIsModalOpen(true);
   };
 
@@ -166,19 +170,24 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
     }
     try {
       if (appMode === 'PRODUCTION') {
-        const saved = await productionDb.saveProduct(editingProduct as any);
+        const normalizedLink = imageLink.trim();
+        if (normalizedLink && !/^https:\/\//i.test(normalizedLink)) {
+          throw new Error('O link da imagem precisa começar com https://');
+        }
+        const saved = await productionDb.saveProduct({ ...editingProduct, imageSourceUrl: normalizedLink || undefined } as any);
         if (imageFile) {
           const optimized = await compressProductImage(imageFile);
           await productionDb.uploadProductImage(saved.id, optimized);
         }
       } else {
-        db.saveProduct(editingProduct as any);
+        db.saveProduct({ ...editingProduct, imageUrl: imageLink.trim() || editingProduct.imageUrl } as any);
       }
       await refreshProducts();
       setIsModalOpen(false);
       setEditingProduct(null);
       setImageFile(null);
       setImagePreview('');
+      setImageLink('');
       setFeedback(appMode === 'PRODUCTION' ? 'Produto salvo no ambiente de produção.' : 'Produto salvo no modo demonstração.');
       setTimeout(() => setFeedback(null), 3000);
     } catch (err:any) { setLoadError(err?.message || 'Não foi possível salvar o produto.'); }
@@ -402,20 +411,44 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
                 </div>
                 <div className="min-w-0">
                   <div className="text-xs font-black text-white">Imagem do produto</div>
-                  <div className="text-[10px] text-neutral-500 mt-1 leading-relaxed">Use uma foto frontal, fundo limpo, JPG/PNG/WebP de até 5MB. Em produção a imagem fica isolada por tenant no Storage.</div>
-                  <label className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black cursor-pointer">
-                    <Upload size={14}/> Selecionar foto
-                    <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e=>{
-                      const file=e.target.files?.[0]||null;
-                      setImageFile(file);
-                      if(file){const url=URL.createObjectURL(file);setImagePreview(url);}
-                    }}/>
-                  </label>
-                  {imagePreview && <button type="button" onClick={async()=>{
-                    if(editingProduct.id && appMode==='PRODUCTION' && !imageFile){
-                      try{await productionDb.removeProductImage(editingProduct.id);setImagePreview('');await refreshProducts();}catch(err:any){setLoadError(err?.message||'Não foi possível remover a imagem.');}
-                    } else {setImageFile(null);setImagePreview('');}
-                  }} className="mt-2 ml-2 px-3 py-2 rounded-xl border border-neutral-700 text-[10px] text-neutral-400 hover:text-rose-300"><ImageOff size={13} className="inline mr-1"/>Remover</button>}
+                  <div className="text-[10px] text-neutral-500 mt-1 leading-relaxed">Cole um link HTTPS direto da imagem. Se preferir, o upload continua disponível como alternativa.</div>
+                  <div className="mt-3">
+                    <label className="text-[10px] text-neutral-400 block mb-1">Link da imagem</label>
+                    <input
+                      type="url"
+                      value={imageLink}
+                      onChange={e=>{
+                        const value=e.target.value;
+                        setImageLink(value);
+                        if(/^https:\/\//i.test(value.trim())) setImagePreview(value.trim());
+                      }}
+                      onBlur={()=>{
+                        const value=imageLink.trim();
+                        if(!value && !imageFile) setImagePreview('');
+                      }}
+                      placeholder="https://site.com/produto.jpg"
+                      className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2.5 text-[11px] text-white outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 text-[10px] font-bold cursor-pointer hover:border-amber-500/40">
+                      <Upload size={13}/> Enviar arquivo
+                      <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e=>{
+                        const file=e.target.files?.[0]||null;
+                        setImageFile(file);
+                        setImageLink('');
+                        if(file){const url=URL.createObjectURL(file);setImagePreview(url);}
+                      }}/>
+                    </label>
+                    {imagePreview && <button type="button" onClick={async()=>{
+                      if(editingProduct.id && appMode==='PRODUCTION' && !imageFile && !imageLink.trim()){
+                        try{await productionDb.removeProductImage(editingProduct.id);setImagePreview('');await refreshProducts();}catch(err:any){setLoadError(err?.message||'Não foi possível remover a imagem.');}
+                      } else {
+                        setImageFile(null);setImageLink('');setImagePreview('');
+                        setEditingProduct({...editingProduct,imageSourceUrl:undefined,imageUrl:undefined});
+                      }
+                    }} className="px-3 py-2 rounded-xl border border-neutral-700 text-[10px] text-neutral-400 hover:text-rose-300"><ImageOff size={13} className="inline mr-1"/>Remover</button>}
+                  </div>
                 </div>
               </div>
 
