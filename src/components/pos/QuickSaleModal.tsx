@@ -367,8 +367,10 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
           {matchedProduct ? (
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in zoom-in-95 duration-100">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-neutral-950 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 font-black text-sm">
-                  {matchedProduct.isCombo ? <Layers size={22} /> : <Package size={22} />}
+                <div className="w-14 h-14 rounded-xl bg-neutral-950 border border-amber-500/40 overflow-hidden flex items-center justify-center shrink-0">
+                  {matchedProduct.imageUrl
+                    ? <img src={matchedProduct.imageUrl} alt={matchedProduct.name} className="w-full h-full object-contain p-1.5" loading="lazy" />
+                    : matchedProduct.isCombo ? <Layers size={22} className="text-amber-400" /> : <Package size={22} className="text-neutral-600" />}
                 </div>
 
                 <div>
@@ -449,10 +451,16 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
                   onClick={() => handleQuickPresetClick(p, 1)}
                   className="p-2.5 rounded-2xl bg-neutral-950/80 hover:bg-neutral-800 border border-neutral-800/80 hover:border-amber-500/40 text-left transition-all active:scale-95 group cursor-pointer"
                 >
-                  <div className="text-xs font-bold text-neutral-200 group-hover:text-amber-400 truncate">
+                  <div className="aspect-[4/3] -mx-2.5 -mt-2.5 mb-2.5 rounded-t-2xl overflow-hidden bg-neutral-900 border-b border-neutral-800">
+                    {p.imageUrl
+                      ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform" loading="lazy" />
+                      : <div className="w-full h-full grid place-items-center bg-[radial-gradient(circle_at_center,rgba(245,158,11,.08),transparent_62%)]"><Package size={24} className="text-neutral-700" /></div>}
+                  </div>
+                  <div className="text-[10px] text-neutral-500 uppercase tracking-wide truncate">{p.brand || p.sku}{p.packageSize ? ` · ${p.packageSize}` : ''}</div>
+                  <div className="mt-1 text-xs font-bold text-neutral-200 group-hover:text-amber-400 line-clamp-2 min-h-[2rem]">
                     {p.name}
                   </div>
-                  <div className="flex items-center justify-between mt-1 text-[11px] font-mono">
+                  <div className="flex items-center justify-between mt-2 text-[11px] font-mono">
                     <span className="text-amber-400 font-bold">R$ {p.salePrice.toFixed(2)}</span>
                     <span className="text-[10px] text-neutral-500">{p.currentStock} un</span>
                   </div>
@@ -473,7 +481,12 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
                     key={idx}
                     className="p-2 rounded-xl bg-neutral-950 border border-neutral-800/80 flex items-center justify-between text-xs"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-800 overflow-hidden shrink-0">
+                        {scan.product.imageUrl
+                          ? <img src={scan.product.imageUrl} alt="" className="w-full h-full object-contain p-1" loading="lazy" />
+                          : <Package size={14} className="m-2 text-neutral-700" />}
+                      </div>
                       <span className="text-emerald-400 font-mono font-bold">{scan.qty}x</span>
                       <span className="text-white font-medium truncate max-w-xs">{scan.product.name}</span>
                     </div>
