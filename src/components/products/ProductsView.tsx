@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { db } from '../../services/db';
+import { productionDb } from '../../services/productionDb';
+import type { AppMode } from '../../services/appMode';
 import { Product, Category, Supplier } from '../../types';
 import {
   Package,
@@ -19,10 +21,13 @@ import {
   Layers
 } from 'lucide-react';
 
-export const ProductsView: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>(db.getProducts());
-  const categories = db.getCategories();
-  const suppliers = db.getSuppliers();
+interface ProductsViewProps { appMode?: AppMode; }
+
+export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) => {
+  const [products, setProducts] = useState<Product[]>(appMode === 'DEMO' ? db.getProducts() : []);
+  const [categories, setCategories] = useState<Category[]>(appMode === 'DEMO' ? db.getCategories() : []);
+  const [suppliers, setSuppliers] = useState<Supplier[]>(appMode === 'DEMO' ? db.getSuppliers() : []);
+  const [loadError, setLoadError] = useState('');
 
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState<string>('ALL');
@@ -34,9 +39,23 @@ export const ProductsView: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const refreshProducts = () => {
-    setProducts(db.getProducts());
+  const refreshProducts = async () => {
+    setLoadError('');
+    try {
+      if (appMode === 'PRODUCTION') {
+        const [p, cats, supps] = await Promise.all([
+          productionDb.getProducts(), productionDb.getCategories(), productionDb.getSuppliers()
+        ]);
+        setProducts(p); setCategories(cats); setSuppliers(supps);
+      } else {
+        setProducts(db.getProducts()); setCategories(db.getCategories()); setSuppliers(db.getSuppliers());
+      }
+    } catch (err:any) {
+      setLoadError(err?.message || 'Falha ao carregar catálogo.');
+    }
   };
+
+  useEffect(() => { void refreshProducts(); }, [appMode]);
 
   // Filtered Products
   const filteredProducts = products.filter(p => {
@@ -94,42 +113,50 @@ export const ProductsView: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleToggleStatus = (p: Product) => {
+  const handleToggleStatus = async (p: Product) => {
     const nextStatus = p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    db.saveProduct({ id: p.id, name: p.name, salePrice: p.salePrice, status: nextStatus });
-    refreshProducts();
-    setFeedback(`Produto "${p.name}" foi ${nextStatus === 'ACTIVE' ? 'ativado' : 'desativado'}.`);
-    setTimeout(() => setFeedback(null), 3000);
+    try {
+      if (appMode === 'PRODUCTION') await productionDb.saveProduct({ ...p, status: nextStatus });
+      else db.saveProduct({ id: p.id, name: p.name, salePrice: p.salePrice, status: nextStatus });
+      await refreshProducts();
+      setFeedback(`Produto "${p.name}" foi ${nextStatus === 'ACTIVE' ? 'ativado' : 'desativado'}.`);
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (err:any) { setLoadError(err?.message || 'Não foi possível alterar o produto.'); }
   };
 
-  const handleDelete = (p: Product) => {
-    // Check historical movements
+  const handleDelete = async (p: Product) => {
+    if (appMode === 'PRODUCTION') {
+      const ok = window.confirm(`Por segurança e auditoria, o produto "${p.name}" será INATIVADO, não apagado. Continuar?`);
+      if (ok) await handleToggleStatus({ ...p, status: 'ACTIVE' });
+      return;
+    }
     const movements = db.getStockMovements().filter(m => m.productId === p.id);
     if (movements.length > 0) {
       alert(`O produto "${p.name}" possui ${movements.length} movimentação(ões) registrada(s) no histórico. Conforme regra de conformidade e auditoria, o produto será marcado como INATIVO.`);
-      handleToggleStatus(p);
+      await handleToggleStatus(p);
       return;
     }
-
     if (window.confirm(`Confirma a exclusão do produto "${p.name}"?`)) {
       db.saveProduct({ id: p.id, name: p.name, salePrice: p.salePrice, status: 'INACTIVE' });
-      refreshProducts();
+      await refreshProducts();
     }
   };
 
-  const handleSaveModal = (e: React.FormEvent) => {
+  const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct?.name || !editingProduct?.salePrice) {
       alert('Por favor, preencha o nome do produto e o preço de venda.');
       return;
     }
-
-    db.saveProduct(editingProduct as any);
-    refreshProducts();
-    setIsModalOpen(false);
-    setEditingProduct(null);
-    setFeedback('Produto salvo com sucesso no banco de dados!');
-    setTimeout(() => setFeedback(null), 3000);
+    try {
+      if (appMode === 'PRODUCTION') await productionDb.saveProduct(editingProduct as any);
+      else db.saveProduct(editingProduct as any);
+      await refreshProducts();
+      setIsModalOpen(false);
+      setEditingProduct(null);
+      setFeedback(appMode === 'PRODUCTION' ? 'Produto salvo no ambiente de produção.' : 'Produto salvo no modo demonstração.');
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (err:any) { setLoadError(err?.message || 'Não foi possível salvar o produto.'); }
   };
 
   const exportCSV = () => {
@@ -194,6 +221,8 @@ export const ProductsView: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {loadError && <div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{loadError}</div>}
 
       {feedback && (
         <div className="p-3 bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
