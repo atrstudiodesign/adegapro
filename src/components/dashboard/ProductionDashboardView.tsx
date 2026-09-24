@@ -37,6 +37,7 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
   const channels=Array.isArray(analytics?.channels)?analytics.channels:[];
   const payments=Array.isArray(analytics?.payments)?analytics.payments:[];
   const topProducts=Array.isArray(analytics?.top_products)?analytics.top_products:[];
+  const topCategories=Array.isArray(analytics?.top_categories)?analytics.top_categories:[];
   const maxRevenue=Math.max(1,...last7.map((x:any)=>Number(x.revenue||0)));
   const payables=analytics?.payables||{};
   const receivables=analytics?.receivables||{};
@@ -47,7 +48,7 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
     }/>
     {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
 
-    <div className="grid grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
       <MetricCard label="Vendas hoje" value={busy?'—':today.count||0} icon={ShoppingCart} onClick={()=>onNavigate('sales')}/>
       <MetricCard label="Faturamento" value={busy?'—':money(today.revenue)} icon={TrendingUp} tone="emerald" onClick={()=>onNavigate('sales')}/>
       <MetricCard label="Ticket médio" value={busy?'—':money(today.ticket)} icon={ReceiptText} tone="sky" onClick={()=>onNavigate('reports')}/>
@@ -55,7 +56,9 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
       <MetricCard label="Estoque baixo" value={busy?'—':low.length} icon={Boxes} tone={low.length?'rose':'emerald'} onClick={()=>onNavigate('stock')}/>
       <MetricCard label="Vencendo ≤30d" value={busy?'—':expiry.length} icon={CalendarClock} tone={expiry.length?'rose':'emerald'} onClick={()=>onNavigate('purchases')}/>
       <MetricCard label="Caixas abertos" value={busy?'—':openCash} icon={Wallet} tone={openCash?'emerald':'amber'} onClick={()=>onNavigate('cash')}/>
+      <MetricCard label="A pagar" value={busy?'—':money(payables.pending)} icon={CreditCard} tone={Number(payables.pending||0)>0?'rose':'emerald'} onClick={()=>onNavigate('finance')}/>
       <MetricCard label="A receber" value={busy?'—':money(receivables.pending)} icon={CreditCard} tone="violet" onClick={()=>onNavigate('finance')}/>
+      <MetricCard label="Produtos" value={busy?'—':products.length} icon={Boxes} tone="amber" onClick={()=>onNavigate('products')}/>
     </div>
 
     <div className="grid xl:grid-cols-[1.25fr_.75fr] gap-4">
@@ -88,6 +91,13 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
         <button onClick={()=>onNavigate('finance')} className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex justify-between gap-3 text-left"><span><span className="block text-xs font-bold">Contas vencidas</span><span className="text-[10px] text-neutral-500">Pagar {money(payables.overdue)} · Receber {money(receivables.overdue)}</span></span><StatusBadge tone={Number(payables.overdue||0)+Number(receivables.overdue||0)>0?'danger':'success'}>Financeiro</StatusBadge></button>
       </section>
     </div>
+
+    <section className="ap-panel p-4">
+      <div className="flex items-center justify-between gap-3"><div><h2 className="font-black text-white">Categorias mais vendidas</h2><p className="text-[10px] text-neutral-500 mt-1">Receita por categoria nos últimos 30 dias</p></div><BarChart3 size={18} className="text-amber-400"/></div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
+        {topCategories.length?topCategories.map((cat:any,i:number)=><div key={cat.category_id||i} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-between gap-3"><div className="min-w-0"><div className="text-xs font-black truncate">{cat.name}</div><div className="text-[10px] text-neutral-500">{Number(cat.quantity||0).toFixed(0)} item(ns) vendidos</div></div><div className="font-mono text-xs text-amber-400 whitespace-nowrap">{money(cat.revenue)}</div></div>):<div className="sm:col-span-2 xl:col-span-3"><EmptyState title="Sem categorias no ranking" description="O ranking será preenchido automaticamente conforme houver vendas pagas."/></div>}
+      </div>
+    </section>
 
     <div className="p-4 rounded-2xl bg-emerald-950/15 border border-emerald-800/40 text-xs text-neutral-400 flex items-start gap-2"><Database size={15} className="text-emerald-400 shrink-0 mt-0.5"/>Dados do dashboard são calculados no backend da loja atual. Nenhum indicador usa dados de outro tenant.</div>
   </div>;
