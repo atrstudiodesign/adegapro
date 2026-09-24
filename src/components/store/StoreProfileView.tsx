@@ -1,46 +1,103 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { db } from '../../services/db';
-import { Store as StoreIcon, Upload, Save, ShieldCheck, ExternalLink } from 'lucide-react';
+import { productionDb } from '../../services/productionDb';
+import type { AppMode } from '../../services/appMode';
+import type { Store } from '../../types';
+import { Store as StoreIcon, Upload, Save, ShieldCheck, ExternalLink, Loader2 } from 'lucide-react';
 
-export const StoreProfileView: React.FC = () => {
-  const [store, setStore] = useState(db.getStore());
+interface StoreProfileViewProps { appMode?: AppMode; }
+
+export const StoreProfileView: React.FC<StoreProfileViewProps> = ({ appMode = 'DEMO' }) => {
+  const [store, setStore] = useState<Store>(db.getStore());
   const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(appMode === 'PRODUCTION');
+  const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const onLogo = (file?: File) => {
+  useEffect(() => {
+    let alive = true;
+    if (appMode === 'DEMO') {
+      setStore(db.getStore());
+      setBusy(false);
+      return;
+    }
+    setBusy(true);
+    productionDb.getStore()
+      .then(data => alive && setStore(data))
+      .catch(err => alive && setError(err?.message || 'Falha ao carregar o cadastro da adega.'))
+      .finally(() => alive && setBusy(false));
+    return () => { alive = false; };
+  }, [appMode]);
+
+  const onLogo = async (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) return alert('Selecione uma imagem válida.');
-    if (file.size > 1024 * 1024) return alert('Use uma imagem de até 1MB.');
-    const reader = new FileReader();
-    reader.onload = () => setStore({ ...store, logoUrl: String(reader.result) });
-    reader.readAsDataURL(file);
+    setError('');
+    if (appMode === 'DEMO') {
+      if (!file.type.startsWith('image/')) return setError('Selecione uma imagem válida.');
+      if (file.size > 1024 * 1024) return setError('Use uma imagem de até 1MB no modo demonstração.');
+      const reader = new FileReader();
+      reader.onload = () => setStore({ ...store, logoUrl: String(reader.result) });
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    try {
+      setBusy(true);
+      const url = await productionDb.uploadStoreLogo(file);
+      setStore(prev => ({ ...prev, logoUrl: url }));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err:any) {
+      setError(err?.message || 'Não foi possível enviar o logo.');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const save = (e: React.FormEvent) => {
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    db.saveStore(store);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    setError('');
+    try {
+      setBusy(true);
+      if (appMode === 'DEMO') {
+        db.saveStore(store);
+      } else {
+        const updated = await productionDb.saveStore(store);
+        setStore(updated);
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err:any) {
+      setError(err?.message || 'Não foi possível salvar os dados.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto bg-neutral-950">
       <div className="max-w-6xl mx-auto space-y-5">
-        <div className="pb-4 border-b border-neutral-800">
-          <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <StoreIcon size={22} className="text-amber-400"/> Cadastro da Adega
-          </h1>
-          <p className="text-xs text-neutral-400 mt-1">
-            Identidade e dados da sua loja. A marca da adega é independente da marca do sistema ADEGA PRO.
-          </p>
+        <div className="pb-4 border-b border-neutral-800 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-black text-white flex items-center gap-2">
+              <StoreIcon size={22} className="text-amber-400"/> Cadastro da Adega
+            </h1>
+            <p className="text-xs text-neutral-400 mt-1">Identidade e dados da sua loja. A marca da adega é independente da marca ADEGA PRO.</p>
+          </div>
+          <span className={`text-[10px] font-black px-2 py-1 rounded-full border ${appMode === 'PRODUCTION' ? 'text-emerald-300 border-emerald-800 bg-emerald-950/50' : 'text-violet-300 border-violet-800 bg-violet-950/50'}`}>
+            {appMode === 'PRODUCTION' ? 'SUPABASE' : 'DEMO LOCAL'}
+          </span>
         </div>
 
         <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-start gap-3">
           <ShieldCheck size={18} className="text-amber-400 shrink-0 mt-0.5"/>
           <div className="text-xs text-neutral-300">
-            <strong className="text-white">Separação de marca:</strong> o logo enviado aqui aparece como identidade do estabelecimento em áreas próprias e cupons. O logo ADEGA PRO permanece como identidade do software e não é substituído.
+            <strong className="text-white">Separação de marca:</strong> o logo enviado aqui identifica o estabelecimento. O logo ADEGA PRO permanece como identidade do software.
           </div>
         </div>
+
+        {error && <div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
+        {busy && appMode === 'PRODUCTION' && <div className="text-xs text-neutral-400 flex items-center gap-2"><Loader2 size={14} className="animate-spin"/> Sincronizando com o ambiente de produção...</div>}
 
         <form onSubmit={save} className="grid lg:grid-cols-[280px_1fr] gap-5">
           <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
@@ -48,11 +105,11 @@ export const StoreProfileView: React.FC = () => {
             <div className="aspect-square rounded-2xl bg-neutral-950 border border-neutral-800 overflow-hidden grid place-items-center">
               {store.logoUrl ? <img src={store.logoUrl} alt={store.tradeName} className="w-full h-full object-contain p-3"/> : <StoreIcon size={48} className="text-neutral-700"/>}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => onLogo(e.target.files?.[0])}/>
-            <button type="button" onClick={() => fileRef.current?.click()} className="mt-3 w-full px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold flex items-center justify-center gap-2">
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={e => void onLogo(e.target.files?.[0])}/>
+            <button disabled={busy} type="button" onClick={() => fileRef.current?.click()} className="mt-3 w-full px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white text-xs font-bold flex items-center justify-center gap-2">
               <Upload size={14}/> Enviar logo
             </button>
-            <p className="text-[10px] text-neutral-500 mt-2">PNG, JPG ou WebP · até 1MB. No backend definitivo, o arquivo será salvo em storage privado/público controlado.</p>
+            <p className="text-[10px] text-neutral-500 mt-2">{appMode === 'PRODUCTION' ? 'PNG, JPG, WebP ou SVG · até 2MB · armazenado no Supabase Storage.' : 'No modo demo, o arquivo permanece apenas neste navegador.'}</p>
           </section>
 
           <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-4">
@@ -67,13 +124,13 @@ export const StoreProfileView: React.FC = () => {
               <Field label="Instagram" value={store.instagram} onChange={v => setStore({...store,instagram:v})}/>
               <div className="md:col-span-2"><Field label="Endereço" value={store.address} onChange={v => setStore({...store,address:v})}/></div>
               <Field label="Cidade" value={store.city} onChange={v => setStore({...store,city:v})}/>
-              <Field label="UF" value={store.state} onChange={v => setStore({...store,state:v})}/>
+              <Field label="UF" value={store.state} onChange={v => setStore({...store,state:v.toUpperCase().slice(0,2)})}/>
               <Field label="CEP" value={store.zipCode} onChange={v => setStore({...store,zipCode:v})}/>
               <Field label="Horário de funcionamento" value={store.openingHours} onChange={v => setStore({...store,openingHours:v})}/>
             </div>
             <div className="pt-3 border-t border-neutral-800 flex items-center justify-between">
               <span className="text-xs text-emerald-400">{saved ? 'Dados da adega salvos.' : ''}</span>
-              <button className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs uppercase flex items-center gap-2">
+              <button disabled={busy} className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black text-xs uppercase flex items-center gap-2">
                 <Save size={15}/> Salvar cadastro
               </button>
             </div>
