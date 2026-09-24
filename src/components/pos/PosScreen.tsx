@@ -160,19 +160,31 @@ export const PosScreen: React.FC<PosScreenProps> = ({
         e.preventDefault();
         setIsSuspendedModalOpen(prev => !prev);
       } else if (e.key === 'Escape') {
-        setIsAudioModalOpen(false);
-        setIsQuickSaleOpen(false);
-        setIsCustomerModalOpen(false);
-        setIsDiscountModalOpen(false);
-        setIsPaymentModalOpen(false);
-        setIsSuspendedModalOpen(false);
-        setErrorMessage(null);
+        e.preventDefault();
+        const hasOpenModal = isAudioModalOpen || isQuickSaleOpen || isCustomerModalOpen || isDiscountModalOpen || isPaymentModalOpen || isSuspendedModalOpen || isReceiptModalOpen;
+        if (hasOpenModal) {
+          setIsAudioModalOpen(false);
+          setIsQuickSaleOpen(false);
+          setIsCustomerModalOpen(false);
+          setIsDiscountModalOpen(false);
+          setIsPaymentModalOpen(false);
+          setIsSuspendedModalOpen(false);
+          setIsReceiptModalOpen(false);
+          setErrorMessage(null);
+          return;
+        }
+
+        if (cart.length > 0) {
+          const ok = window.confirm('Sair do PDV e descartar a venda atual?');
+          if (!ok) return;
+        }
+        onNavigate('dashboard');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cart, isPaymentModalOpen, total]);
+  }, [cart, isPaymentModalOpen, total, isAudioModalOpen, isQuickSaleOpen, isCustomerModalOpen, isDiscountModalOpen, isSuspendedModalOpen, isReceiptModalOpen, onNavigate]);
 
   // Add product to cart
   const addToCart = (product: Product, quantity = 1) => {
@@ -675,7 +687,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
         </div>
 
         {/* RIGHT COLUMN: Cart, Totals & Checkout (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col bg-neutral-950 p-3 sm:p-4 min-h-[45vh] lg:min-h-0 overflow-visible lg:overflow-hidden">
+        <div className="lg:col-span-5 flex flex-col bg-neutral-950 p-3 sm:p-4 min-h-[45vh] lg:min-h-0 overflow-visible lg:overflow-y-auto">
           {/* Customer Bar */}
           <div className="flex items-center justify-between pb-3 mb-2 border-b border-neutral-800">
             <div className="flex items-center gap-2">
@@ -711,9 +723,9 @@ export const PosScreen: React.FC<PosScreenProps> = ({
           </div>
 
           {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto divide-y divide-neutral-900 pr-1 py-1">
+          <div className="divide-y divide-neutral-900 pr-1 py-1">
             {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-neutral-500">
+              <div className="min-h-44 flex flex-col items-center justify-center text-center text-neutral-500">
                 <Receipt size={40} className="mb-2 opacity-30 text-amber-400" />
                 <p className="text-sm font-semibold text-neutral-400">Caixa Pronto para Nova Venda</p>
                 <p className="text-xs text-neutral-500 mt-1">Bipe um produto ou pressione F2 para buscar</p>
@@ -773,7 +785,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
           </div>
 
           {/* Subtotals & Discounts Panel */}
-          <div className="pt-3 border-t border-neutral-800 space-y-1.5 text-xs">
+          <div className="mt-2 pt-3 border-t border-neutral-800 space-y-1.5 text-xs">
             <div className="flex justify-between text-neutral-400">
               <span>Subtotal ({cart.reduce((a, b) => a + b.quantity, 0)} itens):</span>
               <span className="font-mono font-semibold text-white">R$ {subtotal.toFixed(2)}</span>
@@ -805,11 +817,13 @@ export const PosScreen: React.FC<PosScreenProps> = ({
           {/* Action Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <button
-              onClick={clearSale}
-              disabled={cart.length === 0}
+              onClick={() => {
+                if (cart.length > 0 && !window.confirm('Sair do PDV e descartar a venda atual?')) return;
+                onNavigate('dashboard');
+              }}
               className="py-2.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 text-xs font-semibold border border-neutral-800 disabled:opacity-40 transition-colors cursor-pointer"
             >
-              Cancelar (ESC)
+              Sair (ESC)
             </button>
 
             <button
