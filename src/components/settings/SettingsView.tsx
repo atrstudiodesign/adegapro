@@ -21,7 +21,7 @@ export const SettingsView: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `backup_tome_no_seu_toba_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `backup_adega_pro_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -46,7 +46,7 @@ export const SettingsView: React.FC = () => {
   };
 
   const handleResetData = () => {
-    if (window.confirm('Tem certeza que deseja restaurar as configurações e produtos originais de fábrica da marca "Tome no seu Toba"?')) {
+    if (window.confirm('Tem certeza que deseja restaurar os dados de demonstração originais do ADEGA PRO?')) {
       db.resetToSeed();
       setStore(db.getStore());
       setFeedback('Banco de dados restaurado para os dados originais da loja!');
@@ -78,7 +78,7 @@ export const SettingsView: React.FC = () => {
         <div className="flex items-center gap-4">
           <BrandLogo size="lg" variant="full" />
           <div className="border-l border-neutral-800 pl-4 text-xs text-neutral-400">
-            <div>SaaS Multi-tenant: <span className="text-white font-semibold">Tome no seu Toba</span></div>
+            <div>Plataforma: <span className="text-white font-semibold">ADEGA PRO</span></div>
             <div>Identidade visual minimalista e vetorizada em alta resolução.</div>
           </div>
         </div>
