@@ -34,7 +34,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           ADEGA PRO
         </div>
         <div className="text-[10px] font-mono tracking-tight text-neutral-800">
-          GESTÃO &amp; CONVENIÊNCIA
+          SISTEMA PARA ADEGAS
         </div>
       </div>
     );
