@@ -1,0 +1,25 @@
+import React, { useEffect, useState } from 'react';
+import { UserCog, Plus, KeyRound, RefreshCw, ShieldCheck } from 'lucide-react';
+import { productionDb } from '../../services/productionDb';
+
+type Operator={id:string;name:string;role:string;active:boolean;last_authenticated_at?:string|null};
+
+export const ProductionEmployeesView:React.FC=()=>{
+  const [rows,setRows]=useState<Operator[]>([]); const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [feedback,setFeedback]=useState('');
+  const load=async()=>{setBusy(true);setError('');try{setRows(await productionDb.getOperators() as Operator[]);}catch(e:any){setError(e?.message||'Falha ao carregar operadores.');}finally{setBusy(false);}};
+  useEffect(()=>{void load();},[]);
+  const save=async(existing?:Operator)=>{
+    const name=window.prompt('Nome do operador:',existing?.name||'')?.trim(); if(!name)return;
+    const role=(window.prompt('Perfil: ADMINISTRADOR, GERENTE, CAIXA, ESTOQUISTA ou FINANCEIRO',existing?.role||'CAIXA')||'CAIXA').toUpperCase();
+    if(!['ADMINISTRADOR','GERENTE','CAIXA','ESTOQUISTA','FINANCEIRO'].includes(role)){setError('Perfil inválido.');return;}
+    const pin=window.prompt(existing?'Defina um NOVO PIN de 4 a 8 dígitos para confirmar a alteração:':'PIN de 4 a 8 dígitos:')||'';
+    if(!/^\d{4,8}$/.test(pin)){setError('O PIN deve conter de 4 a 8 dígitos.');return;}
+    setBusy(true);setError('');try{await productionDb.saveOperator({id:existing?.id,name,role,pin,active:existing?.active??true});setFeedback('Operador salvo. O PIN foi enviado somente para hash no servidor.');await load();}catch(e:any){setError(e?.message||'Não foi possível salvar operador.');}finally{setBusy(false);}
+  };
+  return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5 bg-neutral-950">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800"><div><h1 className="text-xl font-black text-white flex items-center gap-2"><UserCog size={22} className="text-amber-400"/>Operadores & PINs</h1><p className="text-xs text-neutral-400 mt-1">PINs são hash bcrypt no servidor; não são retornados ao navegador.</p></div><div className="flex gap-2"><button disabled={busy} onClick={()=>void load()} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs text-neutral-300 flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button><button disabled={busy} onClick={()=>void save()} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><Plus size={15}/>Novo operador</button></div></div>
+    {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}{feedback&&<div className="p-3 rounded-xl border border-emerald-800 bg-emerald-950/40 text-emerald-300 text-xs">{feedback}</div>}
+    <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-start gap-3"><ShieldCheck size={18} className="text-emerald-400 shrink-0"/><p className="text-xs text-neutral-300">Após cinco tentativas inválidas o operador é bloqueado temporariamente. A sessão interna usa token aleatório de curta duração e somente o hash do token é persistido.</p></div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{rows.map(o=><article key={o.id} className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="flex items-start justify-between gap-3"><div><h3 className="font-bold text-white">{o.name}</h3><p className="text-xs text-neutral-500 mt-1">{o.role}</p></div><span className={o.active?'text-emerald-400 text-xs':'text-rose-400 text-xs'}>{o.active?'ATIVO':'INATIVO'}</span></div><div className="mt-4 p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center gap-2 text-xs text-neutral-400"><KeyRound size={15} className="text-amber-400"/>PIN protegido · ••••••</div><div className="mt-4 flex justify-end"><button disabled={busy} onClick={()=>void save(o)} className="px-3 py-1.5 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-bold">Editar / redefinir PIN</button></div></article>)}{rows.length===0&&<div className="md:col-span-2 p-8 text-center rounded-2xl border border-neutral-800 text-neutral-500">Nenhum operador de produção cadastrado.</div>}</div>
+  </div>;
+};
