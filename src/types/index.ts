@@ -126,6 +126,7 @@ export interface Product {
   barcode: string;
   categoryId: string;
   brand: string;
+  packageSize?: string;
   unit: 'UN' | 'L' | 'ML' | 'KG' | 'CX' | 'PACK';
   costPrice: number;
   salePrice: number;
