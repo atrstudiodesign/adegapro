@@ -59,7 +59,12 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [currentUser, setCurrentUser] = useState<User>(db.getCurrentUser());
   const [currentSession, setCurrentSession] = useState<CashSession | undefined>(db.getCurrentSession());
-  const [receiptHashId, setReceiptHashId] = useState<string | null>(null);
+  const [receiptHashId, setReceiptHashId] = useState<string | null>(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/comprovante/')) return decodeURIComponent(path.slice('/comprovante/'.length));
+    const hash = window.location.hash;
+    return hash.startsWith('#/comprovante/') ? decodeURIComponent(hash.replace('#/comprovante/', '')) : null;
+  });
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [appMode, setCurrentAppMode] = useState<AppMode>(() => getAppMode());
   const [saasReady, setSaasReady] = useState(false);
@@ -70,7 +75,9 @@ export default function App() {
   const [legalDoc, setLegalDoc] = useState<LegalDocKey>('terms_of_use');
   const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>('LANDING');
   const [commercialCleared, setCommercialCleared] = useState(false);
-  const [platformAdminRoute, setPlatformAdminRoute] = useState(false);
+  const [platformAdminRoute, setPlatformAdminRoute] = useState(() =>
+    window.location.pathname === '/atr-control' || window.location.hash === '#/atr-control'
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -105,22 +112,31 @@ export default function App() {
     };
   }, []);
 
-  // Monitor URL hash for public digital receipt routing: #/comprovante/:id
+  // Clean public/admin routes. Legacy hash URLs are redirected to their slash equivalents.
   useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash;
-      setPlatformAdminRoute(hash === '#/atr-control');
-      if (hash.startsWith('#/comprovante/')) {
-        const id = hash.replace('#/comprovante/', '');
-        setReceiptHashId(id);
-      } else {
-        setReceiptHashId(null);
+    const syncRoute = () => {
+      const { pathname, hash } = window.location;
+
+      if (hash === '#/atr-control') {
+        window.history.replaceState({}, '', '/atr-control');
+      } else if (hash.startsWith('#/comprovante/')) {
+        window.history.replaceState({}, '', hash.replace('#', ''));
       }
+
+      const path = window.location.pathname;
+      setPlatformAdminRoute(path === '/atr-control');
+      setReceiptHashId(path.startsWith('/comprovante/')
+        ? decodeURIComponent(path.slice('/comprovante/'.length))
+        : null);
     };
 
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+    syncRoute();
+    window.addEventListener('popstate', syncRoute);
+    window.addEventListener('hashchange', syncRoute);
+    return () => {
+      window.removeEventListener('popstate', syncRoute);
+      window.removeEventListener('hashchange', syncRoute);
+    };
   }, []);
 
   const handleSessionUpdated = async () => {
@@ -215,7 +231,7 @@ export default function App() {
       <DigitalReceiptView
         receiptId={receiptHashId}
         onBack={() => {
-          window.location.hash = '';
+          window.history.pushState({}, '', '/');
           setReceiptHashId(null);
         }}
       />
