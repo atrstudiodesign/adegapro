@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, AlertTriangle, Package, ScanLine } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import type { CashSession, Category, Customer, Product, User } from '../../types';
@@ -20,6 +20,9 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState('');
   const [error,setError]=useState('');
+  const searchRef=useRef<HTMLInputElement>(null);
+  const customerRef=useRef<HTMLSelectElement>(null);
+  const discountRef=useRef<HTMLInputElement>(null);
 
   const load=async()=>{
     try{
@@ -88,6 +91,22 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     }
   };
 
+  useEffect(()=>{
+    const onKey=(e:KeyboardEvent)=>{
+      if(e.key==='F2'){e.preventDefault();searchRef.current?.focus();}
+      else if(e.key==='F3'){e.preventDefault();customerRef.current?.focus();}
+      else if(e.key==='F4'){e.preventDefault();discountRef.current?.focus();discountRef.current?.select();}
+      else if(e.key==='F5'){e.preventDefault();if(!busy&&cart.length>0)void finalize();}
+      else if(e.key==='Escape'){
+        e.preventDefault();
+        if(cart.length>0&&!window.confirm('Sair do PDV e descartar a venda atual?'))return;
+        onNavigate('dashboard');
+      }
+    };
+    window.addEventListener('keydown',onKey);
+    return()=>window.removeEventListener('keydown',onKey);
+  },[cart,busy,total,customerId,discount,method,tendered,currentSession,onNavigate]);
+
   if(!currentSession)return <div className="flex-1 grid place-items-center p-6 bg-neutral-950 text-white"><div className="max-w-md p-6 rounded-2xl bg-neutral-900 border border-neutral-800 text-center"><AlertTriangle className="mx-auto text-amber-400" size={30}/><h1 className="font-black mt-3">Caixa fechado</h1><p className="text-sm text-neutral-400 mt-2">No ambiente de produção, toda venda exige sessão de caixa segura vinculada ao operador.</p><button onClick={()=>onNavigate('cash')} className="mt-4 px-5 py-2.5 rounded-xl bg-amber-500 text-neutral-950 font-black text-sm">Abrir caixa</button></div></div>;
 
   return <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_430px] bg-[#080808] text-white overflow-y-auto xl:overflow-hidden">
@@ -106,9 +125,17 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
       <div className="sticky top-0 z-10 py-2 bg-[#080808]/95 backdrop-blur">
         <div className="relative">
           <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500"/>
-          <input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar produto por nome, marca, EAN ou SKU..." className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl pl-10 pr-12 py-3.5 text-sm outline-none focus:border-amber-400"/>
+          <input ref={searchRef} autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar produto por nome, marca, EAN ou SKU..." className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl pl-10 pr-12 py-3.5 text-sm outline-none focus:border-amber-400"/>
           <ScanLine size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400"/>
         </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[9px] text-neutral-500">
+        <span className="px-2 py-1 rounded border border-neutral-800 bg-neutral-900"><b className="text-amber-400">F2</b> Buscar</span>
+        <span className="px-2 py-1 rounded border border-neutral-800 bg-neutral-900"><b className="text-amber-400">F3</b> Cliente</span>
+        <span className="px-2 py-1 rounded border border-neutral-800 bg-neutral-900"><b className="text-amber-400">F4</b> Desconto</span>
+        <span className="px-2 py-1 rounded border border-neutral-800 bg-neutral-900"><b className="text-amber-400">F5</b> Finalizar</span>
+        <span className="px-2 py-1 rounded border border-neutral-800 bg-neutral-900"><b className="text-amber-400">ESC</b> Sair</span>
       </div>
 
       <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -168,10 +195,10 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
       <div className="mt-5 border-t border-neutral-800 pt-4">
         <label className="block text-xs text-neutral-400 mb-1">Cliente</label>
-        <select value={customerId} onChange={e=>setCustomerId(e.target.value)} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm"><option value="">Consumidor não identificado</option>{customers.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>
+        <select ref={customerRef} value={customerId} onChange={e=>setCustomerId(e.target.value)} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm"><option value="">Consumidor não identificado</option>{customers.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>
 
         <div className="grid grid-cols-2 gap-2 mt-3">
-          <div><label className="block text-[10px] text-neutral-500 mb-1">Desconto total</label><input type="number" min="0" step="0.01" value={discount} onChange={e=>setDiscount(Number(e.target.value)||0)} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm"/></div>
+          <div><label className="block text-[10px] text-neutral-500 mb-1">Desconto total</label><input ref={discountRef} type="number" min="0" step="0.01" value={discount} onChange={e=>setDiscount(Number(e.target.value)||0)} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm"/></div>
           <div><label className="block text-[10px] text-neutral-500 mb-1">Pagamento</label><select value={method} onChange={e=>setMethod(e.target.value as any)} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-2 py-3 text-xs"><option value="DINHEIRO">Dinheiro</option><option value="PIX">PIX — manual</option><option value="DEBITO">Débito — manual</option><option value="CREDITO">Crédito — manual</option><option value="VOUCHER">Voucher</option><option value="FIADO">Fiado</option></select></div>
         </div>
 
@@ -183,7 +210,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
           <div className="flex justify-between text-xl font-black pt-3 border-t border-neutral-800"><span>Total</span><span className="text-amber-400">R$ {total.toFixed(2)}</span></div>
         </div>
 
-        <button disabled={busy||cart.length===0} onClick={()=>void finalize()} className="mt-4 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 font-black">{busy?'PROCESSANDO...':'FINALIZAR VENDA'}</button>
+        <button disabled={busy||cart.length===0} onClick={()=>void finalize()} className="mt-4 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 font-black">{busy?'PROCESSANDO...':'FINALIZAR VENDA (F5)'}</button>
         <p className="mt-3 text-[10px] text-neutral-500 leading-relaxed">PIX e cartões permanecem confirmação manual até homologação do gateway/TEF. Nenhuma autorização financeira é simulada.</p>
       </div>
     </aside>
