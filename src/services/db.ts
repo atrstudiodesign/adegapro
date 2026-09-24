@@ -22,6 +22,7 @@ import {
   SystemNotification
 } from '../types';
 import { offlineSyncService } from './offlineSyncService';
+import { isDemoMode } from './appMode';
 
 const STORAGE_KEY_PREFIX = 'toba_saas_v1_';
 
@@ -1009,10 +1010,16 @@ class DatabaseService {
 
   // --- Users & Permissions ---
   public getUsers(): User[] {
+    if (isDemoMode()) {
+      return INITIAL_USERS.filter(u => u.tenantId === this.tenantId).map(u => ({ ...u, permissions: [...u.permissions] }));
+    }
     return getStorage<User[]>('users', INITIAL_USERS).filter(u => u.tenantId === this.tenantId);
   }
 
   public saveUser(user: Partial<User> & { name: string; role: User['role'] }): User {
+    if (isDemoMode()) {
+      throw new Error('Modo demonstração: funcionários, permissões e PINs são somente leitura.');
+    }
     const users = this.getUsers();
     let saved: User;
     if (user.id) {
