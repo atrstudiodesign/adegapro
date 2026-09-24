@@ -304,6 +304,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 200,
     supplierId: 'supp-ambev',
     status: 'ACTIVE',
+    imageUrl: 'https://tipsytopsy.com.sg/cdn/shop/products/corona-pint-355ml.png?v=1694782724',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -325,6 +326,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 240,
     supplierId: 'supp-ambev',
     status: 'ACTIVE',
+    imageUrl: 'https://www.arenaatacado.com.br/on/demandware.static/-/Sites-storefront-catalog-sv/default/dwfe3c5bb0/Produtos/882941-7891991297424-cerveja%20nacional%20spaten%20munich%20puro%20malte%20lata%20350ml-spaten-1.jpg',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-22T10:00:00.000Z'
   },
@@ -346,6 +348,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 300,
     supplierId: 'supp-ambev',
     status: 'ACTIVE',
+    imageUrl: 'https://fortatacadista.vteximg.com.br/arquivos/ids/161249-800-800/BEB.CERV.BRAHMA-350ML-LT-DUPLO-MALTE---2543419.jpg?v=637437445528300000',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -391,6 +394,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 40,
     supplierId: 'supp-pernod',
     status: 'ACTIVE',
+    imageUrl: 'https://solidwineonline.com/cdn/shop/files/JWBlack1000.png?v=1706456779',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -458,6 +462,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 200,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://dtgxwmigmg3gc.cloudfront.net/imagery/assets/derivations/icon/512/512/true/eyJpZCI6ImY0ZWI2ZTczZWUxMzA5OWU5MmYxNzkzNTQxNDE4YmY2Iiwic3RvcmFnZSI6InB1YmxpY19zdG9yZSJ9?signature=3e799900bea6ceff93039ffc74fdd103de826cae2738e546863422d8d739dabf',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -479,6 +484,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 150,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://dtgxwmigmg3gc.cloudfront.net/imagery/assets/derivations/icon/512/512/true/eyJpZCI6ImY3NTY5ZTVhNzZiMmExNGY4NjY1N2RiNDg1NzZiYjQxIiwic3RvcmFnZSI6InB1YmxpY19zdG9yZSJ9?signature=c8017b7ffee4cbd1dfabd1604368c3b863edc2db8577b19d944fe4d7dcf1bffe',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -500,6 +506,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 180,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://cdn.shoppub.io/cdn-cgi/image/w%3D1000%2Ch%3D1000%2Cq%3D80%2Cf%3Dauto/beirario/media/uploads/produtos/foto/b03df7ce799eefile.png',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -545,6 +552,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 200,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://meubrasilonline.com/cdn/shop/files/0001-6280753485858829042.png?v=1767726544&width=480',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -566,6 +574,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 300,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://s3.amazonaws.com/lepok.w/produtos/produtos/90983.jpg',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -652,6 +661,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 80,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://www.jauserve.com.br/dw/image/v2/BFJL_PRD/on/demandware.static/-/Sites-jauserve-master/default/dw692e7d3d/7896058599626.png?sw=1800',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -673,6 +683,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 60,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://paulistaoatacadista.vtexassets.com/arquivos/ids/361722/SalgadinhoElmaChipsDoritos84gQue1.jpg?v=638379141202030000',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -694,6 +705,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 100,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://images.tcdn.com.br/img/img_prod/1355013/seda_smoking_master_king_size_slim_93_1_d09df352aa948ece2d29ec39b5446d17.jpg',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
