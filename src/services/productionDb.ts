@@ -363,6 +363,18 @@ async function saveOperator(input: { id?: string; name: string; role: string; pi
   return data;
 }
 
+const OPERATOR_TOKEN_KEY = 'adega_pro_operator_session_token';
+const OPERATOR_PROFILE_KEY = 'adega_pro_operator_profile';
+
+function getOperatorToken() {
+  return sessionStorage.getItem(OPERATOR_TOKEN_KEY);
+}
+
+function getOperatorProfile() {
+  const raw = sessionStorage.getItem(OPERATOR_PROFILE_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
 async function verifyOperatorPin(operatorId: string, pin: string) {
   const ctx = await getContext();
   const { data, error } = await supabase.rpc('verify_operator_pin', {
@@ -371,24 +383,70 @@ async function verifyOperatorPin(operatorId: string, pin: string) {
     p_pin: pin
   });
   if (error) throw error;
+  if (data?.ok && data?.operator_session_token) {
+    sessionStorage.setItem(OPERATOR_TOKEN_KEY, data.operator_session_token);
+    sessionStorage.setItem(OPERATOR_PROFILE_KEY, JSON.stringify(data.operator));
+  }
   return data;
+}
+
+async function revokeOperatorSession() {
+  const token = getOperatorToken();
+  if (token) {
+    await supabase.rpc('revoke_operator_session', { p_token: token });
+  }
+  sessionStorage.removeItem(OPERATOR_TOKEN_KEY);
+  sessionStorage.removeItem(OPERATOR_PROFILE_KEY);
 }
 
 async function finalizeSale(payload: Record<string, unknown>) {
   const ctx = await getContext();
+  const token = getOperatorToken();
+  if (!token) throw new Error('Desbloqueie o operador antes de registrar vendas.');
   const { data, error } = await supabase.rpc('finalize_sale', {
-    p_payload: { ...payload, store_id: ctx.storeId }
+    p_payload: { ...payload, store_id: ctx.storeId, operator_session_token: token }
   });
   if (error) throw error;
   return data;
 }
 
-async function openCashSession(registerId: string, operatorId: string | null, initialBalance: number) {
+async function getCashRegisters() {
   const ctx = await getContext();
-  const { data, error } = await supabase.rpc('open_cash_session', {
+  const { data, error } = await supabase
+    .from('cash_registers')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .eq('active', true)
+    .order('number');
+  if (error) throw error;
+  return data || [];
+}
+
+async function getCurrentCashSession() {
+  const ctx = await getContext();
+  const operator = getOperatorProfile();
+  if (!operator?.id) return null;
+  const { data, error } = await supabase
+    .from('cash_sessions')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .eq('operator_ref', operator.id)
+    .eq('status', 'ABERTO')
+    .order('opened_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function openCashSession(registerId: string, _operatorId: string | null, initialBalance: number) {
+  const ctx = await getContext();
+  const token = getOperatorToken();
+  if (!token) throw new Error('Sessão do operador não encontrada.');
+  const { data, error } = await supabase.rpc('open_cash_session_secure', {
     p_store_id: ctx.storeId,
     p_cash_register_id: registerId,
-    p_operator_id: operatorId,
+    p_operator_token: token,
     p_initial_balance: initialBalance
   });
   if (error) throw error;
@@ -396,8 +454,11 @@ async function openCashSession(registerId: string, operatorId: string | null, in
 }
 
 async function registerCashMovement(sessionId: string, type: 'SANGRIA'|'SUPRIMENTO', amount: number, reason: string) {
-  const { data, error } = await supabase.rpc('register_cash_movement', {
+  const token = getOperatorToken();
+  if (!token) throw new Error('Sessão do operador não encontrada.');
+  const { data, error } = await supabase.rpc('register_cash_movement_secure', {
     p_cash_session_id: sessionId,
+    p_operator_token: token,
     p_movement_type: type,
     p_amount: amount,
     p_reason: reason
@@ -407,8 +468,11 @@ async function registerCashMovement(sessionId: string, type: 'SANGRIA'|'SUPRIMEN
 }
 
 async function closeCashSession(sessionId: string, countedCash: number, notes?: string) {
-  const { data, error } = await supabase.rpc('close_cash_session', {
+  const token = getOperatorToken();
+  if (!token) throw new Error('Sessão do operador não encontrada.');
+  const { data, error } = await supabase.rpc('close_cash_session_secure', {
     p_cash_session_id: sessionId,
+    p_operator_token: token,
     p_counted_cash: countedCash,
     p_notes: notes || null
   });
@@ -433,7 +497,12 @@ export const productionDb = {
   getOperators,
   saveOperator,
   verifyOperatorPin,
+  revokeOperatorSession,
+  getOperatorToken,
+  getOperatorProfile,
   finalizeSale,
+  getCashRegisters,
+  getCurrentCashSession,
   openCashSession,
   registerCashMovement,
   closeCashSession
