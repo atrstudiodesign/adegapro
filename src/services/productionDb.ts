@@ -379,6 +379,53 @@ async function settleCustomerCredit(customerId: string, amount: number, paymentM
   return data;
 }
 
+async function getPurchases(limit = 200) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('purchases')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+async function confirmPurchase(payload: Record<string, unknown>) {
+  const ctx = await getContext();
+  const token = getOperatorToken();
+  if (!token) throw new Error('Sessão do operador não encontrada.');
+  const { data, error } = await supabase.rpc('confirm_purchase', {
+    p_payload: { ...payload, store_id: ctx.storeId, operator_session_token: token }
+  });
+  if (error) throw error;
+  return data;
+}
+
+async function getAccountsPayable(limit = 200) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('accounts_payable')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .order('due_date', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+async function getAccountsReceivable(limit = 200) {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('accounts_receivable')
+    .select('*')
+    .eq('store_id', ctx.storeId)
+    .order('due_date', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
 async function getSales(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -641,6 +688,10 @@ export const productionDb = {
   settleCustomerCredit,
   getProducts,
   saveProduct,
+  getPurchases,
+  confirmPurchase,
+  getAccountsPayable,
+  getAccountsReceivable,
   getSales,
   getStockMovements,
   adjustStock,
