@@ -369,6 +369,20 @@ async function saveProduct(product: Partial<Product> & { name: string; salePrice
   return mapProduct(data, product.currentStock || 0);
 }
 
+async function settleCustomerCredit(customerId: string, amount: number, paymentMethod: 'DINHEIRO'|'PIX'|'DEBITO'|'CREDITO', cashSessionId?: string) {
+  const token = getOperatorToken();
+  if (!token) throw new Error('Sessão do operador não encontrada.');
+  const { data, error } = await supabase.rpc('settle_customer_credit', {
+    p_customer_id: customerId,
+    p_amount: amount,
+    p_payment_method: paymentMethod,
+    p_operator_token: token,
+    p_cash_session_id: cashSessionId || null
+  });
+  if (error) throw error;
+  return data;
+}
+
 async function createSupportTicket(subject: string, category: string, description: string) {
   const ctx = await getContext();
   const { data, error } = await supabase.from('support_tickets').insert({
@@ -568,6 +582,7 @@ export const productionDb = {
   saveSupplier,
   getCustomers,
   saveCustomer,
+  settleCustomerCredit,
   getProducts,
   saveProduct,
   createSupportTicket,
