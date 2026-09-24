@@ -46,12 +46,10 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   const [legalDoc, setLegalDoc] = useState<LegalDocKey | null>(null);
 
   const checkRateLimit = async (action: 'login'|'signup'|'recovery', identifier: string) => {
-    const { data, error } = await supabase.rpc('check_auth_rate_limit', {
-      p_action: action,
-      p_identifier: identifier.trim().toLowerCase(),
-      p_user_agent: navigator.userAgent
+    const { data, error } = await supabase.functions.invoke('auth-rate-limit', {
+      body: { action, identifier: identifier.trim().toLowerCase() }
     });
-    if (error) throw error;
+    if (error) throw new Error('Proteção de acesso temporariamente indisponível. Tente novamente em instantes.');
     if (data && data.allowed === false) {
       const minutes = Math.max(1, Math.ceil((data.retry_after_seconds || 60) / 60));
       throw new Error(`Muitas tentativas. Aguarde aproximadamente ${minutes} minuto(s) antes de tentar novamente.`);
