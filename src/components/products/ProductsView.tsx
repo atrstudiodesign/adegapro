@@ -78,7 +78,8 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
         p.name.toLowerCase().includes(q) ||
         p.barcode.toLowerCase().includes(q) ||
         p.sku.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q)
+        p.brand.toLowerCase().includes(q) ||
+        String(p.packageSize || '').toLowerCase().includes(q)
       );
     }
     return true;
@@ -92,6 +93,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
       barcode: String(7890000000000 + Math.floor(Math.random() * 100000000)),
       categoryId: categories[0]?.id || 'cat-cervejas',
       brand: '',
+      packageSize: '',
       unit: 'UN',
       costPrice: 0,
       salePrice: 0,
@@ -183,7 +185,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
   };
 
   const exportCSV = () => {
-    const headers = ['ID', 'Nome', 'SKU', 'Codigo_Barras', 'Categoria', 'Marca', 'Preco_Custo', 'Preco_Venda', 'Margem_Pct', 'Estoque_Atual', 'Estoque_Minimo', 'Status'];
+    const headers = ['ID', 'Nome', 'SKU', 'Codigo_Barras', 'Categoria', 'Marca', 'Apresentacao', 'Preco_Custo', 'Preco_Venda', 'Margem_Pct', 'Estoque_Atual', 'Estoque_Minimo', 'Status'];
     const rows = products.map(p => {
       const cat = categories.find(c => c.id === p.categoryId)?.name || p.categoryId;
       return [
@@ -193,6 +195,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
         p.barcode,
         `"${cat}"`,
         `"${p.brand}"`,
+        `"${p.packageSize || ''}"`,
         p.costPrice.toFixed(2),
         p.salePrice.toFixed(2),
         p.margin.toFixed(2),
@@ -263,7 +266,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por nome, EAN, SKU ou marca..."
+            placeholder="Buscar por nome, EAN, SKU, marca ou apresentação..."
             className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-400"
           />
         </div>
@@ -340,7 +343,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
                 <span className={`absolute right-2 top-2 px-2 py-1 rounded-full text-[9px] font-black border ${p.status==='ACTIVE'?'bg-emerald-950/90 text-emerald-300 border-emerald-800':'bg-neutral-900 text-neutral-500 border-neutral-700'}`}>{p.status==='ACTIVE'?'ATIVO':'INATIVO'}</span>
               </div>
               <div className="p-3">
-                <div className="text-[10px] text-neutral-500 truncate">{cat?.name || 'Geral'}{p.brand ? ` · ${p.brand}` : ''}</div>
+                <div className="text-[10px] text-neutral-500 truncate">{cat?.name || 'Geral'}{p.brand ? ` · ${p.brand}` : ''}{p.packageSize ? ` · ${p.packageSize}` : ''}</div>
                 <h3 className="mt-1 font-black text-sm text-white leading-tight line-clamp-2 min-h-[2.25rem]">{p.name}</h3>
                 <div className="mt-3 flex items-end justify-between gap-2">
                   <div><div className="text-[9px] text-neutral-500">Preço</div><div className="font-mono font-black text-amber-400 text-base">R$ {p.salePrice.toFixed(2)}</div></div>
@@ -367,7 +370,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
               </thead>
               <tbody className="divide-y divide-neutral-800">
                 {filteredProducts.map(p=>{const cat=categories.find(c=>c.id===p.categoryId);return <tr key={p.id} className="hover:bg-neutral-800/40">
-                  <td className="p-3"><div className="flex items-center gap-3"><div className="w-12 h-12 rounded-xl bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0">{p.imageUrl?<img src={p.imageUrl} alt="" className="w-full h-full object-contain p-1"/>:<Package className="m-3 text-neutral-700" size={20}/>}</div><div><div className="font-bold text-white">{p.name}</div><div className="text-[10px] text-neutral-500">{p.brand}</div></div></div></td>
+                  <td className="p-3"><div className="flex items-center gap-3"><div className="w-12 h-12 rounded-xl bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0">{p.imageUrl?<img src={p.imageUrl} alt="" className="w-full h-full object-contain p-1"/>:<Package className="m-3 text-neutral-700" size={20}/>}</div><div><div className="font-bold text-white">{p.name}</div><div className="text-[10px] text-neutral-500">{p.brand}{p.packageSize ? ` · ${p.packageSize}` : ''}</div></div></div></td>
                   <td className="p-3 font-mono text-[10px] text-neutral-400">{p.barcode}<br/>{p.sku}</td><td className="p-3">{cat?.name||'Geral'}</td><td className="p-3 text-right font-mono">R$ {p.costPrice.toFixed(2)}</td><td className="p-3 text-right font-mono font-black text-amber-400">R$ {p.salePrice.toFixed(2)}</td><td className="p-3 text-right font-mono text-emerald-400">+{p.margin.toFixed(1)}%</td><td className="p-3 text-center font-mono">{p.currentStock} {p.unit}</td>
                   <td className="p-3"><div className="flex justify-end gap-1"><button onClick={()=>handleEdit(p)} className="p-2 rounded-lg bg-neutral-800"><Edit2 size={13}/></button><button onClick={()=>handleDuplicate(p)} className="p-2 rounded-lg bg-neutral-800"><Copy size={13}/></button><button onClick={()=>void handleToggleStatus(p)} className="p-2 rounded-lg bg-neutral-800 text-amber-400"><Power size={13}/></button><button onClick={()=>void handleDelete(p)} className="p-2 rounded-lg bg-neutral-800 text-rose-400"><Trash2 size={13}/></button></div></td>
                 </tr>})}
@@ -439,6 +442,17 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
                     placeholder="Ex: Corona"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-neutral-400 block mb-1">Apresentação / Volume</label>
+                <input
+                  type="text"
+                  value={editingProduct.packageSize || ''}
+                  onChange={e => setEditingProduct({ ...editingProduct, packageSize: e.target.value })}
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2 text-white text-xs focus:border-amber-400 focus:outline-none"
+                  placeholder="Ex: 350ml, 750ml, 1L, 5kg"
+                />
               </div>
 
               {/* Barcode & SKU & Category */}
