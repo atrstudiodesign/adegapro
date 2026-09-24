@@ -180,6 +180,12 @@ function mapCashSession(row: any, register?: any, operator?: any): CashSession {
   };
 }
 
+async function getEntitlement() {
+  const { data, error } = await supabase.rpc('get_my_entitlement');
+  if (error) throw error;
+  return data;
+}
+
 async function getStore(): Promise<Store> {
   const ctx = await getContext();
   const { data, error } = await supabase.from('stores').select('*').eq('id', ctx.storeId).single();
@@ -733,6 +739,7 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
 
 export const productionDb = {
   getContext,
+  getEntitlement,
   getStore,
   saveStore,
   uploadStoreLogo,
