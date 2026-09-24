@@ -222,7 +222,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       <header className="relative z-20 border-b border-white/5 bg-black/65 backdrop-blur-xl sticky top-0">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between gap-4">
           <button onClick={() => navigateView('LANDING')} className="flex items-center gap-3 text-left">
-            <img src="/adega-pro-logo.jpg" alt="ADEGA PRO" className="h-11 w-auto max-w-[190px] object-contain rounded-lg"/>
+            <img src="/adega-pro-brand.svg" alt="ADEGA PRO" className="h-11 w-auto max-w-[190px] object-contain rounded-lg"/>
           </button>
           <nav className="hidden lg:flex items-center gap-7 text-[12px] font-bold text-neutral-400">
             <button type="button" onClick={() => navigateMarketing('/recursos')} className="hover:text-amber-400 transition-colors">Recursos</button>
