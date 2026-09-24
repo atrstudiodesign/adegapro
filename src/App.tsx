@@ -101,7 +101,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
-  const handleSessionUpdated = () => {
+  const handleSessionUpdated = async () => {
+    if (appMode === 'PRODUCTION') {
+      try {
+        setCurrentSession(await productionDb.getCurrentCashSession());
+      } catch {
+        setCurrentSession(undefined);
+      }
+      return;
+    }
     setCurrentSession(db.getCurrentSession());
   };
 
@@ -190,6 +198,9 @@ export default function App() {
         <ProductionOperatorLock
           onLogin={(user) => {
             setCurrentUser(user);
+            void productionDb.getCurrentCashSession()
+              .then(session => setCurrentSession(session))
+              .catch(() => setCurrentSession(undefined));
             setIsLocked(false);
           }}
         />
@@ -282,7 +293,7 @@ export default function App() {
             />
           )}
           {currentTab === 'sales' && <SalesHistoryView currentUser={currentUser} />}
-          {currentTab === 'products' && <ProductsView />}
+          {currentTab === 'products' && <ProductsView appMode={appMode} />}
           {currentTab === 'categories' && <CategoriesView appMode={appMode} />}
           {currentTab === 'combos' && <CombosView />}
           {currentTab === 'stock' && <StockView />}
