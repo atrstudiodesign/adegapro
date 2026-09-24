@@ -282,7 +282,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 300,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
-    imageUrl: '',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Heineken%20Bottle.jpg',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -369,6 +369,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 60,
     supplierId: 'supp-pernod',
     status: 'ACTIVE',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Johnnie%20Walker%20Red%20Label.jpg',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -411,6 +412,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 36,
     supplierId: 'supp-pernod',
     status: 'ACTIVE',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tanqueray%20bottle%20Gin.png',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -432,6 +434,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 50,
     supplierId: 'supp-pernod',
     status: 'ACTIVE',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Absolut%20Original750.jpg',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
@@ -520,6 +523,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 120,
     supplierId: 'supp-femsa',
     status: 'ACTIVE',
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Une%20bouteille%20de%20Coca-Cola%202%20Litres.JPG',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
