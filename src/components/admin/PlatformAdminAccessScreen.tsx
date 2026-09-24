@@ -60,7 +60,7 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
       const {data,error:signupError}=await supabase.auth.signUp({
         email:email.trim(),
         password,
-        options:{emailRedirectTo:window.location.origin+'/#/atr-control'}
+        options:{emailRedirectTo:window.location.origin+'/atr-control'}
       });
       if(signupError) throw signupError;
 
@@ -78,7 +78,7 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
 
   if(!ready)return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center"><div className="text-sm text-neutral-500">Validando acesso administrativo...</div></div>;
 
-  if(allowed)return <PlatformControlView onClose={()=>{void supabase.auth.signOut();window.location.hash='';}}/>;
+  if(allowed)return <PlatformControlView onClose={()=>{void supabase.auth.signOut();window.history.pushState({}, '', '/');window.location.reload();}}/>;
 
   return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center p-4">
     <div className="w-full max-w-md p-6 sm:p-7 rounded-3xl bg-neutral-900 border border-neutral-800 shadow-2xl">
