@@ -2,7 +2,7 @@
   "id": "/",
   "short_name": "ADEGA PRO",
   "name": "ADEGA PRO - Gestão Completa para Adegas e Conveniências",
-  "description": "Sistema PDV e Gestão Comercial para Adegas e Conveniências com sincronização offline contínua.",
+  "description": "Sistema PDV e gestão comercial para adegas e conveniências. Operação online com módulos de produção protegidos e modo demonstração isolado.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
