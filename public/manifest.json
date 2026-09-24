@@ -1,13 +1,13 @@
 {
-  "id": "/",
+  "id": "/inicio",
   "short_name": "ADEGA PRO",
-  "name": "ADEGA PRO - Gestão Completa para Adegas e Conveniências",
-  "description": "Sistema PDV e gestão comercial para adegas e conveniências. Operação online com módulos de produção protegidos e modo demonstração isolado.",
-  "start_url": "/",
+  "name": "ADEGA PRO — Sistema para Adegas",
+  "description": "PDV, estoque, compras, clientes, financeiro e relatórios para adegas.",
+  "start_url": "/inicio",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#080808",
+  "theme_color": "#080808",
   "orientation": "any",
   "icons": [
     {
@@ -20,13 +20,13 @@
       "src": "/pwa-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/adega-pro-icon.jpg",
-      "type": "image/jpeg",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "src": "/adega-pro-mark.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
     }
   ]
 }
