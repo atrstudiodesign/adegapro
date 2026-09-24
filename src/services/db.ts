@@ -304,7 +304,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     maxStock: 200,
     supplierId: 'supp-ambev',
     status: 'ACTIVE',
-    imageUrl: 'https://tipsytopsy.com.sg/cdn/shop/products/corona-pint-355ml.png?v=1694782724',
+    imageUrl: 'https://londonliquorstore.com/cdn/shop/products/Corona330ml_8e21f620-498d-49be-87c7-2e651d289121.jpg?v=1627645772',
     createdAt: '2026-01-10T12:00:00.000Z',
     updatedAt: '2026-09-20T10:00:00.000Z'
   },
