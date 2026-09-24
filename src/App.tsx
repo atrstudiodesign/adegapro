@@ -16,6 +16,7 @@ import { CombosView } from './components/combos/CombosView';
 import { StockView } from './components/stock/StockView';
 import { ProductionStockView } from './components/stock/ProductionStockView';
 import { InventoryView } from './components/inventory/InventoryView';
+import { ProductionInventoryView } from './components/inventory/ProductionInventoryView';
 import { CashView } from './components/cash/CashView';
 import { ProductionCashView } from './components/cash/ProductionCashView';
 import { SalesHistoryView } from './components/sales/SalesHistoryView';
@@ -316,7 +317,7 @@ export default function App() {
           {currentTab === 'categories' && <CategoriesView appMode={appMode} />}
           {currentTab === 'combos' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Combos & Kits" /> : <CombosView />)}
           {currentTab === 'stock' && (appMode === 'PRODUCTION' ? <ProductionStockView /> : <StockView />)}
-          {currentTab === 'inventory' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Inventário Físico" /> : <InventoryView />)}
+          {currentTab === 'inventory' && (appMode === 'PRODUCTION' ? <ProductionInventoryView /> : <InventoryView />)}
           {currentTab === 'cash' && (
             appMode === 'PRODUCTION' ? (
               <ProductionCashView
