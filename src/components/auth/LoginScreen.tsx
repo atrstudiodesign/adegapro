@@ -91,7 +91,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl overflow-hidden border border-amber-500/30 bg-neutral-900 shadow-md">
             <img
-              src="/adega-pro-icon.jpg"
+              src="/adega-pro-mark.svg"
               alt="ADEGA PRO"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
@@ -139,7 +139,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, currentSessio
           <div className="relative mb-6">
             <div className="w-36 min-[420px]:w-44 sm:w-56 md:w-64 aspect-square rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.25)] border-2 border-amber-500/40 bg-neutral-900 group">
               <img
-                src="/adega-pro-logo.jpg"
+                src="/adega-pro-brand.svg"
                 alt="ADEGA PRO - Gestão Completa para Adegas e Conveniências"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 referrerPolicy="no-referrer"
