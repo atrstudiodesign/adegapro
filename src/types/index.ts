@@ -137,6 +137,7 @@ export interface Product {
   supplierId?: string;
   status: 'ACTIVE' | 'INACTIVE';
   imageUrl?: string;
+  imageSourceUrl?: string;
   isCombo?: boolean;
   isCold?: boolean;
   createdAt: string;
