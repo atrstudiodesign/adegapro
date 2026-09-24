@@ -21,6 +21,7 @@ import { ProductionCashView } from './components/cash/ProductionCashView';
 import { SalesHistoryView } from './components/sales/SalesHistoryView';
 import { ProductionSalesHistoryView } from './components/sales/ProductionSalesHistoryView';
 import { PurchasesView } from './components/purchases/PurchasesView';
+import { ProductionPurchasesView } from './components/purchases/ProductionPurchasesView';
 import { SuppliersView } from './components/suppliers/SuppliersView';
 import { FinanceView } from './components/finance/FinanceView';
 import { ProductionFinanceView } from './components/finance/ProductionFinanceView';
@@ -327,7 +328,7 @@ export default function App() {
               <CashView currentUser={currentUser} onSessionUpdated={handleSessionUpdated} />
             )
           )}
-          {currentTab === 'purchases' && (appMode === 'PRODUCTION' ? <ProductionModuleGuard title="Compras & NF Entrada" /> : <PurchasesView />)}
+          {currentTab === 'purchases' && (appMode === 'PRODUCTION' ? <ProductionPurchasesView /> : <PurchasesView />)}
           {currentTab === 'finance' && (appMode === 'PRODUCTION' ? <ProductionFinanceView /> : <FinanceView />)}
           {currentTab === 'customers' && (appMode === 'PRODUCTION' ? <ProductionCustomersView currentSession={currentSession} /> : <CustomersView />)}
           {currentTab === 'suppliers' && <SuppliersView appMode={appMode} />}
