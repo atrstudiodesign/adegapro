@@ -53,8 +53,8 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
       <MetricCard label="Ticket médio" value={busy?'—':money(today.ticket)} icon={ReceiptText} tone="sky" onClick={()=>onNavigate('reports')}/>
       <MetricCard label="Clientes" value={busy?'—':customers.length} icon={Users} onClick={()=>onNavigate('customers')}/>
       <MetricCard label="Estoque baixo" value={busy?'—':low.length} icon={Boxes} tone={low.length?'rose':'emerald'} onClick={()=>onNavigate('stock')}/>
-      <MetricCard label="Vencendo ≤30d" value={busy?'—':expiry.length} icon={CalendarClock} tone={expiry.length?'warning':'emerald' as any} onClick={()=>onNavigate('purchases')}/>
-      <MetricCard label="Caixas abertos" value={busy?'—':openCash} icon={Wallet} tone={openCash?'emerald':'warning' as any} onClick={()=>onNavigate('cash')}/>
+      <MetricCard label="Vencendo ≤30d" value={busy?'—':expiry.length} icon={CalendarClock} tone={expiry.length?'rose':'emerald'} onClick={()=>onNavigate('purchases')}/>
+      <MetricCard label="Caixas abertos" value={busy?'—':openCash} icon={Wallet} tone={openCash?'emerald':'amber'} onClick={()=>onNavigate('cash')}/>
       <MetricCard label="A receber" value={busy?'—':money(receivables.pending)} icon={CreditCard} tone="violet" onClick={()=>onNavigate('finance')}/>
     </div>
 
