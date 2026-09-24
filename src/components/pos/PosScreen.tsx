@@ -501,7 +501,11 @@ export const PosScreen: React.FC<PosScreenProps> = ({
                       onClick={() => addToCart(p, 1)}
                       className="w-full px-4 py-3 text-left hover:bg-neutral-800/90 flex items-center justify-between border-b border-neutral-800/50 last:border-b-0 cursor-pointer transition-colors"
                     >
-                      <div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-11 h-11 rounded-xl bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0">
+                          {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-contain p-1" loading="lazy"/> : <Package size={18} className="m-3 text-neutral-700"/>}
+                        </div>
+                        <div className="min-w-0">
                         <div className="font-semibold text-white text-sm flex items-center gap-2">
                           {p.name}
                           {p.isCombo && (
@@ -513,8 +517,9 @@ export const PosScreen: React.FC<PosScreenProps> = ({
                         <div className="text-xs text-neutral-400 font-mono">
                           EAN: {p.barcode} · Estoque: {p.currentStock} {p.unit}
                         </div>
+                        </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <div className="text-amber-400 font-bold font-mono text-base">
                           R$ {p.salePrice.toFixed(2)}
                         </div>
@@ -636,9 +641,12 @@ export const PosScreen: React.FC<PosScreenProps> = ({
                   }`}
                 >
                   <div>
+                    <div className="aspect-[4/3] -mx-3 -mt-3 mb-3 bg-neutral-950 border-b border-neutral-800 overflow-hidden">
+                      {prod.imageUrl ? <img src={prod.imageUrl} alt={prod.name} className="w-full h-full object-contain p-2.5" loading="lazy"/> : <div className="w-full h-full grid place-items-center"><Package size={28} className="text-neutral-700"/></div>}
+                    </div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
-                        {prod.brand}
+                        {prod.brand}{prod.packageSize ? ` · ${prod.packageSize}` : ''}
                       </span>
                       {prod.isCombo && (
                         <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/30 text-amber-300 rounded font-bold">
@@ -715,12 +723,15 @@ export const PosScreen: React.FC<PosScreenProps> = ({
                   key={item.productId}
                   className="grid grid-cols-12 items-center py-2.5 px-1 hover:bg-neutral-900/60 rounded-lg group transition-colors"
                 >
-                  <div className="col-span-6 pr-2">
+                  <div className="col-span-6 pr-2 flex items-center gap-2">
+                    {(() => { const p = products.find(x => x.id === item.productId); return <div className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-800 overflow-hidden shrink-0">{p?.imageUrl ? <img src={p.imageUrl} alt="" className="w-full h-full object-contain p-1"/> : <Package size={15} className="m-2.5 text-neutral-700"/>}</div>; })()}
+                    <div className="min-w-0">
                     <div className="text-xs font-semibold text-neutral-200 line-clamp-1">
                       {item.productName}
                     </div>
                     <div className="text-[10px] text-neutral-500 font-mono">
                       R$ {item.unitPrice.toFixed(2)} cada
+                    </div>
                     </div>
                   </div>
 
