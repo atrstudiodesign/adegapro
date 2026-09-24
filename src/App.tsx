@@ -185,7 +185,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-neutral-950 text-white grid place-items-center">
         <div className="text-center">
-          <img src="/adega-pro-icon.jpg" alt="Adega Pro" className="w-14 h-14 rounded-2xl mx-auto mb-4 border border-amber-500/30" />
+          <img src="/adega-pro-mark.svg" alt="Adega Pro" className="w-14 h-14 rounded-2xl mx-auto mb-4 border border-amber-500/30" />
           <div className="font-black">ADEGA <span className="text-amber-400">PRO</span></div>
           <div className="text-xs text-neutral-500 mt-1">Preparando ambiente seguro...</div>
         </div>
