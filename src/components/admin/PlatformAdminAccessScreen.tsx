@@ -34,10 +34,18 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
     try{
       const {error:authError}=await supabase.auth.signInWithPassword({email:email.trim(),password});
       if(authError)throw authError;
-      const ok=await productionDb.isPlatformAdmin();
+      let ok=await productionDb.isPlatformAdmin();
+      if(!ok){
+        const {error:claimError}=await supabase.rpc('claim_platform_admin_invite');
+        if(claimError){
+          await supabase.auth.signOut();
+          throw new Error('Conta autenticada, mas sem autorização administrativa.');
+        }
+        ok=await productionDb.isPlatformAdmin();
+      }
       if(!ok){
         await supabase.auth.signOut();
-        throw new Error('Conta autenticada, mas sem privilégio de administrador da plataforma.');
+        throw new Error('Conta sem privilégio de administrador da plataforma.');
       }
       setAllowed(true);
     }catch(err:any){
@@ -60,7 +68,7 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
         <label className="block"><span className="text-xs font-bold text-neutral-300">Senha</span><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3"><LockKeyhole size={16} className="text-neutral-500"/><input required type={show?'text':'password'} autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-transparent py-3 outline-none text-sm"/><button type="button" onClick={()=>setShow(v=>!v)} className="text-neutral-500">{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></div></label>
         <button disabled={busy} className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black text-sm">{busy?'Validando...':'Entrar no ATR Control'}</button>
       </form>
-      <div className="mt-5 text-[10px] text-neutral-600 leading-relaxed">Sem cadastro público. Contas administrativas são autorizadas diretamente no backend da ATR Studio.</div>
+      <div className="mt-5 text-[10px] text-neutral-600 leading-relaxed">Primeiro acesso: a conta precisa usar exatamente o e-mail previamente autorizado pela ATR Studio. Após a autenticação e confirmação do e-mail, o backend vincula o usuário ao ATR Control.</div>
     </div>
   </div>;
 };
