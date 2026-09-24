@@ -630,6 +630,41 @@ async function getAuditLogs(limit = 300) {
   return data || [];
 }
 
+async function getIntegrationWebhookConfigs() {
+  const ctx = await getContext();
+  const { data, error } = await supabase
+    .from('integration_webhook_configs')
+    .select('id,provider,webhook_url,event_types,auth_mode,secret_ref,enabled,last_test_at,last_test_status,updated_at')
+    .eq('store_id', ctx.storeId)
+    .order('provider');
+  if (error) throw error;
+  return data || [];
+}
+
+async function saveIntegrationWebhookConfig(input: {
+  provider: string;
+  webhookUrl: string;
+  eventTypes: string[];
+  authMode: 'NONE'|'HMAC'|'BEARER'|'BASIC';
+  secretRef?: string;
+  enabled: boolean;
+}) {
+  const ctx = await getContext();
+  const { data, error } = await supabase.rpc('save_integration_webhook_config', {
+    p_payload: {
+      store_id: ctx.storeId,
+      provider: input.provider,
+      webhook_url: input.webhookUrl,
+      event_types: input.eventTypes,
+      auth_mode: input.authMode,
+      secret_ref: input.secretRef || null,
+      enabled: input.enabled
+    }
+  });
+  if (error) throw error;
+  return data as string;
+}
+
 async function createSupportTicket(subject: string, category: string, description: string) {
   const ctx = await getContext();
   const { data, error } = await supabase.from('support_tickets').insert({
@@ -873,6 +908,8 @@ export const productionDb = {
   adjustStock,
   getFinancialTransactions,
   getAuditLogs,
+  getIntegrationWebhookConfigs,
+  saveIntegrationWebhookConfig,
   createSupportTicket,
   getOperators,
   getOperatorFeatures,
