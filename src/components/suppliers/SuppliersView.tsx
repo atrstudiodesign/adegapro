@@ -4,6 +4,7 @@ import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
 import type { Supplier } from '../../types';
 import { Truck, Plus, Phone, Mail, MapPin, Search, Loader2 } from 'lucide-react';
+import { EmptyState, PageHeader } from '../ui/ProUi';
 
 interface SuppliersViewProps { appMode?: AppMode; }
 
@@ -37,14 +38,8 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({ appMode = 'DEMO' }
   const suppliers = rows.filter(s => [s.tradeName,s.corporateName,s.cnpj].join(' ').toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-5 bg-neutral-950">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
-        <div>
-          <h1 className="text-xl font-black text-white flex items-center gap-2"><Truck size={22} className="text-amber-400"/>Fornecedores</h1>
-          <p className="text-xs text-neutral-400 mt-1">Cadastro comercial separado das compras e entradas de mercadoria.</p>
-        </div>
-        <button disabled={busy} onClick={() => void create()} className="px-4 py-2 rounded-xl bg-amber-500 disabled:opacity-50 text-neutral-950 font-black text-xs uppercase flex items-center justify-center gap-2"><Plus size={15}/> Novo fornecedor</button>
-      </div>
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-4 sm:space-y-5">
+      <PageHeader eyebrow="Compras" title="Fornecedores" description="Cadastro comercial separado das entradas e documentos de compra." actions={<button disabled={busy} onClick={() => void create()} className="px-4 py-2 rounded-xl bg-amber-500 disabled:opacity-50 text-neutral-950 font-black text-xs uppercase flex items-center justify-center gap-2"><Plus size={15}/> Novo fornecedor</button>}/>
 
       {error && <div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
       {busy && <div className="text-xs text-neutral-400 flex items-center gap-2"><Loader2 size={14} className="animate-spin"/> Sincronizando fornecedores...</div>}
@@ -54,7 +49,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({ appMode = 'DEMO' }
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar fornecedor por nome ou CNPJ..." className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white outline-none focus:border-amber-400"/>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      {suppliers.length===0?<EmptyState title="Nenhum fornecedor encontrado" description="Cadastre fornecedores para vincular compras, produtos e histórico de custo." action={<button onClick={()=>void create()} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black">Novo fornecedor</button>}/>:<div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {suppliers.map(s => (
           <article key={s.id} className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
             <div className="flex items-start justify-between gap-3">
@@ -69,7 +64,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({ appMode = 'DEMO' }
             {s.notes && <div className="mt-4 pt-3 border-t border-neutral-800 text-[11px] text-neutral-500">{s.notes}</div>}
           </article>
         ))}
-      </div>
+      </div>}
     </div>
   );
 };
