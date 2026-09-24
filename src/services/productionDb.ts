@@ -247,10 +247,10 @@ async function saveCategory(category: Partial<Category> & { name: string }): Pro
   const slug = (category.slug || category.name)
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  const payload = { tenant_id: ctx.tenantId, name: category.name.trim(), slug, color: category.color || null, active: category.active ?? true };
+  const values = { name: category.name.trim(), slug, color: category.color || null, active: category.active ?? true };
   const query = category.id
-    ? supabase.from('categories').update(payload).eq('id', category.id).eq('tenant_id', ctx.tenantId)
-    : supabase.from('categories').insert(payload);
+    ? supabase.from('categories').update(values).eq('id', category.id).eq('tenant_id', ctx.tenantId)
+    : supabase.from('categories').insert({ tenant_id: ctx.tenantId, ...values });
   const { data, error } = await query.select().single();
   if (error) throw error;
   return mapCategory(data);
@@ -265,8 +265,7 @@ async function getSuppliers(): Promise<Supplier[]> {
 
 async function saveSupplier(supplier: Partial<Supplier> & { tradeName: string }): Promise<Supplier> {
   const ctx = await getContext();
-  const payload = {
-    tenant_id: ctx.tenantId,
+  const values = {
     legal_name: supplier.corporateName || null,
     trade_name: supplier.tradeName.trim(),
     cnpj: supplier.cnpj || null,
@@ -279,8 +278,8 @@ async function saveSupplier(supplier: Partial<Supplier> & { tradeName: string })
     updated_at: new Date().toISOString()
   };
   const query = supplier.id
-    ? supabase.from('suppliers').update(payload).eq('id', supplier.id).eq('tenant_id', ctx.tenantId)
-    : supabase.from('suppliers').insert(payload);
+    ? supabase.from('suppliers').update(values).eq('id', supplier.id).eq('tenant_id', ctx.tenantId)
+    : supabase.from('suppliers').insert({ tenant_id: ctx.tenantId, ...values });
   const { data, error } = await query.select().single();
   if (error) throw error;
   return mapSupplier(data);
@@ -295,9 +294,7 @@ async function getCustomers(): Promise<Customer[]> {
 
 async function saveCustomer(customer: Partial<Customer> & { name: string; phone: string }): Promise<Customer> {
   const ctx = await getContext();
-  const payload = {
-    tenant_id: ctx.tenantId,
-    store_id: ctx.storeId,
+  const values = {
     name: customer.name.trim(),
     cpf: customer.cpf || null,
     phone: customer.phone || null,
@@ -310,8 +307,8 @@ async function saveCustomer(customer: Partial<Customer> & { name: string; phone:
     updated_at: new Date().toISOString()
   };
   const query = customer.id
-    ? supabase.from('customers').update(payload).eq('id', customer.id).eq('tenant_id', ctx.tenantId)
-    : supabase.from('customers').insert(payload);
+    ? supabase.from('customers').update(values).eq('id', customer.id).eq('tenant_id', ctx.tenantId)
+    : supabase.from('customers').insert({ tenant_id: ctx.tenantId, store_id: ctx.storeId, ...values });
   const { data, error } = await query.select().single();
   if (error) throw error;
   return mapCustomer(data);
@@ -331,8 +328,7 @@ async function getProducts(): Promise<Product[]> {
 
 async function saveProduct(product: Partial<Product> & { name: string; salePrice: number }): Promise<Product> {
   const ctx = await getContext();
-  const payload = {
-    tenant_id: ctx.tenantId,
+  const values = {
     category_id: product.categoryId || null,
     supplier_id: product.supplierId || null,
     name: product.name.trim(),
@@ -351,8 +347,8 @@ async function saveProduct(product: Partial<Product> & { name: string; salePrice
     updated_at: new Date().toISOString()
   };
   const query = product.id
-    ? supabase.from('products').update(payload).eq('id', product.id).eq('tenant_id', ctx.tenantId)
-    : supabase.from('products').insert(payload);
+    ? supabase.from('products').update(values).eq('id', product.id).eq('tenant_id', ctx.tenantId)
+    : supabase.from('products').insert({ tenant_id: ctx.tenantId, ...values });
   const { data, error } = await query.select().single();
   if (error) throw error;
 
