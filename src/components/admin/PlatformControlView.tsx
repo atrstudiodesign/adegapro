@@ -1,19 +1,19 @@
 import React,{useEffect,useState} from 'react';
 import { Building2, CreditCard, Headphones, RefreshCw, ShieldCheck, X, Ban, CheckCircle2 } from 'lucide-react';
-import { productionDb } from '../../services/productionDb';
+import { platformDb } from '../../services/platformDb';
 
 export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
   const[data,setData]=useState<any>(null);
   const[busy,setBusy]=useState(true);
   const[error,setError]=useState('');
-  const load=async()=>{setBusy(true);setError('');try{setData(await productionDb.getPlatformControlSnapshot());}catch(e:any){setError(e?.message||'Acesso negado.');}finally{setBusy(false);}};
+  const load=async()=>{setBusy(true);setError('');try{setData(await platformDb.getPlatformControlSnapshot());}catch(e:any){setError(e?.message||'Acesso negado.');}finally{setBusy(false);}};
   useEffect(()=>{void load();},[]);
   const toggle=async(t:any)=>{
     const next=!t.active;
     const ok=window.confirm(next?'Reativar este cliente e suas lojas?':'Suspender este cliente e bloquear o ambiente de produção?');
     if(!ok)return;
     setBusy(true);setError('');
-    try{await productionDb.setPlatformTenantAccess(t.id,next,next?'ACTIVE':'SUSPENDED');await load();}
+    try{await platformDb.setPlatformTenantAccess(t.id,next,next?'ACTIVE':'SUSPENDED');await load();}
     catch(e:any){setError(e?.message||'Não foi possível alterar o acesso.');}
     finally{setBusy(false);}
   };
