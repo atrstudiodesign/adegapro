@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../../services/db';
 import { paymentService } from '../../services/paymentService';
 import { fiscalService } from '../../services/fiscalService';
-import { Cable, QrCode, CreditCard, FileCheck, CheckCircle2, AlertTriangle, Key } from 'lucide-react';
+import { Cable, QrCode, CreditCard, FileCheck, CheckCircle2, Smartphone, Zap, ShieldCheck } from 'lucide-react';
 
 export const IntegrationsView: React.FC = () => {
   const [integrations, setIntegrations] = useState(db.getIntegrations());
@@ -32,7 +32,7 @@ export const IntegrationsView: React.FC = () => {
 
   const handleTestPix = async () => {
     try {
-      const res = await paymentService.generatePix(10.00, 'Teste Conectividade Tome no seu Toba');
+      const res = await paymentService.generatePix(10.00, 'Teste Conectividade ADEGA PRO');
       setTestPixUrl(res.qrCodeDataUrl);
       setFeedback('QR Code de teste gerado com algoritmo CRC16 oficial!');
       setTimeout(() => setFeedback(null), 3500);
@@ -46,10 +46,10 @@ export const IntegrationsView: React.FC = () => {
       <div className="pb-4 border-b border-neutral-800">
         <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
           <Cable size={22} className="text-amber-400" />
-          <span>Hub de Integrações (PIX, TEF &amp; Fiscal)</span>
+          <span>Integrações &amp; Pagamentos</span>
         </h1>
         <p className="text-xs text-neutral-400 mt-0.5">
-          Conexões com Banco Central (PIX EMV), maquininha de cartão TEF e SEFAZ para emissão de NFC-e.
+          Delivery, pagamentos, PIX, SmartPOS/TEF, fiscal e webhooks em um único hub.
         </p>
       </div>
 
@@ -59,6 +59,40 @@ export const IntegrationsView: React.FC = () => {
           <span>{feedback}</span>
         </div>
       )}
+
+      <div className="p-4 rounded-2xl border border-emerald-800/40 bg-emerald-950/15 flex items-start gap-3">
+        <ShieldCheck size={18} className="text-emerald-400 shrink-0" />
+        <div>
+          <div className="text-sm font-black text-white">Ecossistema de integrações ADEGA PRO</div>
+          <div className="text-xs text-neutral-500 mt-1">
+            Esta tela demonstra os conectores disponíveis. Nenhum provedor é tratado como conectado sem credenciais, webhook e homologação reais.
+          </div>
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {[
+          {name:'iFood',desc:'Pedidos, cardápio e catálogo após homologação oficial.',status:'HOMOLOGAÇÃO PENDENTE',tone:'bg-red-600',icon:Smartphone},
+          {name:'Asaas',desc:'PIX, cobrança e recorrência via API e webhook.',status:'NÃO CONFIGURADO',tone:'bg-blue-700',icon:CreditCard},
+          {name:'PagSeguro',desc:'Pagamentos e terminais conforme produto homologado.',status:'NÃO CONFIGURADO',tone:'bg-emerald-700',icon:CreditCard},
+          {name:'Mercado Pago',desc:'PIX e pagamentos digitais via integração oficial.',status:'NÃO CONFIGURADO',tone:'bg-sky-700',icon:Zap},
+          {name:'SmartPOS / TEF',desc:'Envio do valor ao terminal após homologação do provedor.',status:integrations.tef.status==='CONNECTED'?'CONECTADO':'CONFIGURANDO',tone:'bg-amber-600',icon:CreditCard},
+          {name:'NFC-e / Fiscal',desc:'Certificado, CSC e transmissão devem permanecer no backend.',status:integrations.fiscal.status==='ACTIVE'?'CONECTADO':'HOMOLOGAÇÃO PENDENTE',tone:'bg-violet-700',icon:FileCheck}
+        ].map(({name,desc,status,tone,icon:Icon})=>(
+          <div key={name} className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+            <div className="flex items-start justify-between gap-3">
+              <div className={`w-11 h-11 rounded-xl ${tone} grid place-items-center text-white`}><Icon size={19}/></div>
+              <span className={`text-[9px] px-2 py-1 rounded-full border font-black ${status==='CONECTADO'?'text-emerald-300 border-emerald-800 bg-emerald-950/30':status==='CONFIGURANDO'?'text-sky-300 border-sky-800 bg-sky-950/30':'text-amber-300 border-amber-800 bg-amber-950/30'}`}>{status}</span>
+            </div>
+            <div className="mt-4 font-black text-white">{name}</div>
+            <div className="text-[10px] text-neutral-500 mt-1 leading-relaxed">{desc}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="pt-2">
+        <div className="text-[10px] font-black uppercase tracking-[.18em] text-neutral-500 mb-3">Configuração local de demonstração</div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* PIX EMV Integration Card */}
