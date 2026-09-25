@@ -8,6 +8,7 @@ export const CombosView: React.FC = () => {
   const products = db.getProducts().filter(p => !p.isCombo && p.status === 'ACTIVE');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCombo, setEditingCombo] = useState<Combo | null>(null);
   const [comboName, setComboName] = useState('');
   const [comboPrice, setComboPrice] = useState<number>(0);
   const [comboItems, setComboItems] = useState<ComboItem[]>([]);
@@ -18,10 +19,46 @@ export const CombosView: React.FC = () => {
   };
 
   const handleOpenNew = () => {
+    setEditingCombo(null);
     setComboName('');
     setComboPrice(0);
     setComboItems([{ productId: products[0]?.id || '', quantity: 1 }]);
     setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (combo: Combo) => {
+    setEditingCombo(combo);
+    setComboName(combo.name);
+    setComboPrice(combo.price);
+    setComboItems(combo.items.map(item => ({ ...item })));
+    setIsModalOpen(true);
+  };
+
+  const toggleCombo = (combo: Combo) => {
+    db.saveCombo({
+      id: combo.id,
+      name: combo.name,
+      price: combo.price,
+      items: combo.items,
+      active: !combo.active
+    });
+    refresh();
+    setFeedback(combo.active ? 'Combo desativado e removido do PDV.' : 'Combo reativado e disponível no PDV.');
+    setTimeout(() => setFeedback(null), 4000);
+  };
+
+  const archiveCombo = (combo: Combo) => {
+    if (!window.confirm('Excluir este combo do PDV? O registro ficará inativo para preservar o histórico.')) return;
+    db.saveCombo({
+      id: combo.id,
+      name: combo.name,
+      price: combo.price,
+      items: combo.items,
+      active: false
+    });
+    refresh();
+    setFeedback('Combo excluído do PDV e preservado como inativo para histórico.');
+    setTimeout(() => setFeedback(null), 4000);
   };
 
   const addItemRow = () => {
@@ -64,14 +101,16 @@ export const CombosView: React.FC = () => {
     }
 
     db.saveCombo({
+      id: editingCombo?.id,
       name: comboName,
       price: comboPrice,
-      items: comboItems
+      items: comboItems,
+      active: editingCombo?.active ?? true
     });
 
     refresh();
     setIsModalOpen(false);
-    setFeedback(`Combo "${comboName}" criado com sucesso! Já disponível no PDV com baixa automática de componentes.`);
+    setFeedback(editingCombo ? `Combo "${comboName}" alterado e salvo.` : `Combo "${comboName}" criado com sucesso! Já disponível no PDV com baixa automática de componentes.`);
     setTimeout(() => setFeedback(null), 4000);
   };
 
@@ -118,9 +157,15 @@ export const CombosView: React.FC = () => {
               <div>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <h3 className="font-bold text-white text-base leading-snug">{combo.name}</h3>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold font-mono border border-amber-500/30 shrink-0">
-                    COMBO
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => handleOpenEdit(combo)} className="px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-neutral-700 text-white text-[10px] font-bold flex items-center gap-1">
+                      <Edit2 size={12} />
+                      Editar
+                    </button>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono border shrink-0 ${combo.active ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-neutral-800 text-neutral-500 border-neutral-700'}`}>
+                      {combo.active ? 'COMBO' : 'INATIVO'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Items composition list */}
@@ -162,6 +207,19 @@ export const CombosView: React.FC = () => {
                   <div className="text-[10px] text-neutral-500">Pronto no PDV</div>
                 </div>
               </div>
+
+              <div className="mt-3 pt-3 border-t border-neutral-800 flex flex-wrap justify-end gap-2">
+                <button onClick={() => handleOpenEdit(combo)} className="px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-white text-xs font-bold flex items-center gap-1.5">
+                  <Edit2 size={13} />
+                  Editar
+                </button>
+                <button onClick={() => toggleCombo(combo)} className={`px-3 py-2 rounded-lg border text-xs font-bold ${combo.active ? 'bg-amber-950/30 border-amber-800 text-amber-300' : 'bg-emerald-950/30 border-emerald-800 text-emerald-300'}`}>
+                  {combo.active ? 'Desativar' : 'Reativar'}
+                </button>
+                <button onClick={() => archiveCombo(combo)} disabled={!combo.active} className="px-3 py-2 rounded-lg bg-rose-950/30 border border-rose-800 text-rose-300 text-xs font-bold disabled:opacity-40">
+                  Excluir
+                </button>
+              </div>
             </div>
           );
         })}
@@ -174,7 +232,7 @@ export const CombosView: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-neutral-800 shrink-0">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Layers size={18} className="text-amber-400" />
-                <span>Montar Novo Combo / Kit de Bebidas</span>
+                <span>{editingCombo ? 'Editar Combo / Kit' : 'Montar Novo Combo / Kit de Bebidas'}</span>
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-neutral-400 hover:text-white">
                 <X size={18} />
@@ -283,7 +341,7 @@ export const CombosView: React.FC = () => {
                   type="submit"
                   className="px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md"
                 >
-                  Salvar Combo
+                  {editingCombo ? 'Salvar Alterações' : 'Salvar Combo'}
                 </button>
               </div>
             </form>
