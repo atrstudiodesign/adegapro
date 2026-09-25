@@ -63,6 +63,12 @@ async function savePlatformInfrastructure(payload: Record<string, unknown>) {
   return data as string;
 }
 
+async function savePlatformWebhookConfig(payload: Record<string, unknown>) {
+  const { data, error } = await platformSupabase.rpc('save_platform_webhook_config', { p_payload: payload });
+  if (error) throw error;
+  return data as string;
+}
+
 async function setPlatformTenantAccess(tenantId: string, active: boolean, licenseStatus?: 'ACTIVE'|'SUSPENDED'|'ENDED'|'CANCELLED'|'DRAFT') {
   const { error } = await platformSupabase.rpc('set_platform_tenant_access', {
     p_tenant_id: tenantId,
@@ -83,5 +89,6 @@ export const platformDb = {
   createPlatformCommunication,
   savePlatformIncident,
   savePlatformInfrastructure,
+  savePlatformWebhookConfig,
   setPlatformTenantAccess
 };
