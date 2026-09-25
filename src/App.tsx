@@ -73,7 +73,11 @@ export default function App() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [legalCleared, setLegalCleared] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDocKey>('terms_of_use');
-  const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>('LANDING');
+  const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>(() =>
+    window.location.pathname === '/cadastro' ? 'REGISTER' :
+    window.location.pathname === '/entrar' ? 'LOGIN' :
+    'LANDING'
+  );
   const [commercialCleared, setCommercialCleared] = useState(false);
   const [platformAdminRoute, setPlatformAdminRoute] = useState(() =>
     window.location.pathname === '/atr-control' || window.location.hash === '#/atr-control'
