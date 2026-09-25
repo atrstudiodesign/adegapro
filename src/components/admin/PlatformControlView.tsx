@@ -171,7 +171,8 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
   const[infra,setInfra]=useState<any>(detail.infrastructure||{tenant_id:tenant.id,database_mode:'SHARED',provider:'SUPABASE',status:'READY'});
   const[comm,setComm]=useState<any>({tenant_id:tenant.id,channel:'INTERNAL',subject:'',message:'',status:'DRAFT'});
   const[incident,setIncident]=useState<any>({tenant_id:tenant.id,severity:'MEDIUM',status:'OPEN',title:'',description:''});
-  const[section,setSection]=useState<'SUMMARY'|'SUBSCRIPTION'|'LICENSE'|'STORES'|'USERS'|'SUPPORT'|'BILLING_EVENTS'|'COMMS'|'INCIDENTS'|'INFRA'|'AUDIT'>('SUMMARY');
+  const[webhook,setWebhook]=useState<any>(detail.webhooks?.[0]||{tenant_id:tenant.id,provider:'CUSTOM',webhook_url:'',event_types:[],auth_mode:'NONE',secret_ref:'',enabled:false});
+  const[section,setSection]=useState<'SUMMARY'|'SUBSCRIPTION'|'LICENSE'|'STORES'|'USERS'|'SUPPORT'|'BILLING_EVENTS'|'WEBHOOKS'|'COMMS'|'INCIDENTS'|'INFRA'|'AUDIT'>('SUMMARY');
 
   const action=async(fn:()=>Promise<any>,ok:string)=>{
     onError('');onFeedback('');
@@ -187,7 +188,7 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
           <button onClick={onClose} className="p-2 rounded-xl bg-neutral-900 border border-neutral-800"><X size={18}/></button>
         </div>
         <div className="mt-4 flex gap-2 overflow-x-auto">{([
-          ['SUMMARY','Resumo'],['SUBSCRIPTION','Assinatura'],['LICENSE','Licença'],['STORES','Lojas'],['USERS','Usuários'],['SUPPORT','Suporte'],['BILLING_EVENTS','Billing'],['COMMS','Comunicação'],['INCIDENTS','Incidentes'],['INFRA','Infra'],['AUDIT','Auditoria']
+          ['SUMMARY','Resumo'],['SUBSCRIPTION','Assinatura'],['LICENSE','Licença'],['STORES','Lojas'],['USERS','Usuários'],['SUPPORT','Suporte'],['BILLING_EVENTS','Billing'],['WEBHOOKS','Webhooks'],['COMMS','Comunicação'],['INCIDENTS','Incidentes'],['INFRA','Infra'],['AUDIT','Auditoria']
         ] as const).map(([id,label])=><button key={id} onClick={()=>setSection(id)} className={`shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black ${section===id?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-900 border-neutral-800 text-neutral-500'}`}>{label}</button>)}</div>
       </div>
 
@@ -233,6 +234,19 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
         {section==='SUPPORT'&&<List title="Tickets de suporte">{(detail.support||[]).map((t:any)=><div key={t.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800"><div className="flex flex-col md:flex-row md:items-center justify-between gap-3"><div><div className="font-bold text-sm">{t.subject}</div><div className="text-[10px] text-neutral-500 mt-1">{t.category} · {dt(t.updated_at)}</div><div className="text-xs text-neutral-400 mt-2">{t.description}</div></div><div className="flex gap-2"><select defaultValue={t.priority} id={'p-'+t.id} className="input !py-2">{['BAIXA','NORMAL','ALTA','CRITICA'].map(x=><option key={x}>{x}</option>)}</select><select defaultValue={t.status} id={'s-'+t.id} className="input !py-2">{['ABERTO','EM_ATENDIMENTO','RESOLVIDO','FECHADO'].map(x=><option key={x}>{x}</option>)}</select><button onClick={()=>{const p=(document.getElementById('p-'+t.id) as HTMLSelectElement).value;const s=(document.getElementById('s-'+t.id) as HTMLSelectElement).value;void action(()=>platformDb.updatePlatformSupportTicket(t.id,s,p),'Ticket atualizado.');}} className="btn-secondary">Salvar</button></div></div></div>)}</List>}
 
         {section==='BILLING_EVENTS'&&<List title="Histórico de billing">{(detail.billing_events||[]).map((e:any)=><Row key={e.id} title={e.event_type} subtitle={e.provider+' · '+dt(e.created_at)+(e.error_message?' · '+e.error_message:'')} right={<Badge tone={e.processed?'emerald':'amber'}>{e.processed?'PROCESSADO':'PENDENTE'}</Badge>}/>)}</List>}
+
+        {section==='WEBHOOKS'&&<div className="space-y-4"><FormCard title="Webhook / billing" description="Configuração administrativa por tenant. O segredo é apenas uma referência segura; credenciais reais não ficam no navegador.">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Field label="Provider"><input value={webhook.provider||''} onChange={e=>setWebhook({...webhook,provider:e.target.value})} className="input"/></Field>
+            <Field label="Auth"><select value={webhook.auth_mode||'NONE'} onChange={e=>setWebhook({...webhook,auth_mode:e.target.value})} className="input"><option>NONE</option><option>HMAC</option><option>BEARER</option><option>BASIC</option></select></Field>
+            <Field label="Loja"><select value={webhook.store_id||''} onChange={e=>setWebhook({...webhook,store_id:e.target.value})} className="input"><option value="">Todas / tenant</option>{(detail.stores||[]).map((s:any)=><option key={s.id} value={s.id}>{s.trade_name}</option>)}</select></Field>
+          </div>
+          <Field label="URL HTTPS"><input value={webhook.webhook_url||''} onChange={e=>setWebhook({...webhook,webhook_url:e.target.value})} placeholder="https://..." className="input"/></Field>
+          <Field label="Eventos (separados por vírgula)"><input value={Array.isArray(webhook.event_types)?webhook.event_types.join(', '):''} onChange={e=>setWebhook({...webhook,event_types:e.target.value.split(',').map(x=>x.trim()).filter(Boolean)})} className="input"/></Field>
+          <Field label="Referência do segredo"><input value={webhook.secret_ref||''} onChange={e=>setWebhook({...webhook,secret_ref:e.target.value})} placeholder="vault://..." className="input"/></Field>
+          <label className="flex items-center gap-2 text-xs text-neutral-400"><input type="checkbox" checked={!!webhook.enabled} onChange={e=>setWebhook({...webhook,enabled:e.target.checked})}/>Webhook habilitado</label>
+          <button onClick={()=>void action(()=>platformDb.savePlatformWebhookConfig({...webhook,tenant_id:tenant.id}),'Webhook salvo.')} className="btn-primary">Salvar webhook</button>
+        </FormCard><List title="Configurações registradas">{(detail.webhooks||[]).map((w:any)=><Row key={w.id} title={w.provider} subtitle={(w.webhook_url||'sem URL')+' · '+w.auth_mode+' · '+(w.last_test_status||'não testado')} right={<Badge tone={w.enabled?'emerald':'neutral'}>{w.enabled?'ATIVO':'INATIVO'}</Badge>}/>)}</List></div>}
 
         {section==='COMMS'&&<div className="space-y-4"><FormCard title="Registrar comunicação" description="Registro administrativo. O painel não finge envio externo sem um provedor configurado.">
           <div className="grid sm:grid-cols-2 gap-3"><Field label="Canal"><select value={comm.channel} onChange={e=>setComm({...comm,channel:e.target.value})} className="input"><option>INTERNAL</option><option>EMAIL</option><option>WHATSAPP</option></select></Field><Field label="Destinatário"><input value={comm.recipient||''} onChange={e=>setComm({...comm,recipient:e.target.value})} className="input"/></Field></div>
