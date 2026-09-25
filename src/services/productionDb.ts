@@ -534,6 +534,15 @@ async function saveCombo(input: { id?: string; name: string; price: number; item
   return data as string;
 }
 
+async function deleteCombo(comboId: string) {
+  const ctx = await getContext();
+  const { error } = await supabase.rpc('delete_combo', {
+    p_combo_id: comboId,
+    p_store_id: ctx.storeId
+  });
+  if (error) throw error;
+}
+
 async function getInventoryAudits(limit = 100) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -965,6 +974,7 @@ export const productionDb = {
   removeProductImage,
   getCombos,
   saveCombo,
+  deleteCombo,
   getInventoryAudits,
   startInventoryAudit,
   finalizeInventoryAudit,
