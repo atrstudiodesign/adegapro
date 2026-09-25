@@ -897,6 +897,7 @@ class DatabaseService {
       setStorage('store', { ...store, ...DEFAULT_STORE });
       setStorage('users', INITIAL_USERS);
       setStorage('integrations', INITIAL_INTEGRATIONS);
+    setStorage('integrationProviderConfigs', []);
     }
   }
 
@@ -1011,6 +1012,27 @@ class DatabaseService {
         linkTab: 'products'
       }
     ]);
+  }
+
+  public getIntegrationProviderConfigs(): any[] {
+    return getStorage<any[]>('integrationProviderConfigs', []);
+  }
+
+  public saveIntegrationProviderConfig(input: any): any {
+    const list = this.getIntegrationProviderConfigs();
+    const provider = String(input.provider || '').toUpperCase();
+    const idx = list.findIndex((x:any) => String(x.provider || '').toUpperCase() === provider);
+    const saved = {
+      ...(idx >= 0 ? list[idx] : {}),
+      ...input,
+      provider,
+      updatedAt: new Date().toISOString()
+    };
+    if (idx >= 0) list[idx] = saved;
+    else list.push(saved);
+    setStorage('integrationProviderConfigs', list);
+    this.addAuditLog('ATUALIZAR_INTEGRACAO', 'Integration', provider, `Configuração de integração atualizada: ${provider}`);
+    return saved;
   }
 
   // --- Session & Current User ---
