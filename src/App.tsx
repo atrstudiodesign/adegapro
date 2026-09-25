@@ -322,9 +322,10 @@ export default function App() {
                     setLegalCleared(false);
                     setIsLocked(true);
                   } else {
-                    setSaasEntryView('LOGIN');
+                    setSaasEntryView('REGISTER');
                     setDemoAccessGranted(false);
                     setIsLocked(false);
+                    window.history.pushState({}, '', '/cadastro');
                   }
                 }}
               />
