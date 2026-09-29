@@ -94,9 +94,13 @@ function mapCustomer(row: any): Customer {
     id: row.id,
     tenantId: row.tenant_id,
     name: row.name,
+    firstName: row.first_name || '',
+    lastName: row.last_name || '',
+    nickname: row.nickname || '',
+    customerType: row.customer_type || 'AVULSO',
     cpf: row.cpf || '',
-    phone: row.phone || '',
-    whatsapp: row.whatsapp || '',
+    phone: row.phone || row.whatsapp || '',
+    whatsapp: row.whatsapp || row.phone || '',
     email: row.email || '',
     address: row.address || '',
     notes: row.notes || undefined,
@@ -303,13 +307,19 @@ async function getCustomers(): Promise<Customer[]> {
 
 async function saveCustomer(customer: Partial<Customer> & { name: string; phone: string }): Promise<Customer> {
   const ctx = await getContext();
+  const whatsapp = (customer.whatsapp || customer.phone || '').trim();
+  if (!whatsapp) throw new Error('WhatsApp é obrigatório para cadastrar o cliente.');
   const values = {
     name: customer.name.trim(),
+    first_name: customer.firstName?.trim() || null,
+    last_name: customer.lastName?.trim() || null,
+    nickname: customer.nickname?.trim() || null,
+    customer_type: customer.customerType || 'AVULSO',
     cpf: customer.cpf || null,
-    phone: customer.phone || null,
-    whatsapp: customer.whatsapp || null,
-    email: customer.email || null,
-    address: customer.address || null,
+    phone: whatsapp,
+    whatsapp,
+    email: null,
+    address: null,
     notes: customer.notes || null,
     credit_limit: customer.creditLimit ?? 0,
     status: customer.status || 'LIBERADO',
