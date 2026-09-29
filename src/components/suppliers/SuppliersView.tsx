@@ -5,6 +5,7 @@ import type { AppMode } from '../../services/appMode';
 import type { Supplier } from '../../types';
 import { Truck, Plus, Phone, Mail, MapPin, Search, Loader2 } from 'lucide-react';
 import { EmptyState, PageHeader } from '../ui/ProUi';
+import { adegaPrompt } from '../ui/AdegaDialog';
 
 interface SuppliersViewProps { appMode?: AppMode; }
 
@@ -24,9 +25,9 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({ appMode = 'DEMO' }
   useEffect(() => { void load(); }, [appMode]);
 
   const create = async () => {
-    const tradeName = window.prompt('Nome fantasia do fornecedor:')?.trim();
+    const tradeName = (await adegaPrompt({ title: 'Novo fornecedor', label: 'Nome fantasia', confirmLabel: 'Continuar' }))?.trim();
     if (!tradeName) return;
-    const cnpj = window.prompt('CNPJ (opcional):')?.trim() || '';
+    const cnpj = (await adegaPrompt({ title: 'Novo fornecedor', label: 'CNPJ (opcional)', confirmLabel: 'Salvar fornecedor' }))?.trim() || '';
     try {
       setBusy(true);
       if (appMode === 'PRODUCTION') await productionDb.saveSupplier({ tradeName, cnpj });
