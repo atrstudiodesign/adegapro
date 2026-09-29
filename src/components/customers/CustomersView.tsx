@@ -13,6 +13,7 @@ export const CustomersView: React.FC = () => {
   const [settleCustomer, setSettleCustomer] = useState<Customer | null>(null);
   const [settleAmount, setSettleAmount] = useState<number>(0);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [section, setSection] = useState<'CLIENTES'|'FIADOS'>('CLIENTES');
 
   const refresh = () => {
     setCustomers(db.getCustomers());
@@ -103,6 +104,8 @@ export const CustomersView: React.FC = () => {
         </div>
       )}
 
+      <div className="inline-flex p-1 rounded-xl bg-neutral-900 border border-neutral-800 gap-1"><button onClick={()=>setSection('CLIENTES')} className={'px-4 py-2 rounded-lg text-xs font-black '+(section==='CLIENTES'?'bg-amber-500 text-neutral-950':'text-neutral-400 hover:text-white')}>Clientes</button><button onClick={()=>setSection('FIADOS')} className={'px-4 py-2 rounded-lg text-xs font-black '+(section==='FIADOS'?'bg-amber-500 text-neutral-950':'text-neutral-400 hover:text-white')}>Fiados</button></div>
+
       {/* Customers Table */}
       <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
@@ -119,7 +122,7 @@ export const CustomersView: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-800/60 font-medium">
-              {customers.map(c => {
+              {customers.filter(c=>section==='CLIENTES'||c.customerType==='FIADO'||c.creditBalance>0).map(c => {
                 const isOverLimit = c.creditBalance > c.creditLimit;
                 return (
                   <tr key={c.id} className="hover:bg-neutral-850/60 transition-colors">
@@ -204,8 +207,8 @@ export const CustomersView: React.FC = () => {
             <form onSubmit={handleSave} className="space-y-4 py-4">
               <div>
                 <label className="text-xs text-neutral-400 block mb-1">Tipo de cliente *</label>
-                <select value={editingCustomer.customerType || 'AVULSO'} onChange={e=>setEditingCustomer({...editingCustomer,customerType:e.target.value as 'MENSAL'|'AVULSO'})} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:border-amber-400 focus:outline-none">
-                  <option value="AVULSO">Avulso</option><option value="MENSAL">Mensal</option>
+                <select value={editingCustomer.customerType || 'AVULSO'} onChange={e=>setEditingCustomer({...editingCustomer,customerType:e.target.value as 'MENSAL'|'FIADO'|'AVULSO'})} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:border-amber-400 focus:outline-none">
+                  <option value="AVULSO">Avulso</option><option value="MENSAL">Mensal</option><option value="FIADO">Fiado</option>
                 </select>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
