@@ -164,8 +164,8 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
 
   const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingProduct?.name || !editingProduct?.salePrice || !editingProduct?.sku?.trim() || !editingProduct?.unit) {
-      alert('Preencha nome, SKU real, unidade e preço de venda. O sistema não gera códigos ou dados fictícios.');
+    if (!editingProduct?.name || editingProduct?.salePrice == null || !editingProduct?.unit) {
+      alert('Preencha nome, unidade e preço de venda. SKU e EAN podem ficar vazios quando não existirem na origem.');
       return;
     }
     try {

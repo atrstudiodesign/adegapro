@@ -118,7 +118,7 @@ function mapProduct(row: any, currentStock = 0): Product {
     tenantId: row.tenant_id,
     name: row.name,
     description: row.description || undefined,
-    sku: row.sku,
+    sku: row.sku || '',
     barcode: row.barcode || '',
     categoryId: row.category_id || '',
     brand: row.brand || '',
@@ -358,8 +358,7 @@ async function getProducts(): Promise<Product[]> {
 
 async function saveProduct(product: Partial<Product> & { name: string; salePrice: number }): Promise<Product> {
   const ctx = await getContext();
-  const sku = product.sku?.trim();
-  if (!sku) throw new Error('Informe um SKU real para o produto. O sistema não gera SKU automaticamente.');
+  const sku = product.sku?.trim() || null;
   if (!product.unit) throw new Error('Informe a unidade real do produto.');
   const values = {
     category_id: product.categoryId || null,
