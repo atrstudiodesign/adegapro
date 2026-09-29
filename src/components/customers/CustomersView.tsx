@@ -47,7 +47,9 @@ export const CustomersView: React.FC = () => {
       return;
     }
 
-    db.saveCustomer({ ...editingCustomer, name: `${firstName} ${lastName}`.trim(), phone: whatsapp, whatsapp, creditLimit: editingCustomer.creditLimit || 0 } as any);
+    const customerDraft = editingCustomer;
+    if (!customerDraft) return;
+    db.saveCustomer({ ...customerDraft, name: `${firstName} ${lastName}`.trim(), phone: whatsapp, whatsapp, creditLimit: customerDraft.creditLimit || 0 } as any);
     refresh();
     setIsModalOpen(false);
     setFeedback('Cliente salvo com sucesso!');
