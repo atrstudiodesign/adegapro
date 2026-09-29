@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       group: 'RELACIONAMENTO & COMPRAS',
       items: [
-        { id: 'customers', label: 'Clientes & Fiado', icon: Users, permission: null },
+        { id: 'customers', label: 'Clientes & Fiados', icon: Users, permission: null },
         { id: 'suppliers', label: 'Fornecedores', icon: Truck, permission: 'products.view' },
         { id: 'purchases', label: 'Compras & NF Entrada', icon: ShoppingBag, permission: 'products.edit' }
       ]
