@@ -358,17 +358,20 @@ async function getProducts(): Promise<Product[]> {
 
 async function saveProduct(product: Partial<Product> & { name: string; salePrice: number }): Promise<Product> {
   const ctx = await getContext();
+  const sku = product.sku?.trim();
+  if (!sku) throw new Error('Informe um SKU real para o produto. O sistema não gera SKU automaticamente.');
+  if (!product.unit) throw new Error('Informe a unidade real do produto.');
   const values = {
     category_id: product.categoryId || null,
     supplier_id: product.supplierId || null,
     name: product.name.trim(),
     description: product.description || null,
-    sku: product.sku || `SKU-${Date.now()}`,
+    sku,
     barcode: product.barcode || null,
     brand: product.brand || null,
     package_size: product.packageSize || null,
     image_url: product.imageSourceUrl?.trim() || null,
-    unit: product.unit || 'UN',
+    unit: product.unit,
     cost_price: product.costPrice ?? 0,
     sale_price: product.salePrice,
     min_stock: product.minStock ?? 0,
