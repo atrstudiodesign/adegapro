@@ -127,7 +127,7 @@ export interface Product {
   categoryId: string;
   brand: string;
   packageSize?: string;
-  unit: 'UN' | 'L' | 'ML' | 'KG' | 'CX' | 'PACK';
+  unit: string; // Unidade comercial real: ex. UN, un, maço, lata, garrafa, L, ML, KG, CX, PACK
   costPrice: number;
   salePrice: number;
   margin: number; // Calculated percentage
