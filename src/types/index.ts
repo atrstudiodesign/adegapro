@@ -102,6 +102,10 @@ export interface Customer {
   id: string;
   tenantId: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
+  nickname?: string;
+  customerType?: 'MENSAL' | 'AVULSO';
   cpf: string;
   phone: string;
   whatsapp: string;
