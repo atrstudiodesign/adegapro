@@ -20,11 +20,16 @@ export const CustomersView: React.FC = () => {
   const handleOpenNew = () => {
     setEditingCustomer({
       name: '',
+      firstName: '',
+      lastName: '',
+      nickname: '',
+      customerType: 'AVULSO',
       cpf: '',
       phone: '',
+      whatsapp: '',
       email: '',
       address: '',
-      creditLimit: 300,
+      creditLimit: 0,
       creditBalance: 0,
       status: 'LIBERADO'
     });
@@ -33,12 +38,15 @@ export const CustomersView: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCustomer?.name || !editingCustomer?.phone) {
-      alert('Informe ao menos o nome e o telefone do cliente.');
+    const firstName = editingCustomer?.firstName?.trim();
+    const lastName = editingCustomer?.lastName?.trim();
+    const whatsapp = (editingCustomer?.whatsapp || editingCustomer?.phone || '').trim();
+    if (!firstName || !lastName || !whatsapp) {
+      alert('Informe nome, sobrenome e WhatsApp do cliente.');
       return;
     }
 
-    db.saveCustomer(editingCustomer as any);
+    db.saveCustomer({ ...editingCustomer, name: `${firstName} ${lastName}`.trim(), phone: whatsapp, whatsapp, creditLimit: editingCustomer.creditLimit || 0 } as any);
     refresh();
     setIsModalOpen(false);
     setFeedback('Cliente salvo com sucesso!');
@@ -59,7 +67,7 @@ export const CustomersView: React.FC = () => {
 
   const sendWhatsAppReminder = (c: Customer) => {
     const zapText = `Olá, ${c.name}! Passando para lembrar sobre o seu saldo em aberto de R$ ${c.creditBalance.toFixed(2)} na ${store.tradeName}. Chave PIX: ${store.cnpj}. Qualquer dúvida estamos à disposição!`;
-    const cleanPhone = c.phone.replace(/\D/g, '');
+    const cleanPhone = (c.whatsapp || c.phone).replace(/\D/g, '');
     window.open(`https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(zapText)}`, '_blank');
   };
 
@@ -98,9 +106,9 @@ export const CustomersView: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-neutral-950/70 border-b border-neutral-800 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Nome do Cliente</th>
+                <th className="py-3 px-4">Cliente</th><th className="py-3 px-3">Tipo</th>
                 <th className="py-3 px-3">CPF</th>
-                <th className="py-3 px-3">WhatsApp / Telefone</th>
+                <th className="py-3 px-3">WhatsApp</th>
                 <th className="py-3 px-3 text-right">Limite de Fiado</th>
                 <th className="py-3 px-3 text-right">Saldo Devedor Atual</th>
                 <th className="py-3 px-3 text-center">Status</th>
@@ -112,16 +120,15 @@ export const CustomersView: React.FC = () => {
                 const isOverLimit = c.creditBalance > c.creditLimit;
                 return (
                   <tr key={c.id} className="hover:bg-neutral-850/60 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-white text-sm">
-                      {c.name}
-                    </td>
+                    <td className="py-3.5 px-4 font-bold text-white text-sm">{c.name}{c.nickname&&<div className="text-[10px] text-neutral-500 font-normal mt-0.5">{c.nickname}</div>}</td>
+                    <td className="py-3.5 px-3 text-[10px] font-black text-amber-400">{c.customerType||'AVULSO'}</td>
 
                     <td className="py-3.5 px-3 font-mono text-[11px] text-neutral-400">
                       {c.cpf || 'Não informado'}
                     </td>
 
                     <td className="py-3.5 px-3 font-mono text-neutral-300">
-                      {c.phone}
+                      {c.whatsapp || c.phone}
                     </td>
 
                     <td className="py-3.5 px-3 text-right font-mono text-neutral-300">
@@ -193,67 +200,23 @@ export const CustomersView: React.FC = () => {
 
             <form onSubmit={handleSave} className="space-y-4 py-4">
               <div>
-                <label className="text-xs text-neutral-400 block mb-1">Nome Completo *</label>
-                <input
-                  required
-                  type="text"
-                  value={editingCustomer.name || ''}
-                  onChange={e => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
-                  placeholder="Ex: João da Silva"
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:border-amber-400 focus:outline-none"
-                />
+                <label className="text-xs text-neutral-400 block mb-1">Tipo de cliente *</label>
+                <select value={editingCustomer.customerType || 'AVULSO'} onChange={e=>setEditingCustomer({...editingCustomer,customerType:e.target.value as 'MENSAL'|'AVULSO'})} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:border-amber-400 focus:outline-none">
+                  <option value="AVULSO">Avulso</option><option value="MENSAL">Mensal</option>
+                </select>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-neutral-400 block mb-1">CPF</label>
-                  <input
-                    type="text"
-                    value={editingCustomer.cpf || ''}
-                    onChange={e => setEditingCustomer({ ...editingCustomer, cpf: e.target.value })}
-                    placeholder="000.000.000-00"
-                    className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:border-amber-400 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs text-neutral-400 block mb-1">WhatsApp / Telefone *</label>
-                  <input
-                    required
-                    type="text"
-                    value={editingCustomer.phone || ''}
-                    onChange={e => setEditingCustomer({ ...editingCustomer, phone: e.target.value })}
-                    placeholder="(11) 99999-9999"
-                    className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:border-amber-400 focus:outline-none"
-                  />
-                </div>
+                <div><label className="text-xs text-neutral-400 block mb-1">Nome *</label><input required value={editingCustomer.firstName||''} onChange={e=>setEditingCustomer({...editingCustomer,firstName:e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:border-amber-400 focus:outline-none"/></div>
+                <div><label className="text-xs text-neutral-400 block mb-1">Sobrenome *</label><input required value={editingCustomer.lastName||''} onChange={e=>setEditingCustomer({...editingCustomer,lastName:e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:border-amber-400 focus:outline-none"/></div>
               </div>
-
-              <div>
-                <label className="text-xs text-neutral-400 block mb-1">Limite Máximo de Fiado (R$)</label>
-                <input
-                  type="number"
-                  step="10"
-                  value={editingCustomer.creditLimit || 300}
-                  onChange={e => setEditingCustomer({ ...editingCustomer, creditLimit: parseFloat(e.target.value) || 0 })}
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:border-amber-400 focus:outline-none"
-                />
+              <div><label className="text-xs text-neutral-400 block mb-1">Apelido</label><input value={editingCustomer.nickname||''} onChange={e=>setEditingCustomer({...editingCustomer,nickname:e.target.value})} className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:border-amber-400 focus:outline-none"/></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div><label className="text-xs text-neutral-400 block mb-1">CPF (opcional)</label><input value={editingCustomer.cpf||''} onChange={e=>setEditingCustomer({...editingCustomer,cpf:e.target.value})} placeholder="000.000.000-00" className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:border-amber-400 focus:outline-none"/></div>
+                <div><label className="text-xs text-neutral-400 block mb-1">WhatsApp *</label><input required inputMode="tel" value={editingCustomer.whatsapp||editingCustomer.phone||''} onChange={e=>setEditingCustomer({...editingCustomer,whatsapp:e.target.value,phone:e.target.value})} placeholder="(11) 99999-9999" className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:border-amber-400 focus:outline-none"/></div>
               </div>
-
               <div className="pt-3 border-t border-neutral-800 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-neutral-800 text-neutral-300 text-xs font-semibold cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md"
-                >
-                  Salvar Cliente
-                </button>
+                <button type="button" onClick={()=>setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-neutral-800 text-neutral-300 text-xs font-semibold">Cancelar</button>
+                <button type="submit" className="px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider">Salvar Cliente</button>
               </div>
             </form>
           </div>
