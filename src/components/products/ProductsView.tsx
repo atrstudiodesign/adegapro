@@ -3,6 +3,7 @@ import { db } from '../../services/db';
 import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
 import { compressProductImage } from '../../utils/imageCompression';
+import { adegaAlert, adegaConfirm } from '../ui/AdegaDialog';
 import { Product, Category, Supplier } from '../../types';
 import {
   Package,
@@ -146,17 +147,17 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
 
   const handleDelete = async (p: Product) => {
     if (appMode === 'PRODUCTION') {
-      const ok = window.confirm(`Por segurança e auditoria, o produto "${p.name}" será INATIVADO, não apagado. Continuar?`);
+      const ok = await adegaConfirm({ title: 'Inativar produto?', message: `Por segurança e auditoria, "${p.name}" será inativado, não apagado.`, confirmLabel: 'Inativar produto', tone: 'danger' });
       if (ok) await handleToggleStatus({ ...p, status: 'ACTIVE' });
       return;
     }
     const movements = db.getStockMovements().filter(m => m.productId === p.id);
     if (movements.length > 0) {
-      alert(`O produto "${p.name}" possui ${movements.length} movimentação(ões) registrada(s) no histórico. Conforme regra de conformidade e auditoria, o produto será marcado como INATIVO.`);
+      await adegaAlert({ title: 'Produto com histórico', message: `"${p.name}" possui ${movements.length} movimentação(ões). Para preservar a auditoria, ele será marcado como inativo.`, confirmLabel: 'Entendi' });
       await handleToggleStatus(p);
       return;
     }
-    if (window.confirm(`Confirma a exclusão do produto "${p.name}"?`)) {
+    if (await adegaConfirm({ title: 'Excluir produto?', message: `Confirma a exclusão do produto "${p.name}"?`, confirmLabel: 'Excluir', tone: 'danger' })) {
       db.saveProduct({ id: p.id, name: p.name, salePrice: p.salePrice, status: 'INACTIVE' });
       await refreshProducts();
     }
@@ -165,7 +166,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
   const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct?.name || editingProduct?.salePrice == null || !editingProduct?.unit) {
-      alert('Preencha nome, unidade e preço de venda. SKU e EAN podem ficar vazios quando não existirem na origem.');
+      await adegaAlert({ title: 'Dados obrigatórios', message: 'Preencha nome, unidade e preço de venda. SKU e EAN podem ficar vazios quando não existirem na origem.' });
       return;
     }
     try {
