@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../../services/db';
 import { Customer } from '../../types';
 import { Users, Plus, Phone, MessageSquare, CheckCircle2, DollarSign, X, Ban } from 'lucide-react';
+import { adegaAlert } from '../ui/AdegaDialog';
 
 export const CustomersView: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>(db.getCustomers());
@@ -36,13 +37,13 @@ export const CustomersView: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const firstName = editingCustomer?.firstName?.trim();
     const lastName = editingCustomer?.lastName?.trim();
     const whatsapp = (editingCustomer?.whatsapp || editingCustomer?.phone || '').trim();
     if (!firstName || !lastName || !whatsapp) {
-      alert('Informe nome, sobrenome e WhatsApp do cliente.');
+      await adegaAlert({ title: 'Dados obrigatórios', message: 'Informe nome, sobrenome e WhatsApp do cliente.' });
       return;
     }
 
