@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { UserCog, Plus, KeyRound, RefreshCw, ShieldCheck } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import { EmptyState, MetricCard, PageHeader, StatusBadge } from '../ui/ProUi';
+import { adegaPrompt } from '../ui/AdegaDialog';
 
 type Operator={id:string;name:string;role:string;active:boolean;last_authenticated_at?:string|null};
 
@@ -19,10 +20,10 @@ export const ProductionEmployeesView:React.FC=()=>{
   const load=async()=>{setBusy(true);setError('');try{const list=await productionDb.getOperators() as Operator[];setRows(list);const pairs=await Promise.all(list.map(async o=>[o.id,await productionDb.getOperatorFeatures(o.id)] as const));const next:Record<string,Record<string,boolean>>={};for(const[id,features]of pairs){next[id]=Object.fromEntries((features as any[]).map(f=>[f.feature_key,Boolean(f.enabled)]));}setFeatureMap(next);}catch(e:any){setError(e?.message||'Falha ao carregar operadores.');}finally{setBusy(false);}};
   useEffect(()=>{void load();},[]);
   const save=async(existing?:Operator)=>{
-    const name=window.prompt('Nome do operador:',existing?.name||'')?.trim(); if(!name)return;
-    const role=(window.prompt('Perfil: ADMINISTRADOR, GERENTE, CAIXA, ESTOQUISTA ou FINANCEIRO',existing?.role||'CAIXA')||'CAIXA').toUpperCase();
+    const name=(await adegaPrompt({title:existing?'Editar operador':'Novo operador',label:'Nome do operador',defaultValue:existing?.name||'',confirmLabel:'Continuar'}))?.trim(); if(!name)return;
+    const role=((await adegaPrompt({title:existing?'Editar operador':'Novo operador',label:'Perfil: ADMINISTRADOR, GERENTE, CAIXA, ESTOQUISTA ou FINANCEIRO',defaultValue:existing?.role||'CAIXA',confirmLabel:'Continuar'}))||'CAIXA').toUpperCase();
     if(!['ADMINISTRADOR','GERENTE','CAIXA','ESTOQUISTA','FINANCEIRO'].includes(role)){setError('Perfil inválido.');return;}
-    const pin=window.prompt(existing?'Defina um NOVO PIN de 4 a 8 dígitos para confirmar a alteração:':'PIN de 4 a 8 dígitos:')||'';
+    const pin=(await adegaPrompt({title:existing?'Confirmar alteração':'Novo operador',label:existing?'Defina um NOVO PIN de 4 a 8 dígitos':'PIN de 4 a 8 dígitos',inputMode:'numeric',confirmLabel:existing?'Salvar alterações':'Criar operador'}))||'';
     if(!/^\d{4,8}$/.test(pin)){setError('O PIN deve conter de 4 a 8 dígitos.');return;}
     setBusy(true);setError('');try{await productionDb.saveOperator({id:existing?.id,name,role,pin,active:existing?.active??true});setFeedback('Operador salvo. O PIN foi enviado somente para hash no servidor.');await load();}catch(e:any){setError(e?.message||'Não foi possível salvar operador.');}finally{setBusy(false);}
   };
