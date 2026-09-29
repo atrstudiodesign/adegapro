@@ -271,13 +271,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col font-sans text-neutral-100 antialiased selection:bg-amber-500 selection:text-neutral-950 relative">
-      <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden opacity-[0.025] select-none" aria-hidden="true">
-        <div className="absolute inset-[-20%] grid place-items-center -rotate-12">
-          <div className="text-[3vw] font-black tracking-[0.25em] whitespace-nowrap text-white">
-            ADEGA PRO · CONTEÚDO PROTEGIDO · {currentUser.name} · {db.getStore().name}
-          </div>
-        </div>
-      </div>
       {appMode === 'DEMO' && (
         <div className="bg-violet-600 text-white text-[11px] font-black tracking-[0.18em] uppercase text-center py-1.5 border-b border-violet-400/30">
           Modo Demonstração · Dados fictícios e isolados · Não altera o banco real

@@ -128,13 +128,19 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
     if (pin.length < 8) setPin(p => p + value);
   };
 
+  const updatePin = (value: string) => {
+    if (checking) return;
+    setPin(value.replace(/\D/g, '').slice(0, 8));
+    setError('');
+  };
+
   if (loading) {
     return <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center text-sm text-neutral-400">Carregando operadores seguros...</div>;
   }
 
   return (
     <div className="min-h-dvh bg-neutral-950 text-white grid place-items-center p-4">
-      <div className="w-full max-w-md rounded-3xl border border-neutral-800 bg-neutral-900/95 shadow-2xl p-5 sm:p-7">
+      <div className="w-full max-w-md rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl p-5 sm:p-7">
         <div className="flex items-start gap-3 pb-5 border-b border-neutral-800">
           <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/30 grid place-items-center text-amber-400"><LockKeyhole size={21}/></div>
           <div>
@@ -167,7 +173,36 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
               </div>
             </label>
 
-            <div className="mt-5 flex items-center justify-center gap-2">
+            <label className="block mt-4">
+              <span className="text-xs font-bold text-neutral-300">PIN do operador</span>
+              <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-950 px-3 focus-within:border-amber-500">
+                <LockKeyhole size={16} className="text-neutral-500"/>
+                <input
+                  autoFocus
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  minLength={4}
+                  maxLength={8}
+                  autoComplete="one-time-code"
+                  aria-label="PIN do operador"
+                  value={pin}
+                  disabled={checking}
+                  onChange={event => updatePin(event.target.value)}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter' && selected && pin.length >= 4 && !checking) {
+                      event.preventDefault();
+                      void submit();
+                    }
+                  }}
+                  className="w-full bg-transparent py-3 text-center text-lg tracking-[0.45em] outline-none disabled:opacity-50"
+                  placeholder="4 a 8 dígitos"
+                />
+              </div>
+              <span className="mt-1.5 block text-[10px] text-neutral-500">Digite no teclado ou use os botões abaixo.</span>
+            </label>
+
+            <div className="mt-4 flex items-center justify-center gap-2" aria-hidden="true">
               {Array.from({length: 8}).map((_,i) => (
                 <span key={i} className={`w-3 h-3 rounded-full border ${i < pin.length ? 'bg-amber-400 border-amber-300' : 'bg-neutral-950 border-neutral-700'}`}/>
               ))}
@@ -177,14 +212,14 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
 
             <div className="grid grid-cols-3 gap-2 mt-5">
               {['1','2','3','4','5','6','7','8','9'].map(n => (
-                <button key={n} onClick={() => key(n)} className="h-12 rounded-xl bg-neutral-800 hover:bg-neutral-700 font-black text-lg">{n}</button>
+                <button type="button" key={n} onClick={() => key(n)} className="h-12 rounded-xl bg-neutral-800 hover:bg-neutral-700 font-black text-lg">{n}</button>
               ))}
-              <button onClick={() => setPin('')} className="h-12 rounded-xl bg-neutral-950 border border-neutral-800 text-xs font-bold text-neutral-400">LIMPAR</button>
-              <button onClick={() => key('0')} className="h-12 rounded-xl bg-neutral-800 hover:bg-neutral-700 font-black text-lg">0</button>
-              <button onClick={() => key('DEL')} className="h-12 rounded-xl bg-neutral-950 border border-neutral-800 grid place-items-center text-neutral-400"><Delete size={18}/></button>
+              <button type="button" onClick={() => setPin('')} className="h-12 rounded-xl bg-neutral-950 border border-neutral-800 text-xs font-bold text-neutral-400">LIMPAR</button>
+              <button type="button" onClick={() => key('0')} className="h-12 rounded-xl bg-neutral-800 hover:bg-neutral-700 font-black text-lg">0</button>
+              <button type="button" onClick={() => key('DEL')} className="h-12 rounded-xl bg-neutral-950 border border-neutral-800 grid place-items-center text-neutral-400"><Delete size={18}/></button>
             </div>
 
-            <button onClick={submit} disabled={!selected || pin.length < 4 || checking} className="mt-4 w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-500 text-neutral-950 font-black">
+            <button type="button" onClick={() => void submit()} disabled={!selected || pin.length < 4 || checking} className="mt-4 w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-500 text-neutral-950 font-black">
               {checking ? 'Validando no servidor...' : 'Desbloquear ambiente'}
             </button>
 

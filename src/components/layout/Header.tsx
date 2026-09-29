@@ -64,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, [currentTab, appMode]);
 
   return (
-    <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a]/95 border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 backdrop-blur-xl gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
+    <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a] border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
       {/* Zone 1: Single element Brand & Store name */}
       <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <button

@@ -89,7 +89,7 @@ export const LegalConsentGate: React.FC<LegalConsentGateProps> = ({ onAccepted }
 
   return (
     <div className="min-h-dvh bg-neutral-950 text-white px-4 py-8 grid place-items-center">
-      <div className="w-full max-w-3xl rounded-3xl border border-neutral-800 bg-neutral-900/90 shadow-2xl p-4 sm:p-7">
+      <div className="w-full max-w-3xl rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl p-4 sm:p-7">
         <div className="flex items-start gap-3 pb-5 border-b border-neutral-800">
           <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 grid place-items-center shrink-0">
             <FileCheck2 size={21}/>

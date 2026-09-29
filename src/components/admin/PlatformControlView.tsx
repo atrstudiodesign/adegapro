@@ -38,7 +38,18 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
     finally{setBusy(false);}
   };
 
-  useEffect(()=>{void load();},[]);
+  useEffect(()=>{
+    const refresh=()=>{if(document.visibilityState==='visible')void load();};
+    void load();
+    const timer=window.setInterval(refresh,30000);
+    window.addEventListener('focus',refresh);
+    document.addEventListener('visibilitychange',refresh);
+    return()=>{
+      window.clearInterval(timer);
+      window.removeEventListener('focus',refresh);
+      document.removeEventListener('visibilitychange',refresh);
+    };
+  },[]);
 
   const tenants=useMemo(()=>{
     const q=search.trim().toLowerCase();

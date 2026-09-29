@@ -174,7 +174,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
       {visibleProducts.length===0&&<div className="py-20 text-center text-neutral-600"><Package size={38} className="mx-auto"/><div className="mt-3 text-sm">Nenhum produto encontrado.</div></div>}
     </section>
 
-    <aside className="p-4 sm:p-5 bg-neutral-900/60 xl:overflow-y-auto">
+    <aside className="p-4 sm:p-5 bg-neutral-900 xl:overflow-y-auto">
       <div className="flex items-center justify-between gap-3">
         <div><h2 className="font-black">Carrinho</h2><div className="text-[10px] text-neutral-500 mt-1">{cart.reduce((s,l)=>s+l.quantity,0)} item(ns)</div></div>
         <ShoppingCart size={20} className="text-amber-400"/>
