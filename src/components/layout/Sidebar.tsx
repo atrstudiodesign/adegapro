@@ -26,6 +26,7 @@ import {
   Scale
 } from 'lucide-react';
 import { User } from '../../types';
+import { APP_VERSION_LABEL } from '../../config/release';
 
 interface SidebarProps {
   currentTab: string;
@@ -199,7 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="font-extrabold text-white text-xs tracking-tight">
               ADEGA <span className="text-amber-400">PRO</span>
             </div>
-            <div className="text-[10px] text-neutral-500 font-mono">v1.0 · Frente de Loja</div>
+            <div className="text-[10px] text-neutral-500 font-mono">{APP_VERSION_LABEL}</div>
             <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="text-[9px] text-amber-500 hover:text-amber-300">
               Desenvolvido por ATR Studio
             </a>
