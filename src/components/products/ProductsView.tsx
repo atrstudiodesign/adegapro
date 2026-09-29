@@ -77,9 +77,9 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
       const q = search.toLowerCase();
       return (
         p.name.toLowerCase().includes(q) ||
-        p.barcode.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
+        String(p.barcode || '').toLowerCase().includes(q) ||
+        String(p.sku || '').toLowerCase().includes(q) ||
+        String(p.brand || '').toLowerCase().includes(q) ||
         String(p.packageSize || '').toLowerCase().includes(q)
       );
     }
@@ -90,9 +90,9 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
     setEditingProduct({
       name: '',
       description: '',
-      sku: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
-      barcode: String(7890000000000 + Math.floor(Math.random() * 100000000)),
-      categoryId: categories[0]?.id || 'cat-cervejas',
+      sku: '',
+      barcode: '',
+      categoryId: '',
       brand: '',
       packageSize: '',
       unit: 'UN',
@@ -123,8 +123,8 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
       ...p,
       id: undefined,
       name: `${p.name} (Cópia)`,
-      sku: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
-      barcode: String(7890000000000 + Math.floor(Math.random() * 100000000)),
+      sku: '',
+      barcode: '',
       currentStock: 0
     });
     setImageFile(null);
@@ -164,8 +164,8 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
 
   const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingProduct?.name || !editingProduct?.salePrice) {
-      alert('Por favor, preencha o nome do produto e o preço de venda.');
+    if (!editingProduct?.name || !editingProduct?.salePrice || !editingProduct?.sku?.trim() || !editingProduct?.unit) {
+      alert('Preencha nome, SKU real, unidade e preço de venda. O sistema não gera códigos ou dados fictícios.');
       return;
     }
     try {
@@ -515,10 +515,11 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
                 <div>
                   <label className="text-xs text-neutral-400 block mb-1">Categoria</label>
                   <select
-                    value={editingProduct.categoryId || 'cat-cervejas'}
+                    value={editingProduct.categoryId || ''}
                     onChange={e => setEditingProduct({ ...editingProduct, categoryId: e.target.value })}
                     className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-2 text-white text-xs focus:border-amber-400 focus:outline-none"
                   >
+                    <option value="">Sem categoria</option>
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>
                         {c.name}
@@ -613,6 +614,10 @@ export const ProductsView: React.FC<ProductsViewProps> = ({ appMode = 'DEMO' }) 
                     className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-2 text-white text-xs focus:border-amber-400 focus:outline-none"
                   >
                     <option value="UN">UN (Unidade)</option>
+                    <option value="un">un (conforme planilha)</option>
+                    <option value="maço">maço</option>
+                    <option value="lata">lata</option>
+                    <option value="garrafa">garrafa</option>
                     <option value="PACK">PACK</option>
                     <option value="CX">CX (Caixa)</option>
                     <option value="L">L (Litro)</option>
