@@ -2,6 +2,7 @@ import React,{useEffect,useMemo,useState} from 'react';
 import { Archive, Layers, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, X } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import { EmptyState, MetricCard, PageHeader, StatusBadge } from '../ui/ProUi';
+import { adegaConfirm } from '../ui/AdegaDialog';
 
 type P={id:string;name:string;salePrice:number;currentStock:number;unit:string;isCombo?:boolean;status:string};
 type Item={productId:string;quantity:number};
@@ -68,7 +69,7 @@ export const ProductionCombosView:React.FC=()=>{
   };
 
   const safeExclude=async(c:Combo)=>{
-    if(!window.confirm(`Excluir "${c.name}" do PDV? O registro será mantido inativo para preservar o histórico.`))return;
+    if(!await adegaConfirm({ title: 'Excluir combo do PDV?', message: `"${c.name}" será mantido inativo para preservar o histórico.`, confirmLabel: 'Excluir do PDV', tone: 'danger' }))return;
     await changeStatus(c,false,'Combo excluído do PDV e preservado como inativo para auditoria.');
   };
 
