@@ -3,6 +3,7 @@ import { Wallet, Unlock, Lock, ArrowUpRight, ArrowDownLeft, RefreshCw } from 'lu
 import { productionDb } from '../../services/productionDb';
 import type { CashRegister, CashSession, CashMovement, User } from '../../types';
 import { EmptyState, MetricCard, PageHeader, StatusBadge } from '../ui/ProUi';
+import { adegaPrompt } from '../ui/AdegaDialog';
 
 interface Props { currentUser: User; currentSession?: CashSession; onSessionUpdated: () => void | Promise<void>; }
 
@@ -24,22 +25,22 @@ export const ProductionCashView: React.FC<Props> = ({ currentUser, currentSessio
 
   const open=()=>void run(async()=>{
     const reg=registers.find(r=>r.status==='FECHADO'); if(!reg) throw new Error('Nenhum caixa fechado disponível.');
-    const raw=window.prompt('Saldo inicial para '+reg.number+' (R$):','100'); if(raw===null)return;
+    const raw=await adegaPrompt({title:'Abrir caixa',message:reg.number,label:'Saldo inicial (R$)',defaultValue:'100',inputMode:'decimal',confirmLabel:'Abrir caixa'}); if(raw===null)return;
     const amount=Number(raw.replace(',','.')); if(!Number.isFinite(amount)||amount<0) throw new Error('Saldo inicial inválido.');
     await productionDb.openCashSession(reg.id,currentUser.id,amount); setFeedback('Caixa aberto no servidor.');
   });
 
   const movement=(type:'SANGRIA'|'SUPRIMENTO')=>void run(async()=>{
     if(!currentSession) throw new Error('Abra o caixa primeiro.');
-    const raw=window.prompt((type==='SANGRIA'?'Valor da sangria':'Valor do suprimento')+' (R$):'); if(!raw)return;
+    const raw=await adegaPrompt({title:type==='SANGRIA'?'Registrar sangria':'Registrar suprimento',label:'Valor (R$)',inputMode:'decimal',confirmLabel:'Continuar'}); if(!raw)return;
     const amount=Number(raw.replace(',','.')); if(!Number.isFinite(amount)||amount<=0) throw new Error('Valor inválido.');
-    const reason=window.prompt('Motivo da movimentação:')?.trim()||'';
+    const reason=(await adegaPrompt({title:type==='SANGRIA'?'Registrar sangria':'Registrar suprimento',label:'Motivo da movimentação',confirmLabel:'Registrar'}))?.trim()||'';
     await productionDb.registerCashMovement(currentSession.id,type,amount,reason||'Movimentação operacional');
     setFeedback(type==='SANGRIA'?'Sangria registrada.':'Suprimento registrado.');
   });
 
   const close=()=>void run(async()=>{
-    if(!currentSession)return; const raw=window.prompt('Valor contado fisicamente na gaveta (R$):'); if(raw===null)return;
+    if(!currentSession)return; const raw=await adegaPrompt({title:'Fechar caixa',label:'Valor contado fisicamente na gaveta (R$)',inputMode:'decimal',confirmLabel:'Fechar caixa'}); if(raw===null)return;
     const counted=Number(raw.replace(',','.')); if(!Number.isFinite(counted)||counted<0) throw new Error('Valor contado inválido.');
     const result:any=await productionDb.closeCashSession(currentSession.id,counted);
     setFeedback('Caixa fechado. Diferença: R$ '+Number(result?.difference||0).toFixed(2));
