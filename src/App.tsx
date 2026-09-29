@@ -54,6 +54,7 @@ import { LegalDocKey } from './legal/legalDocuments';
 import { ProductionModuleGuard } from './components/common/ProductionModuleGuard';
 import { productionDb } from './services/productionDb';
 import { PlatformAdminAccessScreen } from './components/admin/PlatformAdminAccessScreen';
+import { ReleaseUpdateModal } from './components/common/ReleaseUpdateModal';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -276,6 +277,8 @@ export default function App() {
           Modo Demonstração · Dados fictícios e isolados · Não altera o banco real
         </div>
       )}
+      <ReleaseUpdateModal />
+
       {/* Universal Top Bar */}
       <Header
         currentTab={currentTab}
