@@ -5,6 +5,7 @@ import type { AppMode } from '../../services/appMode';
 import type { Category, Product } from '../../types';
 import { Tags, Search, Plus, CheckCircle2, CircleOff, Loader2 } from 'lucide-react';
 import { EmptyState, PageHeader, StatusBadge } from '../ui/ProUi';
+import { adegaPrompt } from '../ui/AdegaDialog';
 
 interface CategoriesViewProps { appMode?: AppMode; }
 
@@ -32,7 +33,7 @@ export const CategoriesView: React.FC<CategoriesViewProps> = ({ appMode = 'DEMO'
   useEffect(() => { void load(); }, [appMode]);
 
   const create = async () => {
-    const name = window.prompt('Nome da nova categoria:')?.trim();
+    const name = (await adegaPrompt({ title: 'Nova categoria', label: 'Nome da categoria', confirmLabel: 'Criar categoria' }))?.trim();
     if (!name) return;
     setBusy(true); setError('');
     try {
