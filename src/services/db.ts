@@ -1842,6 +1842,8 @@ class DatabaseService {
   }
 
   public saveCustomer(cust: Partial<Customer> & { name: string; phone: string }): Customer {
+    const whatsapp = (cust.whatsapp || cust.phone || '').trim();
+    if (!whatsapp) throw new Error('WhatsApp é obrigatório para cadastrar o cliente.');
     const list = this.getCustomers();
     let saved: Customer;
     if (cust.id) {
@@ -1853,11 +1855,15 @@ class DatabaseService {
         id: 'cust-' + Date.now(),
         tenantId: this.tenantId,
         name: cust.name,
+        firstName: cust.firstName || '',
+        lastName: cust.lastName || '',
+        nickname: cust.nickname || '',
+        customerType: cust.customerType || 'AVULSO',
         cpf: cust.cpf || '',
-        phone: cust.phone,
-        whatsapp: cust.whatsapp || cust.phone,
-        email: cust.email || '',
-        address: cust.address || '',
+        phone: whatsapp,
+        whatsapp,
+        email: '',
+        address: '',
         notes: cust.notes || '',
         creditLimit: cust.creditLimit ?? 200,
         creditBalance: 0,
