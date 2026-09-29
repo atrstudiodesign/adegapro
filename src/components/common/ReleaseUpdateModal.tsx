@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle2, Sparkles, X } from 'lucide-react';
 import { APP_RELEASE, APP_VERSION_LABEL } from '../../config/release';
 
-const storageKey = `adega_pro_release_seen_${APP_RELEASE.version}`;
+const storageKey = `adega_pro_release_seen_${APP_RELEASE.releaseId}`;
 
 export const ReleaseUpdateModal: React.FC = () => {
   const [open, setOpen] = useState(false);

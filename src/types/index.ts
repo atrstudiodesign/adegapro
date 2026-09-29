@@ -105,7 +105,7 @@ export interface Customer {
   firstName?: string;
   lastName?: string;
   nickname?: string;
-  customerType?: 'MENSAL' | 'AVULSO';
+  customerType?: 'MENSAL' | 'FIADO' | 'AVULSO';
   cpf: string;
   phone: string;
   whatsapp: string;
