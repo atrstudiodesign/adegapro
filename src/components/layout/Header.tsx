@@ -4,11 +4,10 @@ import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
 import { User,CashSession } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
-import { PinAuthModal } from '../common/PinAuthModal';
 import { OfflineSyncControl } from '../common/OfflineSyncControl';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 import {
-  ShoppingCart,UserCheck,Bell,Store as StoreIcon,Lock,Menu,Moon,Sun,Zap,
+  ShoppingCart,Bell,Store as StoreIcon,Lock,Menu,Moon,Sun,Zap,
   Grid3X3,ChevronDown
 } from 'lucide-react';
 
@@ -24,9 +23,8 @@ interface HeaderProps{
 }
 
 export const Header:React.FC<HeaderProps>=({
-  currentTab,onNavigate,currentUser,onUserChanged,currentSession,onLock,onMenuToggle,appMode='DEMO'
+  currentTab,onNavigate,currentUser,currentSession,onLock,onMenuToggle,appMode='DEMO'
 })=>{
-  const[showPinModal,setShowPinModal]=useState(false);
   const[unreadNotifications,setUnreadNotifications]=useState(0);
   const[store,setStore]=useState(()=>db.getStore());
   const[theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
@@ -75,11 +73,11 @@ export const Header:React.FC<HeaderProps>=({
           <ChevronDown size={14} className="text-neutral-500"/>
         </button>
 
-        <button onClick={()=>setShowPinModal(true)} className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="w-10 h-10 rounded-full bg-slate-100 text-slate-900 grid place-items-center text-xs font-black">{initials}</span>
           <span className="hidden xl:block text-left"><span className="block text-xs font-black">{currentUser.name}</span><span className="block text-[10px] text-neutral-400">Operador PDV</span></span>
-          <ChevronDown size={14} className="hidden xl:block text-neutral-500"/>
-        </button>
+        </div>
+        {onLock&&<button onClick={onLock} title="Abrir tela de bloqueio" className="h-10 px-3 rounded-xl border border-neutral-700 bg-[#0d1217] text-neutral-200 flex items-center gap-2 text-[10px] font-black hover:border-amber-400/60"><Lock size={14}/><span className="hidden lg:inline">Tela de bloqueio</span></button>}
       </div>
 
       <div className="md:hidden fixed bottom-3 left-3 right-3 z-50 grid grid-cols-3 gap-2 p-2 rounded-2xl bg-[#090d11]/95 border border-neutral-700 shadow-2xl backdrop-blur">
@@ -87,8 +85,6 @@ export const Header:React.FC<HeaderProps>=({
         <button onClick={()=>onNavigate('minidash')} className={navClass(currentTab==='minidash')}><Zap size={14}/><span className="hidden min-[420px]:inline">Mini PDV</span></button>
         <button onClick={onMenuToggle} className={navClass(false)}><Grid3X3 size={14}/><span className="hidden min-[420px]:inline">Funções</span></button>
       </div>
-
-      <PinAuthModal isOpen={showPinModal} onClose={()=>setShowPinModal(false)} onSuccess={onUserChanged} title="Troca Rápida de Operador" description="Digite seu PIN de 4 dígitos para assumir a sessão do terminal"/>
     </header>;
   }
 
@@ -103,9 +99,7 @@ export const Header:React.FC<HeaderProps>=({
       <button onClick={()=>onNavigate('minidash')} className={navClass(false)}><Zap size={15}/><span className="hidden md:inline">Mini PDV Rápido</span></button>
       <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 grid place-items-center">{theme==='dark'?<Sun size={15}/>:<Moon size={15}/>}</button>
       <div className="hidden lg:block"><OfflineSyncControl/></div><div className="hidden lg:block"><PWAInstallButton/></div>
-      <button onClick={()=>setShowPinModal(true)} className="hidden sm:flex w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-amber-400 grid place-items-center"><UserCheck size={15}/></button>
-      {onLock&&<button onClick={onLock} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-400 grid place-items-center"><Lock size={14}/></button>}
+      {onLock&&<button onClick={onLock} title="Tela de bloqueio" className="h-10 px-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 flex items-center gap-2 text-[10px] font-black"><Lock size={14}/><span className="hidden md:inline">Tela de bloqueio</span></button>}
     </div>
-    <PinAuthModal isOpen={showPinModal} onClose={()=>setShowPinModal(false)} onSuccess={onUserChanged} title="Troca Rápida de Operador" description="Digite seu PIN de 4 dígitos para assumir a sessão do terminal"/>
   </header>;
 };
