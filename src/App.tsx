@@ -263,6 +263,7 @@ export default function App() {
             void productionDb.getCurrentCashSession()
               .then(session => setCurrentSession(session))
               .catch(() => setCurrentSession(undefined));
+            setCurrentTab('pos');
             setIsLocked(false);
           }}
         />
@@ -350,6 +351,7 @@ export default function App() {
                 currentUser={currentUser}
                 currentSession={currentSession}
                 onNavigate={tab => setCurrentTab(tab)}
+                onSessionUpdated={handleSessionUpdated}
               />
             ) : (
               <PosScreen
