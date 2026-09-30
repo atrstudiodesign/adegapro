@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-indicacao-politica-02',
+  releaseId: '2026-09-pdv-sara-search-03',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -12,7 +12,8 @@ export const APP_RELEASE = {
     'Ajustes de catálogo, estoque e compatibilidade do PDV.',
     'Área Clientes & Fiados separada em abas e novo tipo de cliente FIADO.',
     'Novo programa de indicação na landing page com benefícios comerciais para clientes ativos.',
-    'Política de indicação e comissionamento comercial detalhada nos termos do Adega Pro.'
+    'Política de indicação e comissionamento comercial detalhada nos termos do Adega Pro.',
+    'PDV passa a abrir para consulta mesmo sem caixa, Mini PDV permanece ativo e a busca foi sincronizada globalmente.'
   ]
 } as const;
 
