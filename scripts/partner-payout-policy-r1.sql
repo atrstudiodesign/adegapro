@@ -1,0 +1,8 @@
+-- Política Comercial de Indicação — Autônomos · 2026.09-r1
+-- Produção: assinatura R$149/mês, comissão única R$35 após a primeira mensalidade confirmada.
+-- Personalizado: R$990 em 3x de R$330, comissão única R$200 após a primeira parcela confirmada.
+-- Modos de repasse por parceiro: IMEDIATO ou FECHAMENTO_MENSAL.
+-- O ATR Control valida o primeiro pagamento; só então a comissão é criada.
+-- Comissões pagas não são reabertas; correções devem ser tratadas por ajuste.
+-- E-mail e telefone do parceiro precisam estar validados antes do repasse.
+-- A criação manual de comissão de assinatura/personalizado foi desativada.
