@@ -98,10 +98,19 @@ async function savePlatformPartnerReferral(payload:Record<string,unknown>){
   return data as string;
 }
 
-async function createPlatformPartnerCommission(payload:Record<string,unknown>){
-  const {data,error}=await platformSupabase.rpc('create_platform_partner_commission',{p_payload:payload});
+async function confirmPlatformPartnerCustomerPayment(referralId:string,amount:number,paidAt?:string){
+  const {data,error}=await platformSupabase.rpc('confirm_platform_partner_customer_payment',{
+    p_referral_id:referralId,
+    p_amount:amount,
+    p_paid_at:paidAt||new Date().toISOString()
+  });
   if(error) throw error;
   return data as string;
+}
+
+async function acceptPlatformPartnerPolicy(partnerId:string,version:string){
+  const {error}=await platformSupabase.rpc('accept_platform_partner_policy',{p_partner_id:partnerId,p_version:version});
+  if(error) throw error;
 }
 
 async function updatePlatformPartnerCommission(id:string,status:string,paymentReference?:string){
@@ -146,7 +155,8 @@ export const platformDb = {
   getPlatformPartnerSnapshot,
   savePlatformSalesPartner,
   savePlatformPartnerReferral,
-  createPlatformPartnerCommission,
+  confirmPlatformPartnerCustomerPayment,
+  acceptPlatformPartnerPolicy,
   updatePlatformPartnerCommission,
   getPlatformTenantSecurity,
   setPlatformTenantSecurity,
