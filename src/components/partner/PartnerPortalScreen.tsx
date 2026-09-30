@@ -268,23 +268,26 @@ export const PartnerPortalScreen:React.FC=()=>{
   const referrals=data.referrals||[];
   const commissions=data.commissions||[];
 
-  return <div className="min-h-dvh bg-[#06090c] text-white">
-    <header className="sticky top-0 z-30 bg-black/85 border-b border-neutral-800 backdrop-blur px-4 sm:px-6 h-16 flex items-center gap-4">
-      <img src="/adega-pro-brand.svg" alt="Adega Pro" className="h-10 w-auto"/>
+  return <div className="min-h-dvh bg-[#06090c] text-white overflow-x-hidden">
+    <header className="sticky top-0 z-30 bg-black/90 border-b border-neutral-800 backdrop-blur px-3 sm:px-6 h-16 flex items-center gap-3">
+      <img src="/adega-pro-brand.svg" alt="Adega Pro" className="h-8 sm:h-10 w-auto max-w-[135px] sm:max-w-none"/>
       <div className="hidden sm:block h-7 w-px bg-neutral-800"/>
-      <div className="hidden sm:block"><div className="text-[10px] text-neutral-500">Portal do vendedor</div><div className="text-xs font-black">{partner.full_name}</div></div>
-      <nav className="ml-auto flex gap-1 overflow-x-auto">
+      <div className="min-w-0 flex-1 sm:flex-none">
+        <div className="text-[9px] sm:text-[10px] text-neutral-500">Portal do vendedor</div>
+        <div className="text-[11px] sm:text-xs font-black truncate">{partner.full_name}</div>
+      </div>
+      <nav className="ml-auto hidden sm:flex gap-1 overflow-x-auto max-w-[70vw]">
         {([['OVERVIEW','Visão Geral',BarChart3],['REFERRALS','Indicações',Users],['COMMISSIONS','Comissões',WalletCards],['PROFILE','Perfil',UserRound]] as [PortalTab,string,any][]).map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`h-10 px-3 rounded-lg border flex items-center gap-2 text-[10px] font-black whitespace-nowrap ${tab===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#0d1217] border-neutral-800 text-neutral-400'}`}><I size={13}/>{label}</button>)}
-        <button onClick={()=>void logout()} className="h-10 px-3 rounded-lg border border-neutral-800 bg-[#0d1217] text-neutral-500"><LogOut size={14}/></button>
       </nav>
+      <button onClick={()=>void logout()} title="Sair" className="h-10 w-10 shrink-0 rounded-lg border border-neutral-800 bg-[#0d1217] text-neutral-500 grid place-items-center"><LogOut size={14}/></button>
     </header>
 
-    <main className="max-w-[1500px] mx-auto p-4 sm:p-6 space-y-5">
+    <main className="max-w-[1500px] mx-auto p-3 sm:p-6 pb-24 sm:pb-6 space-y-4 sm:space-y-5">
       {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
       {message&&<div className="p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{message}</div>}
 
       {tab==='OVERVIEW'&&<>
-        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+        <div className="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
           <Metric label="Indicações" value={metrics.leads_total||0} icon={Users}/>
           <Metric label="Pendentes" value={metrics.pending||0} icon={Clock3} tone="amber"/>
           <Metric label="Vendas ativas" value={metrics.active_sales||0} icon={ShoppingCart} tone="emerald"/>
@@ -298,9 +301,9 @@ export const PartnerPortalScreen:React.FC=()=>{
         <section className="rounded-2xl border border-amber-500/30 bg-[#0b1014] p-4 sm:p-5">
           <div className="grid lg:grid-cols-[1fr_auto] gap-4 items-center">
             <div><div className="text-[10px] uppercase tracking-[.18em] text-amber-400 font-black">Seu rastreamento individual</div><h2 className="text-lg font-black mt-1">Compartilhe seu link ou código com cada cliente</h2><p className="text-xs text-neutral-500 mt-1">Quando o cliente entra pelo seu link e conclui o cadastro, a origem fica vinculada ao seu vendedor.</p></div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={()=>void copy(referralLink,'Link')} className="h-10 px-3 rounded-xl border border-neutral-700 bg-neutral-950 text-xs font-black flex items-center gap-2 hover:border-amber-400/50"><Link2 size={14}/>Copiar link</button>
-              <button onClick={()=>void copy(partner.referral_code,'Código')} className="h-10 px-3 rounded-xl border border-neutral-700 bg-neutral-950 text-xs font-black flex items-center gap-2 hover:border-amber-400/50"><Copy size={14}/>Código {partner.referral_code}</button>
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 lg:flex lg:flex-wrap gap-2">
+              <button onClick={()=>void copy(referralLink,'Link')} className="w-full lg:w-auto h-10 px-3 rounded-xl border border-neutral-700 bg-neutral-950 text-xs font-black flex items-center justify-center gap-2 hover:border-amber-400/50"><Link2 size={14}/>Copiar link</button>
+              <button onClick={()=>void copy(partner.referral_code,'Código')} className="w-full lg:w-auto h-10 px-3 rounded-xl border border-neutral-700 bg-neutral-950 text-xs font-black flex items-center justify-center gap-2 hover:border-amber-400/50"><Copy size={14}/>Código {partner.referral_code}</button>
             </div>
           </div>
           <div className="mt-4 p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-[11px] text-sky-400 break-all">{referralLink}</div>
@@ -330,6 +333,10 @@ export const PartnerPortalScreen:React.FC=()=>{
 
       {tab==='PROFILE'&&<section className="p-4 rounded-2xl border border-neutral-800 bg-[#0b1014] max-w-2xl"><h2 className="font-black">Perfil & repasse</h2><div className="grid sm:grid-cols-2 gap-3 mt-4"><Info l="Nome" v={partner.full_name}/><Info l="E-mail" v={partner.email}/><Field label="Telefone"><TextInput value={form.phone||partner.phone||''} onChange={v=>setForm({...form,phone:v})}/></Field><Field label="Chave PIX"><TextInput value={form.pixKey||partner.pix_key||''} onChange={v=>setForm({...form,pixKey:v})}/></Field></div><Field label="Modo de repasse"><select className="w-full rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400" value={form.payoutMode||partner.payout_mode} onChange={e=>setForm({...form,payoutMode:e.target.value as any})}><option value="IMEDIATO">Imediato</option><option value="FECHAMENTO_MENSAL">Fechamento mensal</option></select></Field><button onClick={()=>void saveProfile()} disabled={busy} className="mt-4 h-10 px-4 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black inline-flex items-center justify-center gap-2 disabled:opacity-50">Salvar dados</button></section>}
     </main>
+
+    <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-neutral-800 bg-black/95 backdrop-blur px-2 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))] grid grid-cols-4 gap-1">
+      {([['OVERVIEW','Visão',BarChart3],['REFERRALS','Indicações',Users],['COMMISSIONS','Comissões',WalletCards],['PROFILE','Perfil',UserRound]] as [PortalTab,string,any][]).map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`min-h-12 rounded-xl border flex flex-col items-center justify-center gap-1 text-[9px] font-black ${tab===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#0d1217] border-neutral-800 text-neutral-400'}`}><I size={15}/><span>{label}</span></button>)}
+    </nav>
   </div>;
 };
 
