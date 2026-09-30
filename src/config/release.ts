@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-marketing-theme-ai-ready-05',
+  releaseId: '2026-09-landing-ai-marketing-audit-06',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -21,7 +21,8 @@ export const APP_RELEASE = {
     'Termos r5 incluem guia prático de uso seguro do Adega Pro.',
     'Ações comerciais nos clientes: promoção, reativação, recomendação de produtos e WhatsApp.',
     'Tema Claro/Escuro disponível no cabeçalho e em Configurações, mantendo responsividade.',
-    'Auditoria ganhou diagnóstico automático de sinais de erro e recorrência.'
+    'Auditoria ganhou diagnóstico automático de sinais de erro e recorrência.',
+    'Landing destaca IA e automação inteligente para marketing, recomendações na venda e auditoria assistida.'
   ]
 } as const;
 
