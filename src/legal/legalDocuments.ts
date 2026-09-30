@@ -5,7 +5,7 @@ export type LegalDocKey =
   | 'software_license'
   | 'legal_notice';
 
-export const LEGAL_VERSION = '2026.09.29-r5';
+export const LEGAL_VERSION = '2026.09.29-r6';
 export const LEGAL_EFFECTIVE_DATE = '29 de setembro de 2026';
 
 export const LEGAL_PROVIDER = {
@@ -89,7 +89,19 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         ]
       },
       {
-        title: '8. Boa-fé, proporcionalidade e legislação aplicável',
+        title: '8. Recursos de inteligência artificial, automação e responsabilidade de terceiros',
+        paragraphs: [
+          'O ADEGA PRO poderá disponibilizar recursos de automação, recomendações, diagnóstico assistido, geração de mensagens, sugestões de produtos, campanhas comerciais, análise de auditoria e outras funcionalidades apoiadas por regras automatizadas e, quando habilitado, por modelos de inteligência artificial operados pela ATR Studio ou por provedores terceiros.',
+          'Resultados produzidos por inteligência artificial são probabilísticos e podem conter erros, omissões, interpretações imprecisas, conteúdo inadequado, sugestões desatualizadas ou recomendações que não reflitam integralmente a realidade comercial do estabelecimento. Esses resultados devem ser tratados como apoio à decisão e nunca como confirmação automática de preço, estoque, margem, promoção, obrigação legal, resultado financeiro ou ausência de falhas.',
+          'O contratante e seus operadores são responsáveis por revisar e aprovar mensagens, promoções, preços, descontos, campanhas, recomendações de produtos, comunicações com clientes e decisões tomadas a partir de sugestões automatizadas antes de sua utilização efetiva.',
+          'Quando recursos de IA ou automação dependerem de provedores externos, APIs, serviços de nuvem, mensageria, modelos de linguagem, mecanismos de recomendação ou infraestrutura de terceiros, a disponibilidade, latência, qualidade e continuidade desses recursos também poderão depender de tais fornecedores. A ATR Studio não controla integralmente indisponibilidades, alterações de API, limites de uso, políticas ou falhas originadas exclusivamente nesses serviços.',
+          'A ATR Studio deverá adotar medidas razoáveis de segurança, minimização de dados e configuração técnica ao integrar provedores externos, sem prejuízo das responsabilidades próprias de cada terceiro e das obrigações legais que lhes sejam aplicáveis.',
+          'É vedado utilizar recursos de IA ou automação para prática ilícita, discriminação indevida, fraude, envio abusivo de mensagens, criação de conteúdo enganoso, manipulação de consumidores ou uso incompatível com a legislação aplicável.',
+          'Recursos de marketing e comunicação assistida não dispensam o contratante de observar regras aplicáveis a publicidade, proteção de dados, direitos do consumidor, cadastros de oposição, consentimento quando necessário e demais requisitos legais relativos ao envio de mensagens.'
+        ]
+      },
+      {
+        title: '9. Boa-fé, proporcionalidade e legislação aplicável',
         paragraphs: [
           'As partes se comprometem a agir com boa-fé, cooperação, lealdade contratual e mitigação razoável de danos.',
           'Nenhuma cláusula deve ser interpretada para afastar direito inderrogável previsto em lei. Em relações de consumo, prevalecem as normas protetivas aplicáveis; em relações empresariais paritárias, aplicam-se também os princípios de autonomia privada e alocação contratual de riscos.',
@@ -149,6 +161,16 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
           'Dados poderão ser compartilhados com provedores de nuvem, autenticação, mensageria, pagamento, fiscal, suporte e infraestrutura estritamente quando necessários à prestação do serviço, sob controles contratuais e de segurança compatíveis.',
           'Transferências internacionais, quando existentes, deverão observar os mecanismos admitidos pela LGPD e regulamentação da ANPD.',
           'A ATR Studio não comercializa dados pessoais como produto autônomo.'
+        ]
+      },
+      {
+        title: '7. Inteligência artificial, automação e dados pessoais',
+        paragraphs: [
+          'Quando funcionalidades de inteligência artificial forem efetivamente habilitadas, dados estritamente necessários poderão ser processados por provedores tecnológicos contratados para geração, classificação, recomendação, análise ou assistência operacional, observadas as finalidades legítimas do recurso utilizado.',
+          'A ATR Studio buscará limitar o envio de dados pessoais ao mínimo necessário, adotar controles de acesso e configurações de segurança compatíveis e evitar o envio desnecessário de credenciais, senhas, PINs, dados bancários completos ou informações sensíveis a provedores de IA.',
+          'O contratante permanece responsável pela base legal e pela legitimidade dos dados de clientes que inserir no sistema e utilizar em campanhas, recomendações, reativações ou comunicações automatizadas.',
+          'Sempre que tecnicamente possível e compatível com a finalidade, dados poderão ser reduzidos, agregados ou pseudonimizados antes do processamento por serviços automatizados.',
+          'O uso de IA não autoriza decisões automatizadas com efeitos relevantes sobre titulares sem observância dos direitos previstos na LGPD e das garantias de revisão aplicáveis.'
         ]
       }
     ]
@@ -267,7 +289,16 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         ]
       },
       {
-        title: '3. Contato e comunicações legais',
+        title: '3. Inteligência artificial, automação e serviços de terceiros',
+        paragraphs: [
+          'Recursos de inteligência artificial, automação, recomendação, mensageria, pagamento, nuvem, autenticação, impressão, delivery e demais integrações podem depender de fornecedores externos. A disponibilidade e o desempenho desses recursos podem variar conforme o serviço terceiro utilizado.',
+          'Saídas geradas por IA podem conter incorreções, omissões ou respostas inadequadas. O usuário deve conferir criticamente qualquer sugestão antes de utilizá-la em venda, atendimento, marketing, auditoria, estoque, preço, desconto, finanças ou comunicação com clientes.',
+          'A ATR Studio não garante que sistemas de IA sejam livres de erros nem que suas respostas sejam completas, exclusivas, atualizadas ou adequadas a todos os contextos. O recurso deve ser utilizado como apoio e não como substituto de conferência humana.',
+          'A responsabilidade de fornecedores terceiros por seus próprios serviços, indisponibilidades, alterações de API, políticas, dados ou falhas técnicas será regida também pelos termos e normas aplicáveis a esses fornecedores, sem prejuízo dos deveres próprios da ATR Studio previstos em lei.'
+        ]
+      },
+      {
+        title: '4. Contato e comunicações legais',
         paragraphs: [
           'ATR STUDIO DESIGNER E ASSESSORIA INOVA SIMPLES I.S. - ME — CNPJ 57.514.866/0001-38 — São Paulo/SP — Brasil.',
           'Site: atrstudio.com.br — E-mail: atrstudiodesign@gmail.com — WhatsApp: +55 11 93902-6928.',
