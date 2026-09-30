@@ -6,7 +6,7 @@ import type { CashSession, Category, Customer, Product, User } from '../../types
 interface Props { currentUser: User; currentSession?: CashSession; onNavigate: (tab:string)=>void; }
 type Line={product:Product;quantity:number};
 
-const normalizeSearch=(value:string)=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const normalizeSearch=(value:string|undefined|null)=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 
 export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,onNavigate})=>{
   const [products,setProducts]=useState<Product[]>([]);
