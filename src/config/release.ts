@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-clientes-fiados-01',
+  releaseId: '2026-09-indicacao-01',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -10,7 +10,8 @@ export const APP_RELEASE = {
     'Importação de produtos da planilha e catálogo demonstração com estoque inicial.',
     'Janelas nativas do navegador substituídas por modais próprios do Adega Pro.',
     'Ajustes de catálogo, estoque e compatibilidade do PDV.',
-    'Área Clientes & Fiados separada em abas e novo tipo de cliente FIADO.'
+    'Área Clientes & Fiados separada em abas e novo tipo de cliente FIADO.',
+    'Novo programa de indicação na landing page com benefícios comerciais para clientes ativos.'
   ]
 } as const;
 
