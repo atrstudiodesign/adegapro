@@ -1084,6 +1084,19 @@ async function getHrAlerts(){
   return data||{pending_total:0,due_today:0,overdue:0,urgent:0,items:[]};
 }
 
+async function saveHrFinancialMovement(payload:Record<string,unknown>){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('save_hr_financial_movement',{
+    p_store_id:ctx.storeId,
+    p_operator_token:token,
+    p_payload:payload
+  });
+  if(error) throw error;
+  return data as string;
+}
+
 export const productionDb = {
   getContext,
   getAccessibleStores,
@@ -1151,5 +1164,6 @@ export const productionDb = {
   saveHrPolicy,
   saveHrAgendaEvent,
   setHrAgendaStatus,
-  getHrAlerts
+  getHrAlerts,
+  saveHrFinancialMovement
 };
