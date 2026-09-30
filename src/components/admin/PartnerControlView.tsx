@@ -74,6 +74,17 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
         <button className="btn-primary w-full" disabled={!comm.partner_id} onClick={()=>void platformDb.createPlatformPartnerCommission(comm).then(()=>{onFeedback('Comissão criada.');return load()}).catch((e:any)=>onError(e.message))}>Calcular repasse</button>
       </section>
     </div>
+
+    <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+      <div className="flex items-center justify-between"><div><h2 className="font-black">Repasses & comissões</h2><p className="text-[10px] text-neutral-500">Aprovação e pagamento dos valores calculados por vendedor.</p></div></div>
+      <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[760px] text-xs">
+        <thead className="text-neutral-500"><tr><th className="text-left p-2">Vendedor</th><th className="text-left p-2">Tipo</th><th className="text-right p-2">Base</th><th className="text-right p-2">Repasse</th><th className="text-left p-2">Status</th><th className="text-left p-2">Ação</th></tr></thead>
+        <tbody>{(data?.commissions||[]).map((x:any)=>{const p=(data?.partners||[]).find((y:any)=>y.id===x.partner_id);return <tr key={x.id} className="border-t border-neutral-800">
+          <td className="p-2">{p?.full_name||'—'}</td><td className="p-2">{x.commission_type}</td><td className="p-2 text-right">{money(x.base_amount)}</td><td className="p-2 text-right font-black text-emerald-400">{money(x.amount_due)}</td><td className="p-2">{x.status}</td>
+          <td className="p-2">{x.status==='PENDENTE'?<button className="btn-secondary !py-1" onClick={()=>void platformDb.updatePlatformPartnerCommission(x.id,'APROVADA').then(load)}>Aprovar</button>:x.status==='APROVADA'?<button className="btn-primary !py-1" onClick={()=>void platformDb.updatePlatformPartnerCommission(x.id,'PAGA').then(load)}>Marcar pago</button>:null}</td>
+        </tr>})}</tbody>
+      </table></div>
+    </section>
   </div>
 };
 const Card=({l,v}:{l:string;v:any})=><div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="text-lg font-black">{v}</div><div className="text-[10px] text-neutral-500">{l}</div></div>;
