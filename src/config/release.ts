@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-security-multitenant-hardening-08',
+  releaseId: '2026-09-atr-control-partners-commissions-09',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -24,7 +24,10 @@ export const APP_RELEASE = {
     'Auditoria ganhou diagnóstico automático de sinais de erro e recorrência.',
     'Landing destaca IA e automação inteligente para marketing, recomendações na venda e auditoria assistida.',
     'Políticas r6 detalham uso de IA, possibilidade de erros, conferência humana e responsabilidades de serviços de terceiros.',
-    'Segurança multi-tenant reforçada: isolamento tenant/loja obrigatório, bloqueio de escalada de privilégio e RPCs anônimas fechadas.'
+    'Segurança multi-tenant reforçada: isolamento tenant/loja obrigatório, bloqueio de escalada de privilégio e RPCs anônimas fechadas.',
+    'ATR Control ganhou Vendedores parceiros, links individuais de indicação, funil comercial, comissões e repasses.',
+    'Controle de proteção avançada de dados por cliente com estados BLOQUEADA, DISPONÍVEL e MIGRAÇÃO.',
+    'Dashboard administrativo ampliado com gráficos, distribuição operacional e central de prioridades.'
   ]
 } as const;
 
