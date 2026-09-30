@@ -49,6 +49,10 @@ export const Header:React.FC<HeaderProps>=({
 
   const navClass=(active:boolean)=>`h-11 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs font-black whitespace-nowrap transition-all ${active?'bg-amber-400 border-amber-300 text-neutral-950 shadow-[0_0_22px_rgba(250,204,21,.16)]':'bg-[#0d1217] border-neutral-700 text-neutral-200 hover:border-neutral-500'}`;
   const initials=currentUser.name.split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'OP';
+  const openMiniPdv=()=>{
+    if(currentTab!=='pos') onNavigate('pos');
+    window.setTimeout(()=>window.dispatchEvent(new CustomEvent('adega:open-mini-pdv')),currentTab==='pos'?0:80);
+  };
 
   if(isPos){
     return <header className="min-h-16 px-3 sm:px-5 bg-[#070b0f] border-b border-neutral-800 flex items-center gap-3 sticky top-0 z-40 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
@@ -57,7 +61,7 @@ export const Header:React.FC<HeaderProps>=({
 
       <div className="hidden md:flex items-center gap-2 ml-4">
         <button onClick={()=>onNavigate('pos')} className={navClass(currentTab==='pos')}><ShoppingCart size={15}/>PDV Completo</button>
-        <button onClick={()=>onNavigate('minidash')} className={navClass(currentTab==='minidash')}><Zap size={15}/>Mini PDV Rápido</button>
+        <button onClick={openMiniPdv} className={navClass(false)}><Zap size={15}/>Mini PDV Rápido</button>
         <button onClick={onMenuToggle} className={navClass(false)}><Grid3X3 size={15}/>Funcionalidades<ChevronDown size={13}/></button>
       </div>
 
@@ -82,7 +86,7 @@ export const Header:React.FC<HeaderProps>=({
 
       <div className="md:hidden fixed bottom-3 left-3 right-3 z-50 grid grid-cols-3 gap-2 p-2 rounded-2xl bg-[#090d11]/95 border border-neutral-700 shadow-2xl backdrop-blur">
         <button onClick={()=>onNavigate('pos')} className={navClass(currentTab==='pos')}><ShoppingCart size={14}/><span className="hidden min-[420px]:inline">PDV</span></button>
-        <button onClick={()=>onNavigate('minidash')} className={navClass(currentTab==='minidash')}><Zap size={14}/><span className="hidden min-[420px]:inline">Mini PDV</span></button>
+        <button onClick={openMiniPdv} className={navClass(false)}><Zap size={14}/><span className="hidden min-[420px]:inline">Mini PDV</span></button>
         <button onClick={onMenuToggle} className={navClass(false)}><Grid3X3 size={14}/><span className="hidden min-[420px]:inline">Funções</span></button>
       </div>
     </header>;
@@ -96,7 +100,7 @@ export const Header:React.FC<HeaderProps>=({
     </div>
     <div className="flex items-center gap-2">
       <button onClick={()=>onNavigate('pos')} className={navClass(false)}><ShoppingCart size={15}/><span className="hidden sm:inline">PDV Completo</span></button>
-      <button onClick={()=>onNavigate('minidash')} className={navClass(false)}><Zap size={15}/><span className="hidden md:inline">Mini PDV Rápido</span></button>
+      <button onClick={openMiniPdv} className={navClass(false)}><Zap size={15}/><span className="hidden md:inline">Mini PDV Rápido</span></button>
       <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 grid place-items-center">{theme==='dark'?<Sun size={15}/>:<Moon size={15}/>}</button>
       <div className="hidden lg:block"><OfflineSyncControl/></div><div className="hidden lg:block"><PWAInstallButton/></div>
       {onLock&&<button onClick={onLock} title="Tela de bloqueio" className="h-10 px-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 flex items-center gap-2 text-[10px] font-black"><Lock size={14}/><span className="hidden md:inline">Tela de bloqueio</span></button>}

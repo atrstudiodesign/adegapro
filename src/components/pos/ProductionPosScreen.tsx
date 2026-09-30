@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import type { CashRegister, CashSession, Category, Customer, Product, Store, User } from '../../types';
+import { QuickSaleModal } from './QuickSaleModal';
 
 interface Props {
   currentUser: User;
@@ -39,6 +40,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [error,setError]=useState('');
   const [openingBalance,setOpeningBalance]=useState('100');
   const [selectedRegisterId,setSelectedRegisterId]=useState('');
+  const [miniPdvOpen,setMiniPdvOpen]=useState(false);
   const [lastReceipt,setLastReceipt]=useState<any>(null);
   const [integrationConfigs,setIntegrationConfigs]=useState<any[]>([]);
   const searchRef=useRef<HTMLInputElement>(null);
@@ -172,13 +174,41 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     return {label:'OFFLINE',online:false,active:false};
   };
 
+  useEffect(()=>{
+    const open=()=>setMiniPdvOpen(true);
+    window.addEventListener('adega:open-mini-pdv',open as EventListener);
+    return()=>window.removeEventListener('adega:open-mini-pdv',open as EventListener);
+  },[]);
+
+  const addQuickProduct=(product:Product,quantity:number)=>{
+    if(quantity<=0)return;
+    if(!product.isCombo&&product.currentStock<=0){setError('Produto sem estoque.');return;}
+    setCart(prev=>{
+      const hit=prev.find(x=>x.product.id===product.id);
+      return hit
+        ? prev.map(x=>x.product.id===product.id?{...x,quantity:x.quantity+quantity}:x)
+        : [...prev,{product,quantity}];
+    });
+    setError('');
+  };
+
   const paymentButton=(id:PayMethod,label:string,Icon:any)=>(
     <button onClick={()=>setMethod(id)} className={`flex-1 min-w-[82px] h-11 rounded-xl border flex items-center justify-center gap-2 text-xs font-black transition-all ${method===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200 hover:border-neutral-500'}`}>
       <Icon size={15}/>{label}
     </button>
   );
 
-  return <div className="flex-1 min-h-0 bg-[#070b0f] text-white overflow-hidden">
+  return <>
+    <QuickSaleModal
+      isOpen={miniPdvOpen}
+      onClose={()=>setMiniPdvOpen(false)}
+      onAddToCart={(product,quantity)=>addQuickProduct(product,quantity)}
+      onAddAndCheckout={(product,quantity)=>{addQuickProduct(product,quantity);setMiniPdvOpen(false);}}
+      products={products}
+      currentCartCount={cart.reduce((sum,line)=>sum+line.quantity,0)}
+      currentCartTotal={subtotal}
+    />
+    <div className="flex-1 min-h-0 bg-[#070b0f] text-white overflow-hidden">
     {!currentSession&&<div className="fixed inset-0 z-[80] bg-black/55 backdrop-blur-[2px] grid place-items-center p-4">
       <div className="w-full max-w-[520px] rounded-2xl border border-amber-400 bg-[#0d1217] shadow-[0_28px_90px_rgba(0,0,0,.65)] p-5 sm:p-6">
         <div className="flex justify-end"><button onClick={()=>onNavigate('dashboard')} className="text-neutral-400 hover:text-white"><X size={20}/></button></div>
@@ -319,5 +349,6 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         </section>
       </aside>
     </div>
-  </div>;
+  </div>
+  </>;
 };
