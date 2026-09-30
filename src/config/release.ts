@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-legal-ai-third-party-r6-07',
+  releaseId: '2026-09-security-multitenant-hardening-08',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -23,7 +23,8 @@ export const APP_RELEASE = {
     'Tema Claro/Escuro disponível no cabeçalho e em Configurações, mantendo responsividade.',
     'Auditoria ganhou diagnóstico automático de sinais de erro e recorrência.',
     'Landing destaca IA e automação inteligente para marketing, recomendações na venda e auditoria assistida.',
-    'Políticas r6 detalham uso de IA, possibilidade de erros, conferência humana e responsabilidades de serviços de terceiros.'
+    'Políticas r6 detalham uso de IA, possibilidade de erros, conferência humana e responsabilidades de serviços de terceiros.',
+    'Segurança multi-tenant reforçada: isolamento tenant/loja obrigatório, bloqueio de escalada de privilégio e RPCs anônimas fechadas.'
   ]
 } as const;
 
