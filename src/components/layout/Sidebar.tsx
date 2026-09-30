@@ -185,13 +185,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-neutral-950 shadow-md shadow-amber-950/20 font-bold'
-                      : item.highlight
+                      : ('highlight' in item && item.highlight)
                       ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20'
                       : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon size={16} className={isActive ? 'text-neutral-950' : item.highlight ? 'text-amber-400' : 'text-neutral-400'} />
+                    <Icon size={16} className={isActive ? 'text-neutral-950' : ('highlight' in item && item.highlight) ? 'text-amber-400' : 'text-neutral-400'} />
                     <span>{item.label}</span>
                   </div>
                 </button>
