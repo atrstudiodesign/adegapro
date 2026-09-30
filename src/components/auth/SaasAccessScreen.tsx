@@ -248,16 +248,23 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
         <main className="relative z-10">
           <section className="relative border-b border-white/5 bg-black" aria-label="Apresentação ADEGA PRO">
             <div className="relative w-full mx-auto overflow-hidden">
-              <img
-                src="/adega-pro-hero.webp"
-                alt="ADEGA PRO — sua adega mais organizada, lucrativa e no controle. PDV completo, estoque inteligente, financeiro em tempo real, clientes e fidelização."
-                className="block w-full h-auto select-none"
-                width="1400"
-                height="573"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
+              <picture className="block w-full">
+                <source srcSet="/adega-pro-hero.webp" type="image/webp" />
+                <img
+                  src="/adega-pro-hero.webp"
+                  alt="ADEGA PRO — sua adega mais organizada, lucrativa e no controle. PDV completo, estoque inteligente, financeiro em tempo real, clientes e fidelização."
+                  className="block w-full h-auto select-none bg-neutral-950"
+                  width="1400"
+                  height="573"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="sync"
+                  onError={(event) => {
+                    event.currentTarget.style.display = 'none';
+                    event.currentTarget.parentElement?.parentElement?.classList.add('min-h-[420px]');
+                  }}
+                />
+              </picture>
               <a
                 href="https://wa.me/5511939026928?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20ADEGA%20PRO."
                 target="_blank"
