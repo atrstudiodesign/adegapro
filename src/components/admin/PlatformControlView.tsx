@@ -6,7 +6,14 @@ import {
 } from 'lucide-react';
 import { platformDb } from '../../services/platformDb';
 
-type Tab='OVERVIEW'|'TENANTS'|'BILLING'|'SUPPORT'|'INCIDENTS'|'AUDIT';
+type Tab='OVERVIEW'|'TENANTS'|'BILLING'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
+
+const FEATURE_CATALOG=[
+  ['dashboard','Dashboard geral','Visão consolidada da operação'],['minidash','Mini PDV','Resumo rápido de vendas e caixa'],['pos','Frente de caixa (PDV)','Venda rápida e recebimentos'],['sales','Vendas & cupons','Histórico e comprovantes'],['cash','Caixas & sessões','Abertura, movimentação e fechamento'],
+  ['products','Produtos','Cadastro e preços'],['categories','Categorias','Organização do catálogo'],['combos','Combos & kits','Produtos combinados'],['stock','Movimentação de estoque','Entradas, saídas e saldos'],['inventory','Inventário físico','Contagem e divergências'],
+  ['customers','Clientes & fiados','Cadastro, leads e fiado'],['suppliers','Fornecedores','Cadastro de fornecedores'],['purchases','Compras & NF entrada','Entradas e compras'],['finance','Financeiro & fluxo','Receitas, despesas e fluxo'],['employees','Funcionários & PINs','Operadores e acessos'],
+  ['reports','Centro de relatórios','Relatórios gerenciais'],['audit','Log de auditoria','Rastreamento de ações'],['integrations','Integrações & pagamentos','Webhooks e integrações'],['store-profile','Lojas & unidades','Cadastro e troca de unidade'],['settings','Configurações & impressão','PDV, cupom e impressoras'],['support','Suporte & backup','Chamados, backup e recuperação'],['legal','Legal, LGPD & licença','Documentos e guias']
+] as const;
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
 const dt=(v:any)=>v?new Date(v).toLocaleString('pt-BR'):'—';
 const dateValue=(v:any)=>v?String(v).slice(0,10):'';
@@ -99,9 +106,9 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
       <header className="px-4 sm:px-6 py-4 border-b border-neutral-800 bg-black/80 backdrop-blur">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-[.22em] text-amber-400 font-black">ATR Studio · Control Plane</div>
+            <div className="text-[10px] uppercase tracking-[.22em] text-amber-400 font-black">ATR Studio · Central Premium</div>
             <h1 className="text-2xl font-black mt-1">Administração da Plataforma</h1>
-            <p className="text-xs text-neutral-500 mt-1">Assinaturas, billing, suporte, incidentes, infraestrutura e auditoria administrativa.</p>
+            <p className="text-xs text-neutral-500 mt-1">Clientes, assinaturas, funcionalidades, suporte, infraestrutura e auditoria em um único painel.</p>
           </div>
           <div className="flex gap-2">
             <button onClick={()=>void refreshAll()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2 hover:border-amber-500/40"><RefreshCw size={14}/>Atualizar</button>
@@ -115,7 +122,8 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
             ['BILLING','Assinaturas',CreditCard],
             ['SUPPORT','Suporte',Headphones],
             ['INCIDENTS','Incidentes',AlertTriangle],
-            ['AUDIT','Auditoria',History]
+            ['AUDIT','Auditoria',History],
+            ['HELP','Ajuda',ShieldCheck]
           ] as [Tab,string,any][]).map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`shrink-0 px-3 py-2 rounded-xl border text-xs font-black flex items-center gap-2 ${tab===id?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'}`}><I size={14}/>{label}</button>)}
         </nav>
       </header>
@@ -167,6 +175,20 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
         {tab==='INCIDENTS'&&<GlobalIncidents tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}
         {tab==='AUDIT'&&<GlobalAudit tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}
 
+        {tab==='HELP'&&<div className="grid lg:grid-cols-2 gap-4">
+          <FormCard title="Como usar o ATR Control" description="Painel administrativo exclusivo da ATR Studio.">
+            <div className="space-y-3 text-xs text-neutral-300 leading-relaxed">
+              <p><b className="text-white">Clientes:</b> abra um cliente para controlar plano, licença, lojas, usuários, suporte e funcionalidades.</p>
+              <p><b className="text-white">Funcionalidades:</b> habilite ou bloqueie módulos individualmente. Sem configuração explícita, o cliente mantém o comportamento atual do plano.</p>
+              <p><b className="text-white">Assinaturas:</b> controle situação comercial, vencimento, trial e cobrança.</p>
+              <p><b className="text-white">Infraestrutura:</b> registre o modo de banco, provedor, região e situação técnica.</p>
+              <p><b className="text-white">Auditoria:</b> alterações administrativas são registradas para rastreabilidade.</p>
+            </div>
+          </FormCard>
+          <FormCard title="Níveis de acesso" description="Da operação básica aos módulos avançados.">
+            <div className="grid sm:grid-cols-2 gap-2">{FEATURE_CATALOG.map(([key,label,help])=><div key={key} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800"><div className="font-black text-white text-xs">{label}</div><div className="text-[10px] text-neutral-500 mt-1">{help}</div></div>)}</div>
+          </FormCard>
+        </div>}
         {busy&&!data&&<div className="py-20 text-center text-sm text-neutral-500">Validando privilégios e carregando plataforma...</div>}
       </main>
     </div>
@@ -183,7 +205,10 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
   const[comm,setComm]=useState<any>({tenant_id:tenant.id,channel:'INTERNAL',subject:'',message:'',status:'DRAFT'});
   const[incident,setIncident]=useState<any>({tenant_id:tenant.id,severity:'MEDIUM',status:'OPEN',title:'',description:''});
   const[webhook,setWebhook]=useState<any>(detail.webhooks?.[0]||{tenant_id:tenant.id,provider:'CUSTOM',webhook_url:'',event_types:[],auth_mode:'NONE',secret_ref:'',enabled:false});
-  const[section,setSection]=useState<'SUMMARY'|'SUBSCRIPTION'|'LICENSE'|'STORES'|'USERS'|'SUPPORT'|'BILLING_EVENTS'|'WEBHOOKS'|'COMMS'|'INCIDENTS'|'INFRA'|'AUDIT'>('SUMMARY');
+  const[section,setSection]=useState<'SUMMARY'|'FEATURES'|'SUBSCRIPTION'|'LICENSE'|'STORES'|'USERS'|'SUPPORT'|'BILLING_EVENTS'|'WEBHOOKS'|'COMMS'|'INCIDENTS'|'INFRA'|'AUDIT'>('SUMMARY');
+  const[features,setFeatures]=useState<Record<string,boolean>>({});
+  const[featureBusy,setFeatureBusy]=useState('');
+  useEffect(()=>{void platformDb.getPlatformTenantFeatures(tenant.id).then(setFeatures).catch(()=>setFeatures({}));},[tenant.id]);
 
   const action=async(fn:()=>Promise<any>,ok:string)=>{
     onError('');onFeedback('');
@@ -195,16 +220,23 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
     <aside className="absolute inset-y-0 right-0 w-full max-w-5xl bg-[#0b0b0b] border-l border-neutral-800 overflow-y-auto">
       <div className="sticky top-0 z-10 bg-[#0b0b0b]/95 backdrop-blur border-b border-neutral-800 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-4">
-          <div><div className="text-[10px] text-amber-400 font-black uppercase tracking-wider">Tenant Control</div><h2 className="text-xl font-black mt-1">{tenant.trade_name||tenant.legal_name}</h2><div className="text-xs text-neutral-500 mt-1">{tenant.legal_name} · {tenant.cnpj||'sem CNPJ'}</div></div>
+          <div><div className="text-[10px] text-amber-400 font-black uppercase tracking-wider">Controle do cliente</div><h2 className="text-xl font-black mt-1">{tenant.trade_name||tenant.legal_name}</h2><div className="text-xs text-neutral-500 mt-1">{tenant.legal_name} · {tenant.cnpj||'sem CNPJ'}</div></div>
           <button onClick={onClose} className="p-2 rounded-xl bg-neutral-900 border border-neutral-800"><X size={18}/></button>
         </div>
         <div className="mt-4 flex gap-2 overflow-x-auto">{([
-          ['SUMMARY','Resumo'],['SUBSCRIPTION','Assinatura'],['LICENSE','Licença'],['STORES','Lojas'],['USERS','Usuários'],['SUPPORT','Suporte'],['BILLING_EVENTS','Billing'],['WEBHOOKS','Webhooks'],['COMMS','Comunicação'],['INCIDENTS','Incidentes'],['INFRA','Infra'],['AUDIT','Auditoria']
+          ['SUMMARY','Resumo'],['FEATURES','Funcionalidades'],['SUBSCRIPTION','Assinatura'],['LICENSE','Licença'],['STORES','Lojas'],['USERS','Usuários'],['SUPPORT','Suporte'],['BILLING_EVENTS','Cobrança'],['WEBHOOKS','Integrações'],['COMMS','Comunicação'],['INCIDENTS','Incidentes'],['INFRA','Infraestrutura'],['AUDIT','Auditoria']
         ] as const).map(([id,label])=><button key={id} onClick={()=>setSection(id)} className={`shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black ${section===id?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-900 border-neutral-800 text-neutral-500'}`}>{label}</button>)}</div>
       </div>
 
       <div className="p-4 sm:p-5">
         {section==='SUMMARY'&&<div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3"><Info l="Plano" v={tenant.plan}/><Info l="Status" v={tenant.active?'ATIVO':'SUSPENSO'}/><Info l="Lojas" v={detail.stores?.length||0}/><Info l="Usuários" v={detail.users?.length||0}/><Info l="Assinatura" v={detail.subscriptions?.[0]?.status||'—'}/><Info l="Valor" v={detail.subscriptions?.[0]?.amount?money(detail.subscriptions[0].amount):'—'}/><Info l="Licença" v={detail.licenses?.[0]?.modality||'—'}/><Info l="Banco" v={detail.infrastructure?.database_mode||'SHARED'}/></div>}
+
+        {section==='FEATURES'&&<FormCard title="Funcionalidades do cliente" description="Habilite ou bloqueie qualquer módulo. Sem override, o módulo permanece liberado conforme o comportamento atual.">
+          <div className="grid md:grid-cols-2 gap-3">
+            {FEATURE_CATALOG.map(([key,label,help])=>{const enabled=features[key]!==false;return <div key={key} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex items-start justify-between gap-3"><div><div className="font-black text-white text-xs">{label}</div><div className="text-[10px] text-neutral-500 mt-1">{help}</div></div><button disabled={featureBusy===key} onClick={()=>{setFeatureBusy(key);void platformDb.setPlatformTenantFeature(tenant.id,key,!enabled).then(()=>setFeatures(prev=>({...prev,[key]:!enabled}))).then(()=>onFeedback((!enabled?'Liberado: ':'Bloqueado: ')+label)).catch((e:any)=>onError(e?.message||'Falha ao alterar funcionalidade.')).finally(()=>setFeatureBusy(''));}} className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black border ${enabled?'bg-emerald-950 text-emerald-300 border-emerald-800':'bg-rose-950 text-rose-300 border-rose-800'}`}>{enabled?'ATIVO':'BLOQUEADO'}</button></div>})}
+          </div>
+          <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-900/50 text-[11px] text-amber-200">Ajuda: bloquear um módulo remove o acesso visual do cliente. Use com cuidado em produção e valide o plano contratado antes de reduzir funcionalidades.</div>
+        </FormCard>}
 
         {section==='SUBSCRIPTION'&&<FormCard title="Assinatura e cobrança" description="Controle comercial interno. Alterações ficam registradas em auditoria.">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -217,9 +249,9 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
             <Field label="Início trial"><input type="date" value={dateValue(sub.trial_start)} onChange={e=>setSub({...sub,trial_start:e.target.value?e.target.value+'T12:00:00Z':''})} className="input"/></Field>
             <Field label="Fim trial"><input type="date" value={dateValue(sub.trial_end)} onChange={e=>setSub({...sub,trial_end:e.target.value?e.target.value+'T12:00:00Z':''})} className="input"/></Field>
             <Field label="Carência até"><input type="date" value={dateValue(sub.grace_until)} onChange={e=>setSub({...sub,grace_until:e.target.value?e.target.value+'T12:00:00Z':''})} className="input"/></Field>
-            <Field label="Provider"><input value={sub.provider||'MANUAL'} onChange={e=>setSub({...sub,provider:e.target.value})} className="input"/></Field>
-            <Field label="Ref. cliente provider"><input value={sub.provider_customer_ref||''} onChange={e=>setSub({...sub,provider_customer_ref:e.target.value})} className="input"/></Field>
-            <Field label="Ref. assinatura provider"><input value={sub.provider_subscription_ref||''} onChange={e=>setSub({...sub,provider_subscription_ref:e.target.value})} className="input"/></Field>
+            <Field label="Provedor"><input value={sub.provider||'MANUAL'} onChange={e=>setSub({...sub,provider:e.target.value})} className="input"/></Field>
+            <Field label="Ref. cliente no provedor"><input value={sub.provider_customer_ref||''} onChange={e=>setSub({...sub,provider_customer_ref:e.target.value})} className="input"/></Field>
+            <Field label="Ref. assinatura no provedor"><input value={sub.provider_subscription_ref||''} onChange={e=>setSub({...sub,provider_subscription_ref:e.target.value})} className="input"/></Field>
           </div>
           <Field label="Notas administrativas"><textarea value={sub.admin_notes||''} onChange={e=>setSub({...sub,admin_notes:e.target.value})} className="input min-h-24"/></Field>
           <label className="flex items-center gap-2 text-xs text-neutral-400"><input type="checkbox" checked={!!sub.cancel_at_period_end} onChange={e=>setSub({...sub,cancel_at_period_end:e.target.checked})}/>Cancelar ao final do período</label>

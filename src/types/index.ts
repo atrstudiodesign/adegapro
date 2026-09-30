@@ -53,6 +53,9 @@ export interface Store {
   logoUrl?: string;
   thermalWidth: '58mm' | '80mm';
   receiptFooter: string;
+  printerModel?: string;
+  printerConnection?: string;
+  autoPrintReceipt?: boolean;
   allowSellWithoutStock: boolean;
   requireCustomer: boolean;
   requirePasswordForCancel: boolean;

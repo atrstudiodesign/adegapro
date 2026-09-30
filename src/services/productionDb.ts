@@ -7,26 +7,54 @@ export interface ProductionContext {
   storeId: string;
 }
 
-async function getContext(): Promise<ProductionContext> {
+const ACTIVE_STORE_KEY='adega_pro_active_store_id';
+
+async function getAccessibleStoreAccess() {
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) throw new Error('Faça login para acessar o ambiente de produção.');
-
-  const { data: access, error } = await supabase
+  const { data, error } = await supabase
     .from('user_store_access')
-    .select('tenant_id, store_id')
-    .eq('user_id', authData.user.id)
-    .eq('active', true)
-    .limit(1)
-    .maybeSingle();
-
+    .select('tenant_id,store_id')
+    .eq('user_id',authData.user.id)
+    .eq('active',true)
+    .order('created_at');
   if (error) throw error;
-  if (!access) throw new Error('Usuário sem acesso a uma loja cadastrada.');
+  if (!data?.length) throw new Error('Usuário sem acesso a uma loja cadastrada.');
+  return { userId: authData.user.id, access: data };
+}
 
-  return {
-    userId: authData.user.id,
-    tenantId: access.tenant_id,
-    storeId: access.store_id
-  };
+async function getContext(): Promise<ProductionContext> {
+  const { userId, access } = await getAccessibleStoreAccess();
+  const selected = typeof window !== 'undefined' ? localStorage.getItem(ACTIVE_STORE_KEY) : null;
+  const chosen = access.find((x:any)=>x.store_id===selected) || access[0];
+  if (typeof window !== 'undefined' && chosen?.store_id) localStorage.setItem(ACTIVE_STORE_KEY,chosen.store_id);
+  return { userId, tenantId: chosen.tenant_id, storeId: chosen.store_id };
+}
+
+async function getAccessibleStores(): Promise<Store[]> {
+  const { access } = await getAccessibleStoreAccess();
+  const ids=access.map((x:any)=>x.store_id);
+  const { data,error }=await supabase.from('stores').select('*').in('id',ids).eq('active',true).order('created_at');
+  if(error) throw error;
+  return (data||[]).map(mapStore);
+}
+
+async function selectStore(storeId:string) {
+  const { access } = await getAccessibleStoreAccess();
+  if(!access.some((x:any)=>x.store_id===storeId)) throw new Error('Você não possui acesso a esta loja.');
+  localStorage.setItem(ACTIVE_STORE_KEY,storeId);
+  window.dispatchEvent(new CustomEvent('adega-pro-store-change',{detail:storeId}));
+}
+
+async function createStore(payload: Partial<Store> & { name:string; tradeName:string }):Promise<string>{
+  const { data,error }=await supabase.rpc('create_store_for_my_tenant',{p_payload:{
+    legal_name:payload.name,trade_name:payload.tradeName,cnpj:payload.cnpj||null,
+    state_registration:payload.stateRegistration||null,phone:payload.phone||null,whatsapp:payload.whatsapp||null,
+    email:payload.email||null,address:payload.address||null,city:payload.city||null,state:payload.state||null,
+    zip_code:payload.zipCode||null,instagram:payload.instagram||null,opening_hours:payload.openingHours||null
+  }});
+  if(error) throw error;
+  return data as string;
 }
 
 function publicLogoUrl(path?: string | null) {
@@ -55,6 +83,9 @@ function mapStore(row: any): Store {
     logoUrl: publicLogoUrl(row.logo_path),
     thermalWidth: row.thermal_width || '80mm',
     receiptFooter: row.receipt_footer || '',
+    printerModel: row.printer_model || 'GENERICA_ESC_POS',
+    printerConnection: row.printer_connection || 'NAVEGADOR',
+    autoPrintReceipt: Boolean(row.auto_print_receipt),
     allowSellWithoutStock: Boolean(row.allow_sell_without_stock),
     requireCustomer: Boolean(row.require_customer),
     requirePasswordForCancel: Boolean(row.require_password_for_cancel),
@@ -187,6 +218,24 @@ function mapCashSession(row: any, register?: any, operator?: any): CashSession {
 }
 
 
+async function getTenantFeatures():Promise<Record<string,boolean>>{
+  const {data,error}=await supabase.rpc('get_my_tenant_features');
+  if(error) throw error;
+  return (data||{}) as Record<string,boolean>;
+}
+
+async function exportTenantBackup(){
+  const {data,error}=await supabase.rpc('export_my_tenant_backup');
+  if(error) throw error;
+  return data;
+}
+
+async function validateTenantBackup(fileName:string,payload:any){
+  const {data,error}=await supabase.rpc('import_my_tenant_backup',{p_file_name:fileName,p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
 async function getEntitlement() {
   const { data, error } = await supabase.rpc('get_my_entitlement');
   if (error) throw error;
@@ -218,6 +267,9 @@ async function saveStore(payload: Partial<Store>): Promise<Store> {
   if (payload.openingHours !== undefined) dbPayload.opening_hours = payload.openingHours;
   if (payload.thermalWidth !== undefined) dbPayload.thermal_width = payload.thermalWidth;
   if (payload.receiptFooter !== undefined) dbPayload.receipt_footer = payload.receiptFooter;
+  if (payload.printerModel !== undefined) dbPayload.printer_model = payload.printerModel;
+  if (payload.printerConnection !== undefined) dbPayload.printer_connection = payload.printerConnection;
+  if (payload.autoPrintReceipt !== undefined) dbPayload.auto_print_receipt = payload.autoPrintReceipt;
   if (payload.allowSellWithoutStock !== undefined) dbPayload.allow_sell_without_stock = payload.allowSellWithoutStock;
   if (payload.requireCustomer !== undefined) dbPayload.require_customer = payload.requireCustomer;
   if (payload.requirePasswordForCancel !== undefined) dbPayload.require_password_for_cancel = payload.requirePasswordForCancel;
@@ -969,6 +1021,12 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
 
 export const productionDb = {
   getContext,
+  getAccessibleStores,
+  selectStore,
+  createStore,
+  getTenantFeatures,
+  exportTenantBackup,
+  validateTenantBackup,
   getEntitlement,
   getStore,
   saveStore,

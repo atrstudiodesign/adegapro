@@ -80,6 +80,7 @@ export default function App() {
     'LANDING'
   );
   const [commercialCleared, setCommercialCleared] = useState(false);
+  const [featureAccess,setFeatureAccess]=useState<Record<string,boolean>>({});
   const [platformAdminRoute, setPlatformAdminRoute] = useState(() =>
     window.location.pathname === '/atr-control' || window.location.hash === '#/atr-control'
   );
@@ -171,6 +172,15 @@ export default function App() {
       }
     }
   };
+
+  useEffect(()=>{
+    if(appMode!=='PRODUCTION'||!saasAuthenticated){setFeatureAccess({});return;}
+    void productionDb.getTenantFeatures().then(setFeatureAccess).catch(()=>setFeatureAccess({}));
+  },[appMode,saasAuthenticated,isLocked]);
+
+  useEffect(()=>{
+    if(appMode==='PRODUCTION' && featureAccess[currentTab]===false) setCurrentTab('dashboard');
+  },[appMode,featureAccess,currentTab]);
 
   // Enforce access control: Caixa only sees PDV, produtos, vendas do dia, mini dash e caixa
   useEffect(() => {
@@ -303,6 +313,8 @@ export default function App() {
           currentUser={currentUser}
           mobileOpen={mobileNavOpen}
           onClose={() => setMobileNavOpen(false)}
+          appMode={appMode}
+          featureAccess={featureAccess}
         />
 
         <main className="app-content flex-1 min-w-0 flex flex-col overflow-hidden bg-neutral-950">
@@ -373,10 +385,11 @@ export default function App() {
           {currentTab === 'audit' && (appMode === 'PRODUCTION' ? <ProductionAuditView /> : <AuditView />)}
           {currentTab === 'integrations' && (appMode === 'PRODUCTION' ? <ProductionIntegrationsView /> : <IntegrationsView />)}
           {currentTab === 'store-profile' && <StoreProfileView appMode={appMode} />}
-          {currentTab === 'settings' && (appMode === 'PRODUCTION' ? <StoreProfileView appMode={appMode} /> : <SettingsView />)}
+          {currentTab === 'settings' && <SettingsView appMode={appMode} />}
           {currentTab === 'support' && <SupportView appMode={appMode} />}
           {currentTab === 'legal' && (
             <LegalCenter
+              appMode={appMode}
               active={legalDoc}
               onSelect={setLegalDoc}
               onBack={() => setCurrentTab('dashboard')}

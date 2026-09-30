@@ -69,6 +69,7 @@
    Mobile-first safeguards for the full application shell
 ----------------------------------------------------- */
 html, body, #root {
+  color-scheme: dark;
   width: 100%;
   min-width: 0;
   min-height: 100%;
@@ -287,3 +288,10 @@ body {
   font-weight: 800;
 }
 .btn-secondary:hover { border-color: rgba(245,158,11,.45); color: white; }
+
+
+/* Device-safe dark shell */
+html,body,#root{min-height:100dvh;background:#080808}
+@media (hover:none) and (pointer:coarse){button,a,input,select{min-height:40px}.app-content{overscroll-behavior:contain}}
+@media (min-width:1280px){.app-content{font-size:15px}}
+@media (max-width:360px){.app-content table{min-width:620px}.app-content{font-size:13px}}

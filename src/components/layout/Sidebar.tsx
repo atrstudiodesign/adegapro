@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { User } from '../../types';
 import { APP_VERSION_LABEL } from '../../config/release';
+import type { AppMode } from '../../services/appMode';
 
 interface SidebarProps {
   currentTab: string;
@@ -35,6 +36,8 @@ interface SidebarProps {
   collapsed?: boolean;
   mobileOpen?: boolean;
   onClose?: () => void;
+  appMode?: AppMode;
+  featureAccess?: Record<string,boolean>;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -42,7 +45,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   currentUser,
   mobileOpen = false,
-  onClose
+  onClose,
+  appMode = 'DEMO',
+  featureAccess = {}
 }) => {
   const isPlatformAdmin = (currentUser.role as string) === 'SUPER_ADMIN';
   const isTenantAdmin = currentUser.role === 'ADMINISTRADOR';
@@ -101,8 +106,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'reports', label: 'Centro de Relatórios', icon: BarChart3, permission: 'reports.view' },
         { id: 'audit', label: 'Log de Auditoria', icon: ShieldCheck, permission: 'reports.view' },
         { id: 'integrations', label: 'Integrações & Pagamentos', icon: Cable, permission: 'settings.edit' },
-        { id: 'store-profile', label: 'Cadastro da Adega', icon: StoreIcon, permission: 'settings.edit' },
-        { id: 'settings', label: 'Configurações Loja', icon: Settings, permission: 'settings.edit' },
+        { id: 'store-profile', label: 'Lojas & Unidades', icon: StoreIcon, permission: 'settings.edit' },
+        { id: 'settings', label: 'Configurações & Impressão', icon: Settings, permission: 'settings.edit' },
         { id: 'support', label: 'Suporte ATR Studio', icon: Headphones, permission: null },
         { id: 'legal', label: 'Legal, LGPD & Licença', icon: Scale, permission: null }
       ]
@@ -115,7 +120,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return currentUser.permissions.includes(permission as any);
   };
 
-  const activeGroups = isCaixa ? cashierMenuGroups : fullMenuGroups;
+  const demoAllowed = new Set(['dashboard','minidash','pos','sales','products','stock','customers','support','legal']);
+  const featureEnabled = (id:string) => featureAccess[id] !== false;
+  const sourceGroups = isCaixa ? cashierMenuGroups : fullMenuGroups;
+  const activeGroups = sourceGroups.map(group=>({
+    ...group,
+    items: group.items.filter(item => appMode==='DEMO' ? demoAllowed.has(item.id) : featureEnabled(item.id))
+  })).filter(group=>group.items.length>0);
 
   const navigate = (tab: string) => {
     onNavigate(tab);
@@ -150,6 +161,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       </div>
+
+      {appMode==='DEMO'&&<div className="mx-3 mt-3 p-3 rounded-xl border border-violet-500/30 bg-violet-500/10 text-[10px] text-violet-200 leading-relaxed"><b>DEMONSTRAÇÃO LIMITADA</b><br/>Recursos avançados são liberados conforme o plano contratado.</div>}
 
       <div className="p-4 space-y-6">
         {activeGroups.map((group, gIdx) => (
