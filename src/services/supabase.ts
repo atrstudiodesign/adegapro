@@ -14,7 +14,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: window.location.pathname !== '/atr-control',
+    detectSessionInUrl: window.location.pathname !== '/atr-control' && !window.location.pathname.startsWith('/vendedor'),
     storageKey: 'adega_pro_tenant_auth'
   }
 });

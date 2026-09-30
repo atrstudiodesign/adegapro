@@ -55,6 +55,7 @@ import { ProductionModuleGuard } from './components/common/ProductionModuleGuard
 import { productionDb } from './services/productionDb';
 import { PlatformAdminAccessScreen } from './components/admin/PlatformAdminAccessScreen';
 import { ReleaseUpdateModal } from './components/common/ReleaseUpdateModal';
+import { PartnerPortalScreen } from './components/partner/PartnerPortalScreen';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -84,6 +85,7 @@ export default function App() {
   const [platformAdminRoute, setPlatformAdminRoute] = useState(() =>
     window.location.pathname === '/atr-control' || window.location.hash === '#/atr-control'
   );
+  const [partnerRoute,setPartnerRoute]=useState(()=>window.location.pathname.startsWith('/vendedor'));
 
   useEffect(() => {
     let mounted = true;
@@ -131,6 +133,7 @@ export default function App() {
 
       const path = window.location.pathname;
       setPlatformAdminRoute(path === '/atr-control');
+      setPartnerRoute(path.startsWith('/vendedor'));
       setReceiptHashId(path.startsWith('/comprovante/')
         ? decodeURIComponent(path.slice('/comprovante/'.length))
         : null);
@@ -201,6 +204,10 @@ export default function App() {
 
   if (platformAdminRoute) {
     return <PlatformAdminAccessScreen />;
+  }
+
+  if (partnerRoute) {
+    return <PartnerPortalScreen />;
   }
 
   if (!saasReady) {

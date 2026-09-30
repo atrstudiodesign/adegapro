@@ -80,6 +80,15 @@ async function setPlatformTenantFeature(tenantId:string,featureKey:string,enable
   if(error) throw error;
 }
 
+async function createPlatformPartnerInvite(email?:string,days=7){
+  const {data,error}=await platformSupabase.rpc('create_platform_partner_invite_for_email',{
+    p_email:email?.trim()||null,
+    p_days:days
+  });
+  if(error) throw error;
+  return data as {invite_id:string;token:string;expires_at:string;intended_email?:string|null};
+}
+
 async function getPlatformPartnerSnapshot(){
   const {data,error}=await platformSupabase.rpc('get_platform_partner_snapshot');
   if(error) throw error;
@@ -152,6 +161,7 @@ export const platformDb = {
   savePlatformWebhookConfig,
   getPlatformTenantFeatures,
   setPlatformTenantFeature,
+  createPlatformPartnerInvite,
   getPlatformPartnerSnapshot,
   savePlatformSalesPartner,
   savePlatformPartnerReferral,
