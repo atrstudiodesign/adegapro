@@ -358,6 +358,7 @@ export default function App() {
                 currentUser={currentUser}
                 currentSession={currentSession}
                 onNavigate={tab => setCurrentTab(tab)}
+                onSessionUpdated={handleSessionUpdated}
               />
             )
           )}
