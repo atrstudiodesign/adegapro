@@ -7,7 +7,7 @@ import { BrandLogo } from '../common/BrandLogo';
 import { PinAuthModal } from '../common/PinAuthModal';
 import { OfflineSyncControl } from '../common/OfflineSyncControl';
 import { PWAInstallButton } from '../common/PWAInstallButton';
-import { ShoppingCart, UserCheck, Bell, Store as StoreIcon, Lock, Menu, Moon, Sun } from 'lucide-react';
+import { ShoppingCart, UserCheck, Bell, Store as StoreIcon, Lock, Menu, Moon, Sun, Zap } from 'lucide-react';
 
 interface HeaderProps {
   currentTab: string;
@@ -21,174 +21,76 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  currentTab,
-  onNavigate,
-  currentUser,
-  onUserChanged,
-  currentSession,
-  onLock,
-  onMenuToggle,
-  appMode = 'DEMO'
+  currentTab,onNavigate,currentUser,onUserChanged,currentSession,onLock,onMenuToggle,appMode='DEMO'
 }) => {
-  const [showPinModal, setShowPinModal] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [showPinModal,setShowPinModal]=useState(false);
+  const [unreadNotifications,setUnreadNotifications]=useState(0);
   const [store,setStore]=useState(()=>db.getStore());
-  const [runtimeStatus,setRuntimeStatus]=useState<'ONLINE'|'CHECKING'|'ATTENTION'>('CHECKING');
-  const [theme,setTheme]=useState<'dark'|'light'>(()=>{
-    const saved=localStorage.getItem('adega_pro_theme');
-    return saved==='light'?'light':'dark';
-  });
+  const [theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
 
+  useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('adega_pro_theme',theme);},[theme]);
   useEffect(()=>{
-    document.documentElement.dataset.theme=theme;
-    localStorage.setItem('adega_pro_theme',theme);
-  },[theme]);
-
-  useEffect(() => {
-    let alive = true;
-    if (appMode === 'PRODUCTION') {
-      setRuntimeStatus('CHECKING');
-      Promise.all([
-        productionDb.getStore(),
-        productionDb.getProducts(),
-        productionDb.getExpiryAlerts(30)
-      ]).then(([s, products, expiry]) => {
-        if (!alive) return;
-        setStore(s);
-        const low = products.filter(p => !p.isCombo && p.currentStock <= p.minStock).length;
-        const alerts = low + expiry.length;
-        setUnreadNotifications(alerts);
-        setRuntimeStatus(alerts > 0 ? 'ATTENTION' : 'ONLINE');
-      }).catch(() => {
-        if (!alive) return;
-        setRuntimeStatus('ATTENTION');
-      });
-    } else {
+    let alive=true;
+    if(appMode==='PRODUCTION'){
+      Promise.all([productionDb.getStore(),productionDb.getProducts(),productionDb.getExpiryAlerts(30)])
+        .then(([s,products,expiry])=>{
+          if(!alive)return;
+          setStore(s);
+          const low=products.filter(p=>!p.isCombo&&p.currentStock<=p.minStock).length;
+          setUnreadNotifications(low+expiry.length);
+        }).catch(()=>{if(alive)setUnreadNotifications(1);});
+    }else{
       setStore(db.getStore());
-      const notifs = db.getNotifications();
-      setUnreadNotifications(notifs.filter(n => !n.read).length);
-      setRuntimeStatus('ONLINE');
+      setUnreadNotifications(db.getNotifications().filter(n=>!n.read).length);
     }
-    return () => { alive = false; };
-  }, [currentTab, appMode]);
+    return()=>{alive=false};
+  },[currentTab,appMode]);
+
+  const actionClass=(active:boolean)=>`flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] sm:text-xs font-black transition-all ${active?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-900 text-neutral-300 border-neutral-700 hover:border-amber-500/50 hover:text-white'}`;
 
   return (
     <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a] border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
-      {/* Zone 1: Single element Brand & Store name */}
       <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-        <button
-          onClick={onMenuToggle}
-          aria-label="Abrir menu"
-          className="lg:hidden shrink-0 w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-800/80 text-neutral-200 grid place-items-center active:scale-95"
-        >
-          <Menu size={19} />
+        <button onClick={()=>onNavigate('dashboard')} className="flex items-center text-left focus-visible:outline-none">
+          <BrandLogo size="sm" variant="full"/>
         </button>
-        <button
-          onClick={() => onNavigate('dashboard')}
-          className="flex items-center text-left focus-visible:outline-none"
-        >
-          <BrandLogo size="sm" variant="full" />
-        </button>
-        <span className="hidden md:inline-block text-neutral-600">/</span>
-        <div className="hidden md:flex items-center gap-2 text-xs text-neutral-400">
-          <StoreIcon size={14} className="text-amber-400" />
+        <span className="hidden xl:inline-block text-neutral-600">/</span>
+        <div className="hidden xl:flex items-center gap-2 text-xs text-neutral-400">
+          <StoreIcon size={14} className="text-amber-400"/>
           <span className="text-neutral-200 font-medium">{store.name}</span>
           <span className="text-neutral-600">·</span>
-          <span>CNPJ {store.cnpj}</span>
+          <span>{currentSession?currentSession.cashRegisterNumber+' aberto':'Caixa fechado'}</span>
         </div>
       </div>
 
-      {/* Zone 2: Navigation Links / Fast contextual stats */}
-      <div className="hidden lg:flex items-center gap-6 text-xs text-neutral-400 font-medium">
-        <div className="flex items-center gap-2">
-          <span className="text-neutral-500">Caixa Atual:</span>
-          {currentSession ? (
-            <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              {currentSession.cashRegisterNumber} (Aberto)
-            </span>
-          ) : (
-            <span className="text-rose-400 font-semibold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-400"></span>
-              Caixa Fechado
-            </span>
-          )}
-        </div>
-        <span className="text-neutral-700">·</span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-neutral-500">Operador:</span>
-          <span className="text-neutral-200 font-medium">{currentUser.name.split(' ')[0]}</span>
-          <span className="text-neutral-500 font-mono text-[10px]">({currentUser.role})</span>
-        </div>
-      </div>
-
-      {/* Zone 3: 1-2 Primary Action Buttons */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3 shrink-0">
-        <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} title={theme==='dark'?'Ativar tema claro':'Ativar tema escuro'} aria-label="Alternar tema" className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-800/70 text-neutral-300 grid place-items-center hover:text-amber-400 transition-colors">{theme==='dark'?<Sun size={16}/>:<Moon size={16}/>}</button>
-
-        {/* Offline Sync Status & Service Worker Connection Controller */}
-        <OfflineSyncControl />
-
-        {/* PWA Install Button */}
-        <PWAInstallButton />
-
-        {/* Rapid POS Switch CTA */}
-        {currentTab !== 'pos' ? (
-          <button
-            onClick={() => onNavigate('pos')}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer active:scale-95 min-h-10"
-          >
-            <ShoppingCart size={15} />
-            <span className="hidden md:inline">Frente de Caixa (PDV)</span>
-          </button>
-        ) : (
-          <button
-            onClick={() => onNavigate(currentUser.role === 'CAIXA' ? 'minidash' : 'dashboard')}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold text-xs transition-colors border border-neutral-700 cursor-pointer"
-          >
-            <span>{currentUser.role === 'CAIXA' ? 'Mini Dash do Caixa' : 'Retornar ao Painel'}</span>
-          </button>
-        )}
-        {/* User changes must always pass through PIN authentication */}
-        {/* Change Cashier / User via PIN */}
-        <button
-          onClick={() => setShowPinModal(true)}
-          title="Autenticar por PIN de 4 dígitos"
-          className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800/80 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs border border-neutral-700/60 transition-colors cursor-pointer"
-        >
-          <UserCheck size={14} className="text-amber-400" />
-          <span className="font-mono font-bold">PIN</span>
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 overflow-x-auto">
+        <button onClick={()=>onNavigate('pos')} className={actionClass(currentTab==='pos')}>
+          <ShoppingCart size={15}/><span className="hidden sm:inline">PDV Completo</span>
+        </button>
+        <button onClick={()=>onNavigate('minidash')} className={actionClass(currentTab==='minidash')}>
+          <Zap size={15}/><span className="hidden sm:inline">Mini PDV Rápido</span>
+        </button>
+        <button onClick={onMenuToggle} className={actionClass(false)} title="Abrir funcionalidades administrativas da loja">
+          <Menu size={15}/><span className="hidden md:inline">Funcionalidades</span>
         </button>
 
-        {/* Lock Terminal / Frente da Tela */}
-        {onLock && (
-          <button
-            onClick={onLock}
-            title="Bloquear Terminal / Frente da Tela (ADEGA PRO)"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-neutral-800/80 hover:bg-amber-500/10 text-neutral-400 hover:text-amber-400 text-xs border border-neutral-700/60 hover:border-amber-500/40 transition-colors cursor-pointer"
-          >
-            <Lock size={14} />
-            <span className="hidden sm:inline text-[11px] font-semibold">Bloquear</span>
-          </button>
-        )}
-
-        {/* Quick Notifications Indicator */}
-        <button
-          onClick={() => onNavigate(appMode === 'PRODUCTION' ? 'dashboard' : 'products')}
-          title={unreadNotifications > 0 ? `${unreadNotifications} alerta(s) operacional(is)` : 'Sem alertas operacionais'}
-          className="relative p-2 rounded-lg bg-neutral-800/60 hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <Bell size={16} />
-          {unreadNotifications > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-neutral-950 text-[8px] font-black grid place-items-center">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
-          )}
+        <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} title="Alternar tema" className="w-9 h-9 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 grid place-items-center hover:text-amber-400">{theme==='dark'?<Sun size={15}/>:<Moon size={15}/>}</button>
+        <div className="hidden lg:block"><OfflineSyncControl/></div>
+        <div className="hidden lg:block"><PWAInstallButton/></div>
+        <button onClick={()=>setShowPinModal(true)} title="Trocar operador por PIN" className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900 text-neutral-300 text-xs border border-neutral-700">
+          <UserCheck size={14} className="text-amber-400"/><span>PIN</span>
+        </button>
+        {onLock&&<button onClick={onLock} title="Bloquear terminal" className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-700 text-neutral-400 grid place-items-center hover:text-amber-400"><Lock size={14}/></button>}
+        <button onClick={()=>onNavigate('dashboard')} title={unreadNotifications?unreadNotifications+' alerta(s)':'Sem alertas'} className="relative w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-700 text-neutral-400 grid place-items-center">
+          <Bell size={15}/>
+          {unreadNotifications>0&&<span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-neutral-950 text-[8px] font-black grid place-items-center">{unreadNotifications>9?'9+':unreadNotifications}</span>}
         </button>
       </div>
 
       <PinAuthModal
         isOpen={showPinModal}
-        onClose={() => setShowPinModal(false)}
-        onSuccess={(user) => onUserChanged(user)}
+        onClose={()=>setShowPinModal(false)}
+        onSuccess={onUserChanged}
         title="Troca Rápida de Operador"
         description="Digite seu PIN de 4 dígitos para assumir a sessão do terminal"
       />
