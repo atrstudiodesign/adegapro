@@ -138,6 +138,30 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
             {metricCards.map(([l,v,I,tone]:any)=><Metric key={l} label={l} value={v} icon={I} tone={tone}/>)}
           </div>
+          <div className="grid xl:grid-cols-[1.1fr_.9fr] gap-4 mt-5">
+            <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+              <div className="flex items-center justify-between"><div><h2 className="font-black">Distribuição operacional</h2><p className="text-[10px] text-neutral-500 mt-1">Leitura rápida da carteira e pontos de atenção</p></div></div>
+              <div className="space-y-3 mt-4">
+                {[
+                  ['Clientes ativos',Number(data?.metrics?.active_tenants||0),Number(data?.metrics?.tenant_count||1),'bg-emerald-500'],
+                  ['Em atraso',Number(data?.metrics?.past_due_subscriptions||0),Number(data?.metrics?.tenant_count||1),'bg-rose-500'],
+                  ['Em trial',Number(data?.metrics?.trialing_subscriptions||0),Number(data?.metrics?.tenant_count||1),'bg-sky-500'],
+                  ['Suporte aberto',Number(data?.metrics?.open_support||0),Math.max(1,Number(data?.metrics?.tenant_count||1)),'bg-violet-500'],
+                  ['Incidentes',Number(data?.metrics?.open_incidents||0),Math.max(1,Number(data?.metrics?.tenant_count||1)),'bg-amber-500']
+                ].map(([label,value,total,color]:any)=><div key={label}><div className="flex justify-between text-[10px] mb-1"><span className="text-neutral-400">{label}</span><b>{value}</b></div><div className="h-2 rounded-full bg-neutral-950 overflow-hidden"><div className={`h-full rounded-full ${color}`} style={{width:`${Math.min(100,Math.max(3,(value/Math.max(1,total))*100))}%`}}/></div></div>)}
+              </div>
+            </section>
+            <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+              <h2 className="font-black">Central de prioridades</h2><p className="text-[10px] text-neutral-500 mt-1">Atalhos para situações que pedem ação</p>
+              <div className="grid sm:grid-cols-2 gap-2 mt-4">
+                <button onClick={()=>setTab('BILLING')} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-left"><div className="text-[10px] text-neutral-500">Cobrança</div><div className="text-lg font-black text-rose-400">{data?.metrics?.past_due_subscriptions||0}</div><div className="text-[10px] text-neutral-600">assinatura(s) em atraso</div></button>
+                <button onClick={()=>setTab('SUPPORT')} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-left"><div className="text-[10px] text-neutral-500">Suporte</div><div className="text-lg font-black text-violet-400">{data?.metrics?.open_support||0}</div><div className="text-[10px] text-neutral-600">ticket(s) aguardando ação</div></button>
+                <button onClick={()=>setTab('INCIDENTS')} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-left"><div className="text-[10px] text-neutral-500">Incidentes</div><div className="text-lg font-black text-amber-400">{data?.metrics?.open_incidents||0}</div><div className="text-[10px] text-neutral-600">evento(s) operacional(is)</div></button>
+                <button onClick={()=>setTab('PARTNERS')} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-left"><div className="text-[10px] text-neutral-500">Vendas externas</div><div className="text-lg font-black text-emerald-400">PARCEIROS</div><div className="text-[10px] text-neutral-600">funil, comissão e repasses</div></button>
+              </div>
+            </section>
+          </div>
+
           <div className="grid xl:grid-cols-[1.35fr_.65fr] gap-4 mt-5">
             <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
               <div className="flex items-center justify-between"><div><h2 className="font-black">Clientes recentes</h2><p className="text-[10px] text-neutral-500 mt-1">Situação comercial e operacional</p></div><button onClick={()=>setTab('TENANTS')} className="text-[10px] text-amber-400 font-black">VER TODOS</button></div>
