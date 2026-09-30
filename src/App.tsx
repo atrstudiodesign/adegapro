@@ -56,6 +56,7 @@ import { productionDb } from './services/productionDb';
 import { PlatformAdminAccessScreen } from './components/admin/PlatformAdminAccessScreen';
 import { ReleaseUpdateModal } from './components/common/ReleaseUpdateModal';
 import { PartnerPortalScreen } from './components/partner/PartnerPortalScreen';
+import { ProductionHrView } from './components/hr/ProductionHrView';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -398,6 +399,18 @@ export default function App() {
           {currentTab === 'customers' && (appMode === 'PRODUCTION' ? <ProductionCustomersView currentSession={currentSession} /> : <CustomersView />)}
           {currentTab === 'suppliers' && <SuppliersView appMode={appMode} />}
           {currentTab === 'employees' && (appMode === 'PRODUCTION' ? <ProductionEmployeesView /> : <EmployeesView />)}
+          {currentTab === 'hr' && appMode === 'PRODUCTION' && (
+            ['ADMINISTRADOR','GERENTE'].includes(currentUser.role) ? (
+              <ProductionHrView />
+            ) : (
+              <div className="flex-1 grid place-items-center p-6">
+                <div className="max-w-md text-center p-6 rounded-2xl border border-rose-800 bg-rose-950/30">
+                  <div className="text-lg font-black text-white">Acesso restrito</div>
+                  <p className="text-xs text-neutral-400 mt-2">O RH Interno pode ser acessado somente por Administrador ou Gerente autenticado.</p>
+                </div>
+              </div>
+            )
+          )}
           {currentTab === 'reports' && (appMode === 'PRODUCTION' ? <ProductionReportsView /> : <ReportsView />)}
           {currentTab === 'audit' && (appMode === 'PRODUCTION' ? <ProductionAuditView /> : <AuditView />)}
           {currentTab === 'integrations' && (appMode === 'PRODUCTION' ? <ProductionIntegrationsView /> : <IntegrationsView />)}
