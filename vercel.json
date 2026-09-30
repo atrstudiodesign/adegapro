@@ -33,6 +33,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/vendedor",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/vendedor/cadastro",
+      "destination": "/index.html"
+    },
+    {
       "source": "/comprovante/:id",
       "destination": "/index.html"
     }
