@@ -246,95 +246,50 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
 
       {view === 'LANDING' && (
         <main className="relative z-10">
-          <section className="relative overflow-hidden border-b border-white/5">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(245,158,11,.12),transparent_28%),radial-gradient(circle_at_82%_35%,rgba(127,29,29,.12),transparent_30%)]"/>
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 grid xl:grid-cols-[.92fr_1.08fr] gap-10 items-center relative">
-              <div className="max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[10px] font-black uppercase tracking-[.15em] mb-5">
-                  <Sparkles size={13}/> Plataforma completa para operação de loja
-                </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-black tracking-[-.04em] leading-[.98]">
-                  Sua adega mais organizada, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-orange-500">lucrativa e no controle.</span>
-                </h1>
-                <p className="text-neutral-400 text-sm sm:text-base mt-6 leading-relaxed max-w-xl">
-                  PDV, estoque, compras, clientes, financeiro, relatórios, vendas online e integrações em uma experiência única para sua operação.
-                </p>
-                <div className="flex flex-wrap gap-3 mt-7">
-                  <button onClick={() => navigateView('REGISTER')} className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-neutral-950 font-black text-sm flex items-center gap-2 shadow-xl shadow-amber-950/30">
-                    Cadastrar minha adega <ArrowRight size={17}/>
-                  </button>
-                  <button onClick={onDemo} className="px-5 py-3.5 rounded-xl bg-violet-950/40 hover:bg-violet-900/50 border border-violet-700/50 text-violet-200 font-black text-sm">
-                    Ver demonstração
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-6 text-[11px] text-neutral-500">
-                  <span className="flex items-center gap-1.5"><CheckCircle2 size={13} className="text-emerald-400"/> Dados isolados</span>
-                  <span className="flex items-center gap-1.5"><ShieldCheck size={13} className="text-emerald-400"/> Permissões por operador</span>
-                  <span className="flex items-center gap-1.5"><LockKeyhole size={13} className="text-emerald-400"/> Operação segura</span>
-                </div>
-              </div>
+          <section className="relative border-b border-white/5 bg-black" aria-label="Apresentação ADEGA PRO">
+            <div className="relative w-full mx-auto overflow-hidden">
+              <img
+                src="/adega-pro-hero.webp"
+                alt="ADEGA PRO — sua adega mais organizada, lucrativa e no controle. PDV completo, estoque inteligente, financeiro em tempo real, clientes e fidelização."
+                className="block w-full h-auto select-none"
+                width="1400"
+                height="573"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+              />
+              <a
+                href="https://wa.me/5511939026928?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20ADEGA%20PRO."
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Falar com a assessoria do ADEGA PRO pelo WhatsApp"
+                className="hidden md:block absolute left-[3.7%] bottom-[2.2%] w-[24.7%] h-[11.7%] rounded-full focus:outline-none focus:ring-4 focus:ring-emerald-400/80"
+              />
+              <a
+                href="https://atrstudio.com.br"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Conhecer a ATR Studio"
+                className="hidden md:block absolute left-[29.2%] bottom-[2.2%] w-[20.2%] h-[11.7%] rounded-full focus:outline-none focus:ring-4 focus:ring-amber-400/80"
+              />
+            </div>
 
-              <div className="relative min-h-[520px] lg:min-h-[600px]">
-                <div className="absolute inset-8 bg-amber-500/10 blur-[90px] rounded-full"/>
-                <div className="absolute right-0 top-0 w-[92%] rounded-[28px] border border-white/10 bg-[#111]/95 shadow-2xl shadow-black/80 overflow-hidden">
-                  <div className="h-10 border-b border-white/5 px-4 flex items-center justify-between text-[10px] text-neutral-500">
-                    <span className="font-black text-white">ADEGA <span className="text-amber-400">PRO</span></span>
-                    <span className="px-2 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">ONLINE</span>
-                  </div>
-                  <div className="p-4 grid grid-cols-[110px_1fr] gap-4">
-                    <div className="space-y-2 text-[10px] text-neutral-500 border-r border-white/5 pr-3">
-                      {['Dashboard','PDV','Estoque','Compras','Clientes','Financeiro','Produtos','Relatórios','Integrações'].map((x,i)=><div key={x} className={`px-2 py-2 rounded-lg ${i===0?'bg-amber-500/10 text-amber-300 border border-amber-500/20':''}`}>{x}</div>)}
-                    </div>
-                    <div>
-                      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
-                        {[['Vendas hoje','R$ 2.845,30','+12%'],['Pedidos','48','+8%'],['Clientes','892','+6%'],['Ticket médio','R$ 59,28','+5%']].map(([l,v,p])=><div key={l} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800"><div className="text-[9px] text-neutral-500">{l}</div><div className="font-black text-sm mt-1">{v}</div><div className="text-[9px] text-emerald-400 mt-1">{p}</div></div>)}
-                      </div>
-                      <div className="grid lg:grid-cols-[1.2fr_.8fr] gap-3 mt-3">
-                        <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 h-48">
-                          <div className="text-[10px] text-neutral-400 mb-5">Vendas dos últimos 7 dias</div>
-                          <div className="h-28 flex items-end gap-2">
-                            {[34,55,42,68,73,88,100].map((h,i)=><div key={i} className="flex-1 rounded-t bg-gradient-to-t from-amber-700 to-amber-300" style={{height:`${h}%`}}/>)}
-                          </div>
-                        </div>
-                        <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
-                          <div className="text-[10px] text-neutral-400 mb-3">Canais de venda</div>
-                          {[['PDV / Balcão','62%','bg-amber-500'],['iFood / Delivery','26%','bg-red-500'],['Site próprio','8%','bg-violet-500'],['Outros','4%','bg-neutral-600']].map(([l,v,b])=><div key={l} className="mb-3"><div className="flex justify-between text-[9px]"><span>{l}</span><span>{v}</span></div><div className="h-1.5 mt-1 rounded-full bg-neutral-800 overflow-hidden"><div className={`h-full ${b}`} style={{width:v}}/></div></div>)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute left-0 bottom-0 w-[78%] rounded-[24px] border border-white/10 bg-[#0d0d0d]/98 shadow-2xl overflow-hidden rotate-[-1deg]">
-                  <div className="p-3 border-b border-white/5 flex items-center justify-between"><span className="text-xs font-black">PDV · Venda rápida</span><span className="text-[9px] text-neutral-500">Produtos estilo e-commerce</span></div>
-                  <div className="p-3 grid grid-cols-[1fr_150px] gap-3">
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        ['Cerveja Premium','R$ 6,90','from-emerald-900 to-emerald-500'],
-                        ['Whisky Gold','R$ 129,90','from-amber-950 to-amber-500'],
-                        ['Vodka Ice','R$ 59,90','from-sky-950 to-sky-400'],
-                        ['Gin London','R$ 74,90','from-cyan-950 to-cyan-400'],
-                        ['Energético','R$ 12,00','from-blue-950 to-blue-500'],
-                        ['Combo Festa','R$ 49,90','from-rose-950 to-rose-500']
-                      ].map(([name,price,grad])=><div key={name} className="rounded-xl bg-neutral-950 border border-neutral-800 p-2">
-                        <div className={`h-16 rounded-lg bg-gradient-to-br ${grad} relative overflow-hidden`}><div className="absolute inset-x-[38%] top-2 bottom-2 rounded-t-md rounded-b-xl bg-white/70 shadow-lg"/><div className="absolute inset-x-[42%] top-0 h-3 rounded-sm bg-white/90"/></div>
-                        <div className="text-[9px] font-bold mt-2 truncate">{name}</div><div className="text-[10px] font-black text-amber-400">{price}</div>
-                      </div>)}
-                    </div>
-                    <div className="rounded-xl bg-neutral-950 border border-neutral-800 p-3 flex flex-col">
-                      <div className="text-[9px] text-neutral-500">Carrinho</div>
-                      <div className="mt-2 space-y-2 text-[9px]"><div className="flex justify-between"><span>Whisky Gold</span><span>1×</span></div><div className="flex justify-between"><span>Energético</span><span>2×</span></div></div>
-                      <div className="mt-auto pt-3 border-t border-neutral-800"><div className="flex justify-between text-xs font-black"><span>Total</span><span>R$ 153,90</span></div><div className="mt-2 py-2 text-center rounded-lg bg-emerald-600 text-[9px] font-black">Finalizar venda</div></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute right-0 bottom-16 w-44 p-4 rounded-2xl bg-gradient-to-br from-red-950/95 to-red-700/90 border border-red-500/30 shadow-xl rotate-[2deg]">
-                  <div className="text-2xl font-black italic">iFood</div>
-                  <div className="text-[10px] font-bold mt-2">Integração preparada</div>
-                  <div className="text-[9px] text-red-100/70 mt-1">Pedidos, cardápio e catálogo em um fluxo centralizado após homologação.</div>
-                </div>
-              </div>
+            <div className="md:hidden px-4 py-4 grid gap-3 bg-neutral-950">
+              <a
+                href="https://wa.me/5511939026928?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20ADEGA%20PRO."
+                target="_blank"
+                rel="noreferrer"
+                className="w-full min-h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm flex items-center justify-center gap-2"
+              >
+                <Phone size={17}/> Falar no WhatsApp
+              </a>
+              <button
+                type="button"
+                onClick={() => navigateView('REGISTER')}
+                className="w-full min-h-12 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-neutral-950 font-black text-sm flex items-center justify-center gap-2"
+              >
+                Começar agora <ArrowRight size={17}/>
+              </button>
             </div>
           </section>
 
