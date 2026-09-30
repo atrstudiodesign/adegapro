@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-atr-control-partners-commissions-09',
+  releaseId: '2026-09-partner-payout-policy-r1-10',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -27,7 +27,9 @@ export const APP_RELEASE = {
     'Segurança multi-tenant reforçada: isolamento tenant/loja obrigatório, bloqueio de escalada de privilégio e RPCs anônimas fechadas.',
     'ATR Control ganhou Vendedores parceiros, links individuais de indicação, funil comercial, comissões e repasses.',
     'Controle de proteção avançada de dados por cliente com estados BLOQUEADA, DISPONÍVEL e MIGRAÇÃO.',
-    'Dashboard administrativo ampliado com gráficos, distribuição operacional e central de prioridades.'
+    'Dashboard administrativo ampliado com gráficos, distribuição operacional e central de prioridades.',
+    'Política comercial dos autônomos fechada: R$ 35 na assinatura e R$ 200 no personalizado, somente após pagamento confirmado.',
+    'Repasse por vendedor pode ser imediato ou acumulado para fechamento mensal, com validação e histórico no ATR Control.'
   ]
 } as const;
 
