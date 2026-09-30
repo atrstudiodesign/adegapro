@@ -1,0 +1,3 @@
+ATR Control CMS deployment trigger
+Commit source: d6b32571c050e97a6a7f9efae741ee8c717558d7
+Purpose: force Vercel production build after Landing Page CMS integration.
