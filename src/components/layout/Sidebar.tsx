@@ -55,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       group: 'FRENTE DE LOJA',
       items: [
         { id: 'pos', label: 'Frente de Caixa (PDV)', icon: ShoppingCart, highlight: true },
-        { id: 'minidash', label: 'Mini Dash (Vendas & Saídas)', icon: TrendingUp },
+        { id: 'minidash', label: 'Mini PDV', icon: TrendingUp },
         { id: 'sales', label: 'Vendas do Dia', icon: Receipt },
         { id: 'products', label: 'Cadastro de Produtos', icon: Package },
         { id: 'cash', label: 'Caixas & Sessões', icon: Wallet }
@@ -69,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       group: 'OPERAÇÃO',
       items: [
         { id: 'dashboard', label: 'Dashboard Geral', icon: LayoutDashboard, permission: null },
-        { id: 'minidash', label: 'Mini Dash do Caixa', icon: TrendingUp, permission: null },
+        { id: 'minidash', label: 'Mini PDV', icon: TrendingUp, permission: null },
         { id: 'pos', label: 'Frente de Caixa (PDV)', icon: ShoppingCart, permission: 'sales.create', highlight: true },
         { id: 'sales', label: 'Vendas & Cupons', icon: Receipt, permission: 'sales.view' },
         { id: 'cash', label: 'Caixas & Sessões', icon: Wallet, permission: 'cash.view' }
