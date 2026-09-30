@@ -49,6 +49,11 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{type:'error'|'success'; text:string}|null>(null);
   const [legalDoc, setLegalDoc] = useState<LegalDocKey | null>(null);
+  const [referralCode] = useState(() => {
+    const code = new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase() || localStorage.getItem('adega_pro_referral_code') || '';
+    if (code) localStorage.setItem('adega_pro_referral_code', code);
+    return code;
+  });
 
   const navigateMarketing = (path: '/recursos'|'/produtos'|'/integracoes'|'/planos') => {
     setView('LANDING');
@@ -161,7 +166,8 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
         whatsapp: register.whatsapp.trim(),
         email: register.email.trim(),
         city: register.city.trim(),
-        state: register.state.trim()
+        state: register.state.trim(),
+        referral_code: referralCode || undefined
       };
       localStorage.setItem('adega_pro_pending_onboarding', JSON.stringify(onboarding));
 
@@ -169,6 +175,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
         const { error: bootstrapError } = await supabase.rpc('bootstrap_adega', { store_data: onboarding });
         if (bootstrapError && !String(bootstrapError.message).includes('already linked')) throw bootstrapError;
         localStorage.removeItem('adega_pro_pending_onboarding');
+        localStorage.removeItem('adega_pro_referral_code');
         onAuthenticated();
       } else {
         setMessage({
