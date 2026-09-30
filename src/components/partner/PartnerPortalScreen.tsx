@@ -44,6 +44,17 @@ export const PartnerPortalScreen:React.FC=()=>{
 
   const invite=inviteFromUrl||localStorage.getItem('adega_partner_invite')||'';
 
+  useEffect(()=>{
+    if(!data?.partner)return;
+    setForm(prev=>({
+      ...prev,
+      phone:prev.phone||data.partner.phone||'',
+      pixKey:prev.pixKey||data.partner.pix_key||'',
+      payoutMode:data.partner.payout_mode||prev.payoutMode,
+      monthlyPayoutDay:Number(data.partner.monthly_payout_day||prev.monthlyPayoutDay||5)
+    }));
+  },[data?.partner?.id]);
+
   const load=async()=>{
     setBusy(true);setError('');
     try{setData(await partnerDb.getDashboard());}
@@ -53,7 +64,18 @@ export const PartnerPortalScreen:React.FC=()=>{
       if(!msg.includes('seller access not linked'))setError(msg||'Não foi possível carregar seu painel.');
     }finally{setBusy(false);}
   };
-  useEffect(()=>{if(session)void load();else setData(null)},[session]);
+  useEffect(()=>{
+    if(!session){setData(null);return;}
+    void (async()=>{
+      try{
+        if(localStorage.getItem('adega_partner_pending_claim')) await claimPending();
+        else await load();
+      }catch(e:any){
+        setError(e?.message||'Não foi possível concluir o vínculo do vendedor.');
+        await load();
+      }
+    })();
+  },[session]);
 
   const persistPending=()=>{
     localStorage.setItem('adega_partner_pending_claim',JSON.stringify({
