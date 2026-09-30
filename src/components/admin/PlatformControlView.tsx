@@ -208,6 +208,8 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
               <p><b className="text-white">Clientes:</b> abra um cliente para controlar plano, licença, lojas, usuários, suporte e funcionalidades.</p>
               <p><b className="text-white">Funcionalidades:</b> habilite ou bloqueie módulos individualmente. Sem configuração explícita, o cliente mantém o comportamento atual do plano.</p>
               <p><b className="text-white">Assinaturas:</b> controle situação comercial, vencimento, trial e cobrança.</p>
+              <p><b className="text-white">Vendedores & Comissões:</b> cadastre vendedores autônomos, defina repasses por assinatura/personalizado, gere links individuais e acompanhe indicações, conversões e pagamentos.</p>
+              <p><b className="text-white">Segurança do cliente:</b> libere ou bloqueie a futura criptografia avançada por tenant. A ativação definitiva depende de migração técnica validada.</p>
               <p><b className="text-white">Infraestrutura:</b> registre o modo de banco, provedor, região e situação técnica.</p>
               <p><b className="text-white">Auditoria:</b> alterações administrativas são registradas para rastreabilidade.</p>
             </div>
@@ -267,7 +269,7 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
             <Info l="Modo" v="BACKEND / MIGRAÇÃO CONTROLADA"/>
           </div>
           <div className="grid sm:grid-cols-3 gap-2">
-            {(['BLOQUEADA','DISPONIVEL','MIGRACAO'] as const).map(status=><button key={status} onClick={()=>void action(()=>platformDb.setPlatformTenantSecurity(tenant.id,status,security.notes),status==='DISPONIVEL'?'Proteção avançada liberada para este cliente.':'Status de segurança atualizado.')} className={`px-3 py-3 rounded-xl border text-xs font-black ${security.sensitive_data_encryption_status===status?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-950 border-neutral-800 text-neutral-300'}`}>{status}</button>)}
+            {(['BLOQUEADA','DISPONIVEL','MIGRACAO'] as const).map(status=><button key={status} onClick={()=>void platformDb.setPlatformTenantSecurity(tenant.id,status,security.notes).then(()=>{setSecurity((prev:any)=>({...prev,sensitive_data_encryption_status:status,allowed_at:status==='DISPONIVEL'?new Date().toISOString():prev.allowed_at}));onFeedback(status==='DISPONIVEL'?'Proteção avançada liberada para este cliente.':'Status de segurança atualizado.');}).catch((e:any)=>onError(e?.message||'Falha ao atualizar segurança.'))} className={`px-3 py-3 rounded-xl border text-xs font-black ${security.sensitive_data_encryption_status===status?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-950 border-neutral-800 text-neutral-300'}`}>{status}</button>)}
           </div>
           <Field label="Notas técnicas"><textarea value={security.notes||''} onChange={e=>setSecurity({...security,notes:e.target.value})} className="input min-h-24" placeholder="Ex.: aguardar janela de migração, validar WhatsApp e busca antes do corte..."/></Field>
           <div className="p-3 rounded-xl border border-sky-900/60 bg-sky-950/20 text-[11px] text-sky-200 flex gap-2"><LockKeyhole size={15} className="shrink-0"/><span><b>ATIVA</b> não pode ser marcada manualmente: somente o processo técnico de migração criptográfica poderá ativar após validação de cadastro, busca, marketing, backup e rollback.</span></div>
