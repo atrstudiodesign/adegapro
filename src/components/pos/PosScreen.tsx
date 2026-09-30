@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {
   Search,ShoppingCart,Trash2,Plus,Minus,CheckCircle2,Package,ScanLine,
-  UserRound,Printer,Banknote,QrCode,CreditCard,MoreHorizontal,X,WalletCards,Store as StoreIcon
+  UserRound,Printer,Banknote,QrCode,CreditCard,MoreHorizontal,X,WalletCards,Store as StoreIcon,Cable,Wifi,WifiOff
 } from 'lucide-react';
 import { db } from '../../services/db';
 import type { CashSession, Customer, Product, Sale, User } from '../../types';
@@ -25,6 +25,8 @@ export const PosScreen:React.FC<PosScreenProps>=({currentUser,currentSession,onN
   const customers=useMemo(()=>db.getCustomers(),[refresh]);
   const categories=useMemo(()=>db.getCategories().filter(c=>c.active),[refresh]);
   const registers=useMemo(()=>db.getCashRegisters(),[refresh]);
+  const demoProviderConfigs=useMemo(()=>db.getIntegrationProviderConfigs(),[refresh]);
+  const demoLegacyIntegrations=useMemo(()=>db.getIntegrations(),[refresh]);
 
   const [selectedCategory,setSelectedCategory]=useState('ALL');
   const [query,setQuery]=useState('');
@@ -146,6 +148,23 @@ export const PosScreen:React.FC<PosScreenProps>=({currentUser,currentSession,onN
     return()=>window.removeEventListener('keydown',onKey);
   },[busy,cart,lastReceipt,total,tendered,method,currentSession,customerId]);
 
+  const integrationProviders=[
+    {id:'IFOOD',label:'iFood'},
+    {id:'ASAAS',label:'Asaas'},
+    {id:'PAGSEGURO',label:'PagSeguro'},
+    {id:'MERCADO_PAGO',label:'Mercado Pago'},
+    {id:'CARD_TERMINAL',label:'SmartPOS / TEF'},
+    {id:'FISCAL',label:'Fiscal'}
+  ];
+  const demoIntegrationStatus=(provider:string)=>{
+    if(provider==='CARD_TERMINAL'&&demoLegacyIntegrations.tef.status==='CONNECTED')return {label:'ONLINE',online:true,active:true};
+    if(provider==='FISCAL'&&demoLegacyIntegrations.fiscal.status==='READY')return {label:'ONLINE',online:true,active:true};
+    const cfg=demoProviderConfigs.find((x:any)=>String(x.provider).toUpperCase()===provider);
+    if(cfg?.enabled&&cfg?.webhookUrl)return {label:'ATIVO',online:false,active:true};
+    if(cfg?.webhookUrl||cfg?.secretRef)return {label:'OFFLINE',online:false,active:false};
+    return {label:'NÃO CONFIG.',online:false,active:false};
+  };
+
   const paymentButton=(id:PayMethod,label:string,Icon:any)=>(
     <button onClick={()=>setMethod(id)} className={`flex-1 min-w-[82px] h-11 rounded-xl border flex items-center justify-center gap-2 text-xs font-black transition-all ${method===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200 hover:border-neutral-500'}`}>
       <Icon size={15}/>{label}
@@ -205,7 +224,12 @@ export const PosScreen:React.FC<PosScreenProps>=({currentUser,currentSession,onN
         {error&&currentSession&&<div className="mt-3 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
         {message&&<div className="mt-3 p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{message}</div>}
 
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+          <button onClick={()=>onNavigate('integrations')} className="shrink-0 h-9 px-3 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-300 flex items-center gap-2 text-[10px] font-black"><Cable size={13}/>Integrações DEMO</button>
+          {integrationProviders.map(p=>{const s=demoIntegrationStatus(p.id);return <button key={p.id} onClick={()=>onNavigate('integrations')} className={`shrink-0 h-9 px-3 rounded-lg border flex items-center gap-2 text-[9px] font-black ${s.online?'border-emerald-700/60 bg-emerald-950/30 text-emerald-300':s.active?'border-amber-700/60 bg-amber-950/30 text-amber-300':'border-neutral-800 bg-neutral-900 text-neutral-500'}`}>{s.online?<Wifi size={12}/>:<WifiOff size={12}/>}<span>{p.label}</span><span className="opacity-70">{s.label}</span></button>})}
+        </div>
+
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           <button onClick={()=>setSelectedCategory('ALL')} className={`shrink-0 px-5 h-11 rounded-xl border text-xs font-black ${selectedCategory==='ALL'?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200'}`}>Todos</button>
           {categories.map(cat=><button key={cat.id} onClick={()=>setSelectedCategory(cat.id)} className={`shrink-0 px-5 h-11 rounded-xl border text-xs font-bold ${selectedCategory===cat.id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200'}`}>{cat.name}</button>)}
         </div>
