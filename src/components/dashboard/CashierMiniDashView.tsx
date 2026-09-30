@@ -21,7 +21,9 @@ import {
   ShieldCheck,
   CreditCard,
   QrCode,
-  Banknote
+  Banknote,
+  Users,
+  Search
 } from 'lucide-react';
 
 interface CashierMiniDashViewProps {
@@ -41,8 +43,15 @@ export const CashierMiniDashView: React.FC<CashierMiniDashViewProps> = ({
   const [modalAmount, setModalAmount] = useState('');
   const [modalReason, setModalReason] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [customerQuery,setCustomerQuery]=useState('');
 
   const sales = db.getSales();
+  const customers = db.getCustomers();
+  const filteredCustomers = useMemo(()=>{
+    const q=customerQuery.trim().toLowerCase();
+    if(!q) return customers.slice(0,6);
+    return customers.filter(c=>[c.name,c.phone,c.whatsapp,c.cpf].join(' ').toLowerCase().includes(q)).slice(0,8);
+  },[customers,customerQuery]);
   const todayStr = new Date().toISOString().split('T')[0];
 
   // Filter sales for today
@@ -141,7 +150,7 @@ export const CashierMiniDashView: React.FC<CashierMiniDashViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black text-white uppercase tracking-tight">
-                Mini Dash · Frente de Caixa
+                Mini PDV Rápido
               </h1>
               <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
                 OPERADOR
@@ -190,6 +199,23 @@ export const CashierMiniDashView: React.FC<CashierMiniDashViewProps> = ({
           <span className="font-semibold">{feedback}</span>
         </div>
       )}
+
+      <div className="grid xl:grid-cols-[.7fr_1.3fr] gap-4">
+        <section className="p-4 rounded-2xl bg-neutral-900/80 border border-neutral-800">
+          <div className="flex items-center justify-between"><div><div className="text-[10px] uppercase tracking-[.16em] text-amber-400 font-black">Fluxo rápido</div><h2 className="font-black mt-1">Caixa & PDV</h2></div><span className={`text-[9px] px-2 py-1 rounded-full border font-black ${currentSession?'border-emerald-800 bg-emerald-950/30 text-emerald-300':'border-rose-800 bg-rose-950/30 text-rose-300'}`}>{currentSession?'ABERTO':'FECHADO'}</span></div>
+          <p className="text-[10px] text-neutral-500 mt-2">{currentSession?currentSession.cashRegisterNumber+' pronto para vender.':'Abra o caixa no PDV para iniciar a operação.'}</p>
+          <button onClick={()=>onNavigate('pos')} className="mt-3 w-full py-2.5 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black">{currentSession?'Ir para PDV Completo':'Abrir caixa pelo PDV'}</button>
+        </section>
+
+        <section className="p-4 rounded-2xl bg-neutral-900/80 border border-neutral-800">
+          <div className="flex items-center justify-between gap-3"><div><div className="text-[10px] uppercase tracking-[.16em] text-amber-400 font-black">Cliente rápido</div><h2 className="font-black mt-1">Buscar cliente</h2></div><Users size={18} className="text-amber-400"/></div>
+          <div className="relative mt-3"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600"/><input value={customerQuery} onChange={e=>setCustomerQuery(e.target.value)} placeholder="Nome, telefone, WhatsApp ou CPF..." className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-9 pr-3 py-2.5 text-xs outline-none focus:border-amber-500"/></div>
+          <div className="grid sm:grid-cols-2 gap-2 mt-3">
+            {filteredCustomers.map(c=><button key={c.id} onClick={()=>onNavigate('customers')} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-left hover:border-amber-500/40"><div className="text-xs font-black truncate">{c.name}</div><div className="text-[10px] text-neutral-500 mt-1 truncate">{c.whatsapp||c.phone||'Sem telefone'}{c.cpf?' · CPF '+c.cpf:''}</div></button>)}
+            {filteredCustomers.length===0&&<div className="sm:col-span-2 p-4 rounded-xl border border-dashed border-neutral-800 text-xs text-neutral-500">Nenhum cliente encontrado.</div>}
+          </div>
+        </section>
+      </div>
 
       {/* 4 CORE CASHIER CARDS: Vendas do Dia, Total de Saídas, Dinheiro em Gaveta, Qtd Atendimentos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

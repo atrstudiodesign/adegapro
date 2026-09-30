@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import { Package, RefreshCw, ShoppingCart, TrendingUp, Wallet } from 'lucide-react';
+import { Package, RefreshCw, ShoppingCart, TrendingUp, Wallet, Users, ArrowRight } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import { EmptyState, MetricCard, PageHeader, ProductThumb, StatusBadge } from '../ui/ProUi';
 
@@ -7,15 +7,17 @@ export const ProductionCashierMiniDashView:React.FC<{onNavigate:(tab:string)=>vo
   const[sales,setSales]=useState<any[]>([]);
   const[session,setSession]=useState<any>(null);
   const[products,setProducts]=useState<any[]>([]);
+  const[customers,setCustomers]=useState<any[]>([]);
   const[busy,setBusy]=useState(true);
   const[error,setError]=useState('');
+  const[customerQuery,setCustomerQuery]=useState('');
 
   const load=async()=>{
     setBusy(true);setError('');
     try{
-      const[s,p]=await Promise.all([productionDb.getSales(100),productionDb.getProducts()]);
-      setSales(s);setProducts(p);setSession(await productionDb.getCurrentCashSession());
-    }catch(e:any){setError(e?.message||'Falha ao carregar mini dashboard.');}
+      const[s,p,c]=await Promise.all([productionDb.getSales(100),productionDb.getProducts(),productionDb.getCustomers()]);
+      setSales(s);setProducts(p);setCustomers(c);setSession(await productionDb.getCurrentCashSession());
+    }catch(e:any){setError(e?.message||'Falha ao carregar mini PDV.');}
     finally{setBusy(false);}
   };
   useEffect(()=>{void load();},[]);
@@ -28,31 +30,56 @@ export const ProductionCashierMiniDashView:React.FC<{onNavigate:(tab:string)=>vo
     return{count:todaySales.length,total,low};
   },[sales,products]);
 
+  const filteredCustomers=useMemo(()=>{
+    const q=customerQuery.trim().toLowerCase();
+    if(!q)return customers.slice(0,6);
+    return customers.filter((c:any)=>[c.name,c.phone,c.whatsapp,c.cpf].join(' ').toLowerCase().includes(q)).slice(0,8);
+  },[customers,customerQuery]);
+
   return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto text-white space-y-5">
-    <PageHeader eyebrow="Frente de loja" title="Mini PDV" description="Visão rápida de vendas, caixa e alertas de estoque, disponível mesmo sem sessão de caixa aberta." actions={
-      <button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2">
-        <RefreshCw size={14}/>{busy?'Atualizando...':'Atualizar'}
-      </button>
-    }/>
+    <PageHeader
+      eyebrow="Frente de loja"
+      title="Mini PDV Rápido"
+      description="Atalhos de venda, caixa, clientes e estoque sem sair do fluxo operacional."
+      actions={<div className="flex gap-2">
+        <button onClick={()=>onNavigate('pos')} className="px-3 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><ShoppingCart size={14}/>PDV Completo</button>
+        <button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2"><RefreshCw size={14}/>{busy?'Atualizando...':'Atualizar'}</button>
+      </div>}
+    />
     {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
 
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
       <MetricCard label="Vendas hoje" value={m.count} icon={ShoppingCart} onClick={()=>onNavigate('sales')}/>
       <MetricCard label="Faturamento" value={'R$ '+m.total.toLocaleString('pt-BR',{minimumFractionDigits:2})} icon={TrendingUp} tone="emerald" onClick={()=>onNavigate('sales')}/>
       <MetricCard label="Saldo caixa" value={session?'R$ '+Number(session.expectedCashInRegister||0).toLocaleString('pt-BR',{minimumFractionDigits:2}):'Fechado'} icon={Wallet} tone={session?'amber':'rose'} onClick={()=>onNavigate('cash')}/>
-      <MetricCard label="Estoque baixo" value={m.low.length} icon={Package} tone={m.low.length?'rose':'emerald'} onClick={()=>onNavigate('stock')}/>
+      <MetricCard label="Clientes" value={customers.length} icon={Users} onClick={()=>onNavigate('customers')}/>
     </div>
 
-    <div className="grid xl:grid-cols-[.75fr_1.25fr] gap-4">
+    <div className="grid xl:grid-cols-[.8fr_1.2fr] gap-4">
       <section className="ap-panel p-4">
         <div className="flex items-center justify-between"><h2 className="font-black">Sessão atual</h2><StatusBadge tone={session?'success':'danger'}>{session?'ABERTA':'FECHADA'}</StatusBadge></div>
-        <div className="mt-4 text-xs text-neutral-400">{session?`${session.cashRegisterNumber} · aberta em ${new Date(session.openedAt).toLocaleString('pt-BR')}`:'Nenhum caixa aberto para o operador atual.'}</div>
-        {!session&&<button onClick={()=>onNavigate('cash')} className="mt-4 px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black">Abrir caixa</button>}
+        <div className="mt-4 text-xs text-neutral-400">{session?session.cashRegisterNumber+' · aberta em '+new Date(session.openedAt).toLocaleString('pt-BR'):'Nenhum caixa aberto para o operador atual.'}</div>
+        {!session&&<button onClick={()=>onNavigate('pos')} className="mt-4 px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black">Abrir caixa pelo PDV</button>}
       </section>
+
       <section className="ap-panel p-4">
-        <div className="flex justify-between gap-3"><div><h2 className="font-black">Atenção no estoque</h2><p className="text-[10px] text-neutral-500 mt-1">Produtos no mínimo ou abaixo.</p></div><button onClick={()=>onNavigate('stock')} className="text-[10px] text-amber-400 font-black">VER ESTOQUE</button></div>
-        {m.low.length===0?<div className="mt-4"><EmptyState title="Estoque sob controle" description="Nenhum produto está abaixo do estoque mínimo."/></div>:<div className="grid sm:grid-cols-2 gap-2 mt-4">{m.low.slice(0,6).map((p:any)=><div key={p.id} className="p-2 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center gap-3"><ProductThumb src={p.imageUrl} alt={p.name} size="sm"/><div className="min-w-0 flex-1"><div className="text-xs font-bold truncate">{p.name}</div><div className="text-[10px] text-rose-400 mt-1">{p.currentStock} {p.unit} · mínimo {p.minStock}</div></div></div>)}</div>}
+        <div className="flex justify-between gap-3 items-start">
+          <div><h2 className="font-black">Cliente rápido</h2><p className="text-[10px] text-neutral-500 mt-1">Busque um cliente sem sair do Mini PDV.</p></div>
+          <button onClick={()=>onNavigate('customers')} className="text-[10px] text-amber-400 font-black flex items-center gap-1">CADASTRO <ArrowRight size={11}/></button>
+        </div>
+        <input value={customerQuery} onChange={e=>setCustomerQuery(e.target.value)} placeholder="Nome, telefone, WhatsApp ou CPF..." className="mt-3 w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-amber-500"/>
+        <div className="mt-3 grid sm:grid-cols-2 gap-2">
+          {filteredCustomers.length?filteredCustomers.map((c:any)=><button key={c.id} onClick={()=>onNavigate('customers')} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-left hover:border-amber-500/40">
+            <div className="text-xs font-black truncate">{c.name}</div>
+            <div className="text-[10px] text-neutral-500 mt-1 truncate">{c.whatsapp||c.phone||'Sem telefone'}{c.cpf?' · CPF '+c.cpf:''}</div>
+          </button>):<EmptyState title="Cliente não encontrado" description="Ajuste a busca ou abra o cadastro de clientes."/>}
+        </div>
       </section>
     </div>
+
+    <section className="ap-panel p-4">
+      <div className="flex justify-between gap-3"><div><h2 className="font-black">Atenção no estoque</h2><p className="text-[10px] text-neutral-500 mt-1">Produtos no mínimo ou abaixo.</p></div><button onClick={()=>onNavigate('stock')} className="text-[10px] text-amber-400 font-black">VER ESTOQUE</button></div>
+      {m.low.length===0?<div className="mt-4"><EmptyState title="Estoque sob controle" description="Nenhum produto está abaixo do estoque mínimo."/></div>:<div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2 mt-4">{m.low.slice(0,6).map((p:any)=><div key={p.id} className="p-2 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center gap-3"><ProductThumb src={p.imageUrl} alt={p.name} size="sm"/><div className="min-w-0 flex-1"><div className="text-xs font-bold truncate">{p.name}</div><div className="text-[10px] text-rose-400 mt-1">{p.currentStock} {p.unit} · mínimo {p.minStock}</div></div></div>)}</div>}
+    </section>
   </div>;
 };

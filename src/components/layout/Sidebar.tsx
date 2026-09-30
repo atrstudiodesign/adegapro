@@ -139,11 +139,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           aria-label="Fechar menu"
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[1px]"
         />
       )}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-[86vw] max-w-72 lg:w-64 bg-[#0a0a0a] border-r border-amber-500/10 flex flex-col shrink-0 overflow-y-auto select-none shadow-2xl lg:shadow-none transition-transform duration-200 ease-out ${
-        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[86vw] max-w-72 bg-[#0a0a0a] border-r border-amber-500/10 flex flex-col overflow-y-auto select-none shadow-2xl transition-transform duration-200 ease-out ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
       {/* Role Profile Badge Indicator */}
       <div className="p-3 mx-3 mt-3 rounded-2xl bg-neutral-950 border border-neutral-800/90 flex items-center justify-between">

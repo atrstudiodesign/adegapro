@@ -86,8 +86,28 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     finally{setBusy(false)}
   };
 
+  const jump=(id:string)=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+
   return <div className="space-y-5">
-    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+    <section className="rounded-2xl border border-amber-500/20 bg-[linear-gradient(135deg,rgba(245,158,11,.10),rgba(10,10,10,.94)_45%)] p-4 sm:p-5">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-[.2em] text-amber-400 font-black">ATR Control · uso interno</div>
+          <h2 className="text-xl sm:text-2xl font-black mt-1">Vendedores, indicações e comissões</h2>
+          <p className="text-xs text-neutral-500 mt-1">Área exclusiva da ATR Studio. Estes dados não aparecem no painel administrativo dos clientes lojistas.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            ['partner-overview','Visão geral'],
+            ['partner-sellers','Vendedores'],
+            ['partner-referrals','Indicações / Leads'],
+            ['partner-payouts','Comissões'],
+            ['partner-payouts','Pagamentos']
+          ].map(([id,label])=><button key={label} onClick={()=>jump(id)} className="px-3 py-2 rounded-xl border border-neutral-700 bg-neutral-950 hover:border-amber-500/50 text-[10px] font-black text-neutral-300">{label}</button>)}
+        </div>
+      </div>
+    </section>
+    <div id="partner-overview" className="scroll-mt-24 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
       <Card l="Vendedores" v={data?.metrics?.partners_total||0}/>
       <Card l="Ativos" v={data?.metrics?.partners_active||0}/>
       <Card l="Indicações" v={data?.metrics?.referrals_total||0}/>
@@ -145,9 +165,9 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     </section>
 
     <div className="grid xl:grid-cols-[1.2fr_.8fr] gap-4">
-      <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+      <section id="partner-sellers" className="scroll-mt-24 p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
         <div className="flex flex-col sm:flex-row gap-3 justify-between">
-          <div><h2 className="font-black">Vendedores parceiros</h2><p className="text-[10px] text-neutral-500">Autônomos comissionados, separados dos clientes lojistas.</p></div>
+          <div><div className="text-[9px] uppercase tracking-[.18em] text-amber-400 font-black">Vendedores</div><h2 className="font-black mt-1">Vendedores parceiros</h2><p className="text-[10px] text-neutral-500">Autônomos comissionados, separados dos clientes lojistas.</p></div>
           <div className="relative"><Search size={13} className="absolute left-3 top-3 text-neutral-600"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar..." className="input !pl-8"/></div>
         </div>
         <div className="space-y-2 mt-4">{partners.map((p:any)=><div key={p.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
@@ -197,7 +217,7 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
       </section>
     </div>
 
-    <div className="grid xl:grid-cols-[.7fr_1.3fr] gap-4">
+    <div id="partner-referrals" className="scroll-mt-24 grid xl:grid-cols-[.7fr_1.3fr] gap-4">
       <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
         <h2 className="font-black">Registrar indicação</h2>
         <Field l="Vendedor"><select className="input" value={ref.partner_id} onChange={e=>setRef({...ref,partner_id:e.target.value})}><option value="">Selecione...</option>{(data?.partners||[]).filter((p:any)=>p.active).map((p:any)=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></Field>
@@ -233,7 +253,7 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
       </section>
     </div>
 
-    <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+    <section id="partner-payouts" className="scroll-mt-24 p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
       <div className="flex items-center gap-2"><WalletCards size={17} className="text-emerald-400"/><div><h2 className="font-black">Repasses & fechamento</h2><p className="text-[10px] text-neutral-500">Histórico financeiro das comissões já originadas por pagamentos confirmados.</p></div></div>
       <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[900px] text-xs">
         <thead className="text-neutral-500"><tr><th className="text-left p-2">Vendedor</th><th className="text-left p-2">Tipo</th><th className="text-left p-2">Regra</th><th className="text-right p-2">Repasse</th><th className="text-left p-2">Vencimento</th><th className="text-left p-2">Status</th><th className="text-left p-2">Ação</th></tr></thead>
