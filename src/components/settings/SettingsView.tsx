@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import { CheckCircle2, Printer, Save, Settings, SlidersHorizontal } from 'lucide-react';
+import { CheckCircle2, Moon, Printer, Save, Settings, SlidersHorizontal, Sun } from 'lucide-react';
 import { db } from '../../services/db';
 import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
@@ -11,6 +11,8 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
   const[busy,setBusy]=useState(appMode==='PRODUCTION');
   const[feedback,setFeedback]=useState('');
   const[error,setError]=useState('');
+  const[theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
+  const applyTheme=(next:'dark'|'light')=>{setTheme(next);localStorage.setItem('adega_pro_theme',next);document.documentElement.dataset.theme=next;};
 
   useEffect(()=>{
     let alive=true;
@@ -43,6 +45,12 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
       <PageHeader eyebrow="Operação" title="Configurações & Impressão" description="Preferências do PDV, cupom e impressão da loja ativa." actions={<StatusBadge tone={appMode==='PRODUCTION'?'success':'info'}>{appMode==='PRODUCTION'?'PRODUÇÃO':'DEMO'}</StatusBadge>}/>
       {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
       {feedback&&<div className="p-3 rounded-xl border border-emerald-800 bg-emerald-950/40 text-emerald-300 text-xs flex items-center gap-2"><CheckCircle2 size={15}/>{feedback}</div>}
+      <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
+        <div className="flex items-center gap-2"><Settings size={18} className="text-amber-400"/><h2 className="font-black text-white">Aparência</h2></div>
+        <p className="text-xs text-neutral-500 mt-1">O tema é salvo neste dispositivo e mantém o layout responsivo.</p>
+        <div className="flex gap-2 mt-4"><button type="button" onClick={()=>applyTheme('dark')} className={theme==='dark'?'btn-primary':'btn-secondary'}><Moon size={14} className="mr-2"/>Dark</button><button type="button" onClick={()=>applyTheme('light')} className={theme==='light'?'btn-primary':'btn-secondary'}><Sun size={14} className="mr-2"/>Claro</button></div>
+      </section>
+
       <form onSubmit={save} className="space-y-5">
         <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
           <div className="flex items-center gap-2"><Printer size={18} className="text-amber-400"/><h2 className="font-black text-white">Impressão de cupom</h2></div>

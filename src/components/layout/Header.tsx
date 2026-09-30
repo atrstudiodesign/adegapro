@@ -7,7 +7,7 @@ import { BrandLogo } from '../common/BrandLogo';
 import { PinAuthModal } from '../common/PinAuthModal';
 import { OfflineSyncControl } from '../common/OfflineSyncControl';
 import { PWAInstallButton } from '../common/PWAInstallButton';
-import { ShoppingCart, UserCheck, Bell, Store as StoreIcon, Lock, Menu } from 'lucide-react';
+import { ShoppingCart, UserCheck, Bell, Store as StoreIcon, Lock, Menu, Moon, Sun } from 'lucide-react';
 
 interface HeaderProps {
   currentTab: string;
@@ -34,6 +34,15 @@ export const Header: React.FC<HeaderProps> = ({
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [store,setStore]=useState(()=>db.getStore());
   const [runtimeStatus,setRuntimeStatus]=useState<'ONLINE'|'CHECKING'|'ATTENTION'>('CHECKING');
+  const [theme,setTheme]=useState<'dark'|'light'>(()=>{
+    const saved=localStorage.getItem('adega_pro_theme');
+    return saved==='light'?'light':'dark';
+  });
+
+  useEffect(()=>{
+    document.documentElement.dataset.theme=theme;
+    localStorage.setItem('adega_pro_theme',theme);
+  },[theme]);
 
   useEffect(() => {
     let alive = true;
@@ -115,6 +124,8 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Zone 3: 1-2 Primary Action Buttons */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3 shrink-0">
+        <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} title={theme==='dark'?'Ativar tema claro':'Ativar tema escuro'} aria-label="Alternar tema" className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-800/70 text-neutral-300 grid place-items-center hover:text-amber-400 transition-colors">{theme==='dark'?<Sun size={16}/>:<Moon size={16}/>}</button>
+
         {/* Offline Sync Status & Service Worker Connection Controller */}
         <OfflineSyncControl />
 
