@@ -121,7 +121,7 @@ export const PartnerPortalScreen:React.FC=()=>{
         email:email.trim(),password,
         options:{
           data:{full_name:form.fullName.trim(),account_type:'ADEGA_PRO_PARTNER'},
-          emailRedirectTo:window.location.origin+'/vendedor/cadastro'
+          emailRedirectTo:window.location.origin+'/vendedor/cadastro?invite='+encodeURIComponent(invite)
         }
       });
       if(authError)throw authError;
@@ -218,12 +218,46 @@ export const PartnerPortalScreen:React.FC=()=>{
   }
 
   if(!data){
+    const finishLinkedRegistration=async(e:React.FormEvent)=>{
+      e.preventDefault();setBusy(true);setError('');setMessage('');
+      try{
+        if(!invite)throw new Error('Abra novamente o link de convite enviado pela ATR Studio.');
+        if(!form.fullName.trim())throw new Error('Informe seu nome completo.');
+        if(form.phone.replace(/\D/g,'').length<10)throw new Error('Informe um telefone válido.');
+        await partnerDb.claimInvite({
+          token:invite,
+          fullName:form.fullName,
+          phone:form.phone,
+          pixKey:form.pixKey,
+          payoutMode:form.payoutMode,
+          monthlyPayoutDay:form.monthlyPayoutDay
+        });
+        localStorage.removeItem('adega_partner_pending_claim');
+        localStorage.removeItem('adega_partner_invite');
+        setMessage('Cadastro de vendedor concluído.');
+        await load();
+      }catch(e:any){setError(e?.message||'Não foi possível concluir o cadastro do vendedor.');}
+      finally{setBusy(false);}
+    };
+
     return <div className="min-h-dvh bg-[#06090c] text-white grid place-items-center p-5">
-      <div className="max-w-md w-full p-6 rounded-3xl border border-neutral-800 bg-neutral-900 text-center">
-        <h1 className="text-xl font-black">Vínculo de vendedor pendente</h1>
-        <p className="text-xs text-neutral-500 mt-2">Sua autenticação está válida, mas este usuário ainda não está vinculado a um cadastro de vendedor.</p>
-        {invite?<button onClick={()=>setMode('REGISTER')} className="mt-5 px-5 py-3 rounded-xl bg-amber-400 text-neutral-950 font-black text-sm">Concluir pelo convite</button>:<p className="mt-5 text-xs text-amber-300">Solicite um novo link de cadastro à ATR Studio.</p>}
-        <button onClick={()=>void logout()} className="mt-4 text-xs text-neutral-500">Sair</button>
+      <div className="max-w-xl w-full p-6 rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl">
+        <div className="text-[10px] uppercase tracking-[.18em] text-amber-400 font-black">Portal do vendedor</div>
+        <h1 className="text-xl font-black mt-1">Concluir vínculo do cadastro</h1>
+        <p className="text-xs text-neutral-500 mt-2">Sua autenticação está válida. Finalize seus dados para vincular este usuário ao convite de vendedor.</p>
+        {error&&<div className="mt-4 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
+        {message&&<div className="mt-4 p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{message}</div>}
+        {invite?<form onSubmit={finishLinkedRegistration} className="mt-5 space-y-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Nome completo"><TextInput value={form.fullName} onChange={v=>setForm({...form,fullName:v})} icon={UserRound}/></Field>
+            <Field label="Telefone / WhatsApp"><TextInput value={form.phone} onChange={v=>setForm({...form,phone:v})}/></Field>
+            <Field label="Chave PIX"><TextInput value={form.pixKey} onChange={v=>setForm({...form,pixKey:v})}/></Field>
+            <Field label="Recebimento"><select value={form.payoutMode} onChange={e=>setForm({...form,payoutMode:e.target.value as any})} className="w-full mt-1.5 rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400"><option value="IMEDIATO">Imediato após pagamento</option><option value="FECHAMENTO_MENSAL">Fechamento mensal</option></select></Field>
+          </div>
+          {form.payoutMode==='FECHAMENTO_MENSAL'&&<Field label="Dia do fechamento"><input type="number" min="1" max="28" value={form.monthlyPayoutDay} onChange={e=>setForm({...form,monthlyPayoutDay:Number(e.target.value)})} className="w-full rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400"/></Field>}
+          <button disabled={busy} className="w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black disabled:opacity-50">{busy?'Vinculando...':'Concluir cadastro e abrir meu painel'}</button>
+        </form>:<div className="mt-5 p-4 rounded-xl border border-amber-800 bg-amber-950/20 text-amber-300 text-xs">Este usuário ainda não possui vínculo. Solicite um novo link de cadastro à ATR Studio.</div>}
+        <button onClick={()=>void logout()} className="mt-4 w-full text-xs text-neutral-500 hover:text-white">Sair deste acesso</button>
       </div>
     </div>;
   }
