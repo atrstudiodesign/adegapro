@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Product } from '../../types';
-import { db } from '../../services/db';
 import { soundService } from '../../services/soundService';
 import {
   Zap,
@@ -87,14 +86,12 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
     }
 
     // Exact barcode match first
-    const found =
-      db.getProductByBarcode(searchBarcode) ||
-      products.find(
-        p =>
-          p.barcode.toLowerCase() === searchBarcode.toLowerCase() ||
-          p.sku.toLowerCase() === searchBarcode.toLowerCase() ||
-          p.id === searchBarcode
-      );
+    const found = products.find(
+      p =>
+        String(p.barcode||'').toLowerCase() === searchBarcode.toLowerCase() ||
+        String(p.sku||'').toLowerCase() === searchBarcode.toLowerCase() ||
+        p.id === searchBarcode
+    );
 
     if (found) {
       setMatchedProduct(found);
@@ -105,9 +102,9 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
       // Partial name or barcode match for autocomplete
       const partial = products.find(
         p =>
-          p.barcode.toLowerCase().includes(searchBarcode.toLowerCase()) ||
-          p.name.toLowerCase().includes(searchBarcode.toLowerCase()) ||
-          p.sku.toLowerCase().includes(searchBarcode.toLowerCase())
+          String(p.barcode||'').toLowerCase().includes(searchBarcode.toLowerCase()) ||
+          String(p.name||'').toLowerCase().includes(searchBarcode.toLowerCase()) ||
+          String(p.sku||'').toLowerCase().includes(searchBarcode.toLowerCase())
       );
       setMatchedProduct(partial || null);
     }
@@ -121,9 +118,9 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
       const raw = codeInput.trim();
       const found = products.find(
         p =>
-          p.barcode === raw ||
-          p.sku.toLowerCase() === raw.toLowerCase() ||
-          p.name.toLowerCase().includes(raw.toLowerCase())
+          String(p.barcode||'') === raw ||
+          String(p.sku||'').toLowerCase() === raw.toLowerCase() ||
+          String(p.name||'').toLowerCase().includes(raw.toLowerCase())
       );
       if (found) {
         processProductAdd(found, quantity, directCheckout);
