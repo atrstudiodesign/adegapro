@@ -179,7 +179,14 @@ export default function App() {
   },[appMode,saasAuthenticated,isLocked]);
 
   useEffect(()=>{
-    if(appMode==='PRODUCTION' && featureAccess[currentTab]===false) setCurrentTab('dashboard');
+    if(appMode!=='PRODUCTION') return;
+    // Mini PDV is a presentation mode of the licensed PDV, not a separate billable module.
+    // Do not bounce back to dashboard when legacy tenant feature maps do not include "minidash".
+    if(currentTab==='minidash'){
+      if(featureAccess.pos===false) setCurrentTab('dashboard');
+      return;
+    }
+    if(featureAccess[currentTab]===false) setCurrentTab('dashboard');
   },[appMode,featureAccess,currentTab]);
 
   // Enforce access control: Caixa only sees PDV, produtos, vendas do dia, mini dash e caixa
