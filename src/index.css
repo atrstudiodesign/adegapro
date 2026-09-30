@@ -295,3 +295,66 @@ html,body,#root{min-height:100dvh;background:#080808}
 @media (hover:none) and (pointer:coarse){button,a,input,select{min-height:40px}.app-content{overscroll-behavior:contain}}
 @media (min-width:1280px){.app-content{font-size:15px}}
 @media (max-width:360px){.app-content table{min-width:620px}.app-content{font-size:13px}}
+
+
+/* Light theme overrides — keeps the same responsive layout and component hierarchy */
+html[data-theme="light"] {
+  color-scheme: light;
+}
+html[data-theme="light"] body,
+html[data-theme="light"] #root {
+  background: #f4f4f5;
+  color: #18181b;
+}
+html[data-theme="light"] .app-content {
+  background:
+    radial-gradient(circle at 85% 0%, rgba(245,158,11,.06), transparent 28%),
+    #f4f4f5;
+}
+html[data-theme="light"] .bg-neutral-950,
+html[data-theme="light"] .bg-\[\#0a0a0a\],
+html[data-theme="light"] .bg-\[\#0b0b0b\] {
+  background-color: #fafafa !important;
+}
+html[data-theme="light"] .bg-neutral-900 {
+  background-color: #ffffff !important;
+}
+html[data-theme="light"] .bg-neutral-800,
+html[data-theme="light"] .bg-neutral-800\/80,
+html[data-theme="light"] .bg-neutral-800\/70,
+html[data-theme="light"] .bg-neutral-800\/60 {
+  background-color: #f4f4f5 !important;
+}
+html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-neutral-100,
+html[data-theme="light"] .text-neutral-200 {
+  color: #18181b !important;
+}
+html[data-theme="light"] .text-neutral-300,
+html[data-theme="light"] .text-neutral-400 {
+  color: #52525b !important;
+}
+html[data-theme="light"] .text-neutral-500,
+html[data-theme="light"] .text-neutral-600 {
+  color: #71717a !important;
+}
+html[data-theme="light"] .border-neutral-800,
+html[data-theme="light"] .border-neutral-700,
+html[data-theme="light"] .border-neutral-900 {
+  border-color: #d4d4d8 !important;
+}
+html[data-theme="light"] .ap-panel,
+html[data-theme="light"] .ap-card {
+  background: #ffffff;
+  border-color: #e4e4e7;
+}
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #d4d4d8 !important;
+}
+html[data-theme="light"] aside {
+  box-shadow: 10px 0 30px rgba(0,0,0,.06);
+}
