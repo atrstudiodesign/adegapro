@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-landing-ai-marketing-audit-06',
+  releaseId: '2026-09-legal-ai-third-party-r6-07',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -22,7 +22,8 @@ export const APP_RELEASE = {
     'Ações comerciais nos clientes: promoção, reativação, recomendação de produtos e WhatsApp.',
     'Tema Claro/Escuro disponível no cabeçalho e em Configurações, mantendo responsividade.',
     'Auditoria ganhou diagnóstico automático de sinais de erro e recorrência.',
-    'Landing destaca IA e automação inteligente para marketing, recomendações na venda e auditoria assistida.'
+    'Landing destaca IA e automação inteligente para marketing, recomendações na venda e auditoria assistida.',
+    'Políticas r6 detalham uso de IA, possibilidade de erros, conferência humana e responsabilidades de serviços de terceiros.'
   ]
 } as const;
 
