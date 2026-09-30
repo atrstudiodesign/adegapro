@@ -2,11 +2,12 @@ import React,{useEffect,useMemo,useState} from 'react';
 import {
   Activity, AlertTriangle, Ban, BellRing, Building2, CheckCircle2, ClipboardList, CreditCard,
   Database, Headphones, History, MessageSquareText, RefreshCw, Search, ServerCog, ShieldCheck,
-  Users, WalletCards, X
+  Users, WalletCards, X, Handshake, LockKeyhole
 } from 'lucide-react';
 import { platformDb } from '../../services/platformDb';
+import { PartnerControlView } from './PartnerControlView';
 
-type Tab='OVERVIEW'|'TENANTS'|'BILLING'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
+type Tab='OVERVIEW'|'TENANTS'|'BILLING'|'PARTNERS'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
 
 const FEATURE_CATALOG=[
   ['dashboard','Dashboard geral','Visão consolidada da operação'],['minidash','Mini PDV','Resumo rápido de vendas e caixa'],['pos','Frente de caixa (PDV)','Venda rápida e recebimentos'],['sales','Vendas & cupons','Histórico e comprovantes'],['cash','Caixas & sessões','Abertura, movimentação e fechamento'],
@@ -120,6 +121,7 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
             ['OVERVIEW','Visão geral',Activity],
             ['TENANTS','Clientes',Building2],
             ['BILLING','Assinaturas',CreditCard],
+            ['PARTNERS','Vendedores & Comissões',Handshake],
             ['SUPPORT','Suporte',Headphones],
             ['INCIDENTS','Incidentes',AlertTriangle],
             ['AUDIT','Auditoria',History],
@@ -171,6 +173,7 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
           </article>)}</div>
         </>}
 
+        {tab==='PARTNERS'&&<PartnerControlView onFeedback={setFeedback} onError={setError}/>}
         {tab==='SUPPORT'&&<GlobalSupport tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}
         {tab==='INCIDENTS'&&<GlobalIncidents tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}
         {tab==='AUDIT'&&<GlobalAudit tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}
@@ -205,10 +208,11 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
   const[comm,setComm]=useState<any>({tenant_id:tenant.id,channel:'INTERNAL',subject:'',message:'',status:'DRAFT'});
   const[incident,setIncident]=useState<any>({tenant_id:tenant.id,severity:'MEDIUM',status:'OPEN',title:'',description:''});
   const[webhook,setWebhook]=useState<any>(detail.webhooks?.[0]||{tenant_id:tenant.id,provider:'CUSTOM',webhook_url:'',event_types:[],auth_mode:'NONE',secret_ref:'',enabled:false});
-  const[section,setSection]=useState<'SUMMARY'|'FEATURES'|'SUBSCRIPTION'|'LICENSE'|'STORES'|'USERS'|'SUPPORT'|'BILLING_EVENTS'|'WEBHOOKS'|'COMMS'|'INCIDENTS'|'INFRA'|'AUDIT'>('SUMMARY');
+  const[section,setSection]=useState<'SUMMARY'|'SECURITY'|'FEATURES'|'SUBSCRIPTION'|'LICENSE'|'STORES'|'USERS'|'SUPPORT'|'BILLING_EVENTS'|'WEBHOOKS'|'COMMS'|'INCIDENTS'|'INFRA'|'AUDIT'>('SUMMARY');
+  const[security,setSecurity]=useState<any>({tenant_id:tenant.id,sensitive_data_encryption_status:'BLOQUEADA',notes:''});
   const[features,setFeatures]=useState<Record<string,boolean>>({});
   const[featureBusy,setFeatureBusy]=useState('');
-  useEffect(()=>{void platformDb.getPlatformTenantFeatures(tenant.id).then(setFeatures).catch(()=>setFeatures({}));},[tenant.id]);
+  useEffect(()=>{void platformDb.getPlatformTenantFeatures(tenant.id).then(setFeatures).catch(()=>setFeatures({}));void platformDb.getPlatformTenantSecurity(tenant.id).then(setSecurity).catch(()=>setSecurity({tenant_id:tenant.id,sensitive_data_encryption_status:'BLOQUEADA',notes:''}));},[tenant.id]);
 
   const action=async(fn:()=>Promise<any>,ok:string)=>{
     onError('');onFeedback('');
@@ -224,12 +228,26 @@ const TenantDrawer=({detail,busy,onClose,onReload,onError,onFeedback}:{detail:an
           <button onClick={onClose} className="p-2 rounded-xl bg-neutral-900 border border-neutral-800"><X size={18}/></button>
         </div>
         <div className="mt-4 flex gap-2 overflow-x-auto">{([
-          ['SUMMARY','Resumo'],['FEATURES','Funcionalidades'],['SUBSCRIPTION','Assinatura'],['LICENSE','Licença'],['STORES','Lojas'],['USERS','Usuários'],['SUPPORT','Suporte'],['BILLING_EVENTS','Cobrança'],['WEBHOOKS','Integrações'],['COMMS','Comunicação'],['INCIDENTS','Incidentes'],['INFRA','Infraestrutura'],['AUDIT','Auditoria']
+          ['SUMMARY','Resumo'],['SECURITY','Segurança'],['FEATURES','Funcionalidades'],['SUBSCRIPTION','Assinatura'],['LICENSE','Licença'],['STORES','Lojas'],['USERS','Usuários'],['SUPPORT','Suporte'],['BILLING_EVENTS','Cobrança'],['WEBHOOKS','Integrações'],['COMMS','Comunicação'],['INCIDENTS','Incidentes'],['INFRA','Infraestrutura'],['AUDIT','Auditoria']
         ] as const).map(([id,label])=><button key={id} onClick={()=>setSection(id)} className={`shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black ${section===id?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-900 border-neutral-800 text-neutral-500'}`}>{label}</button>)}</div>
       </div>
 
       <div className="p-4 sm:p-5">
         {section==='SUMMARY'&&<div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3"><Info l="Plano" v={tenant.plan}/><Info l="Status" v={tenant.active?'ATIVO':'SUSPENSO'}/><Info l="Lojas" v={detail.stores?.length||0}/><Info l="Usuários" v={detail.users?.length||0}/><Info l="Assinatura" v={detail.subscriptions?.[0]?.status||'—'}/><Info l="Valor" v={detail.subscriptions?.[0]?.amount?money(detail.subscriptions[0].amount):'—'}/><Info l="Licença" v={detail.licenses?.[0]?.modality||'—'}/><Info l="Banco" v={detail.infrastructure?.database_mode||'SHARED'}/></div>}
+
+        {section==='SECURITY'&&<FormCard title="Proteção avançada de dados" description="Controle comercial/técnico da criptografia de CPF, telefone, WhatsApp e e-mail. Não executa criptografia diretamente no navegador.">
+          <div className="grid md:grid-cols-4 gap-3">
+            <Info l="Status atual" v={security.sensitive_data_encryption_status||'BLOQUEADA'}/>
+            <Info l="Disponibilizada em" v={security.allowed_at?dt(security.allowed_at):'—'}/>
+            <Info l="Ativada em" v={security.activated_at?dt(security.activated_at):'—'}/>
+            <Info l="Modo" v="BACKEND / MIGRAÇÃO CONTROLADA"/>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-2">
+            {(['BLOQUEADA','DISPONIVEL','MIGRACAO'] as const).map(status=><button key={status} onClick={()=>void action(()=>platformDb.setPlatformTenantSecurity(tenant.id,status,security.notes),status==='DISPONIVEL'?'Proteção avançada liberada para este cliente.':'Status de segurança atualizado.')} className={`px-3 py-3 rounded-xl border text-xs font-black ${security.sensitive_data_encryption_status===status?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-950 border-neutral-800 text-neutral-300'}`}>{status}</button>)}
+          </div>
+          <Field label="Notas técnicas"><textarea value={security.notes||''} onChange={e=>setSecurity({...security,notes:e.target.value})} className="input min-h-24" placeholder="Ex.: aguardar janela de migração, validar WhatsApp e busca antes do corte..."/></Field>
+          <div className="p-3 rounded-xl border border-sky-900/60 bg-sky-950/20 text-[11px] text-sky-200 flex gap-2"><LockKeyhole size={15} className="shrink-0"/><span><b>ATIVA</b> não pode ser marcada manualmente: somente o processo técnico de migração criptográfica poderá ativar após validação de cadastro, busca, marketing, backup e rollback.</span></div>
+        </FormCard>}
 
         {section==='FEATURES'&&<FormCard title="Funcionalidades do cliente" description="Habilite ou bloqueie qualquer módulo. Sem override, o módulo permanece liberado conforme o comportamento atual.">
           <div className="grid md:grid-cols-2 gap-3">
