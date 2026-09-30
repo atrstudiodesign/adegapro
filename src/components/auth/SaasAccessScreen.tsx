@@ -354,17 +354,28 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
           </section>
 
           <section id="produtos" className="border-y border-white/5 bg-neutral-950/60">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 grid lg:grid-cols-[.85fr_1.15fr] gap-10 items-center">
-              <div><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Catálogo visual</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Produtos com experiência de e-commerce.</h2><p className="text-sm text-neutral-400 mt-4 leading-relaxed">Visualize itens com imagem, preço, estoque, categoria e disponibilidade. O mesmo catálogo pode alimentar PDV, vendas online e futuras integrações de delivery.</p><div className="mt-6 space-y-3 text-sm text-neutral-300"><div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Busca rápida por nome, SKU ou código de barras</div><div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Preço e estoque sincronizados com a operação</div><div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Combos, promoções e controle de validade</div></div></div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {[
-                  ['Cerveja Long Neck','R$ 7,50','Estoque 124','from-emerald-950 to-emerald-500'],
-                  ['Whisky Reserve','R$ 129,90','Estoque 38','from-amber-950 to-amber-500'],
-                  ['Vodka Premium','R$ 89,90','Estoque 56','from-sky-950 to-sky-400'],
-                  ['Gin London Dry','R$ 74,90','Estoque 41','from-cyan-950 to-cyan-400'],
-                  ['Energético 250ml','R$ 12,00','Estoque 98','from-blue-950 to-blue-500'],
-                  ['Combo Happy Hour','R$ 49,90','Disponível','from-rose-950 to-rose-500']
-                ].map(([name,price,stock,grad])=><div key={name} className="group p-3 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-amber-500/40 transition-all"><div className={`h-32 sm:h-40 rounded-xl bg-gradient-to-br ${grad} relative overflow-hidden`}><div className="absolute inset-x-[40%] top-6 bottom-5 rounded-t-lg rounded-b-2xl bg-white/75 group-hover:scale-105 transition-transform"/><div className="absolute inset-x-[44%] top-3 h-5 rounded bg-white/90"/></div><div className="mt-3 text-xs font-black">{name}</div><div className="flex items-end justify-between gap-2 mt-1"><span className="text-amber-400 font-black">{price}</span><span className="text-[9px] text-neutral-500">{stock}</span></div></div>)}
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 grid lg:grid-cols-[.78fr_1.22fr] gap-10 items-center">
+              <div>
+                <div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Sistema real</div>
+                <h2 className="text-3xl sm:text-4xl font-black mt-2">Veja o ADEGA PRO funcionando de verdade.</h2>
+                <p className="text-sm text-neutral-400 mt-4 leading-relaxed">Interface real do sistema: PDV, caixa, estoque, financeiro, clientes e operação centralizados. Sem mockups de produtos inventados nesta seção.</p>
+                <div className="mt-6 space-y-3 text-sm text-neutral-300">
+                  <div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> PDV completo e abertura de caixa</div>
+                  <div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Estoque e operação integrados</div>
+                  <div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Financeiro e indicadores em tempo real</div>
+                </div>
+                <button onClick={() => navigateView('REGISTER')} className="mt-7 px-5 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-black text-sm flex items-center gap-2">
+                  Quero conhecer o sistema <ArrowRight size={17}/>
+                </button>
+              </div>
+              <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-black shadow-2xl shadow-amber-950/20">
+                <img
+                  src="/adega-pro-hero.webp"
+                  alt="Tela real do sistema ADEGA PRO com PDV, caixa e recursos de gestão"
+                  className="block w-full h-auto"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
             </div>
           </section>
