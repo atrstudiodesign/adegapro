@@ -39,6 +39,12 @@ export const ProductionHrView:React.FC=()=>{
   const policies=data?.policies||[];
   const metrics=data?.metrics||{};
   const employeeMap=useMemo(()=>new Map(employees.map((e:any)=>[e.id,e])),[employees]);
+  const liveBase=Number(String(payroll.base_amount||0).replace(',','.'))||0;
+  const liveAdvances=Number(String(payroll.advances||0).replace(',','.'))||0;
+  const liveOvertime=Number(String(payroll.overtime_amount||0).replace(',','.'))||0;
+  const liveDiscounts=Number(String(payroll.discounts||0).replace(',','.'))||0;
+  const liveGross=liveBase+liveOvertime;
+  const liveNet=liveGross-liveAdvances-liveDiscounts;
 
   const saveEmployee=async()=>{
     setBusy(true);setError('');setFeedback('');
@@ -55,7 +61,11 @@ export const ProductionHrView:React.FC=()=>{
   };
 
   const savePayroll=async()=>{
-    setBusy(true);setError('');setFeedback('');
+    setError('');setFeedback('');
+    if(!payroll.employee_id){setError('Selecione um funcionário.');return;}
+    if(!payroll.period_start||!payroll.period_end){setError('Informe o período do pagamento.');return;}
+    if(new Date(payroll.period_end)<new Date(payroll.period_start)){setError('A data final não pode ser anterior à inicial.');return;}
+    setBusy(true);
     try{
       await productionDb.saveHrPayrollEntry({
         ...payroll,
@@ -201,7 +211,20 @@ export const ProductionHrView:React.FC=()=>{
     {tab==='PAYROLL'&&<div className="grid xl:grid-cols-[.72fr_1.28fr] gap-4">
       <section className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900 space-y-3">
         <div><h2 className="font-black">{payroll.id?'Alterar pagamento / holerite':'Novo pagamento / holerite interno'}</h2><p className="text-[10px] text-neutral-500 mt-1">Valores são informados pela gestão. O sistema não calcula encargos legais automaticamente.</p></div>
-        <Field label="Funcionário"><select className="input" value={payroll.employee_id} onChange={e=>{const emp:any=employeeMap.get(e.target.value);setPayroll({...payroll,employee_id:e.target.value,base_amount:emp?String(emp.base_amount):payroll.base_amount,payment_frequency:emp?.payment_frequency||payroll.payment_frequency})}}><option value="">Selecione...</option>{employees.filter((e:any)=>e.active).map((e:any)=><option key={e.id} value={e.id}>{e.full_name}</option>)}</select></Field>
+        <Field label="Funcionário"><select className="input" value={payroll.employee_id} onChange={e=>{
+          const emp:any=employeeMap.get(e.target.value);
+          const now=new Date();
+          const first=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+          const last=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10);
+          setPayroll({
+            ...payroll,
+            employee_id:e.target.value,
+            base_amount:emp?String(emp.base_amount):payroll.base_amount,
+            payment_frequency:emp?.payment_frequency||payroll.payment_frequency,
+            period_start:payroll.period_start||first,
+            period_end:payroll.period_end||last
+          });
+        }}><option value="">Selecione...</option>{employees.filter((e:any)=>e.active).map((e:any)=><option key={e.id} value={e.id}>{e.full_name}</option>)}</select></Field>
         <div className="grid grid-cols-2 gap-3"><Field label="Início do período"><Input type="date" value={payroll.period_start} onChange={v=>setPayroll({...payroll,period_start:v})}/></Field><Field label="Fim do período"><Input type="date" value={payroll.period_end} onChange={v=>setPayroll({...payroll,period_end:v})}/></Field></div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Valor base"><Input inputMode="decimal" value={payroll.base_amount} onChange={v=>setPayroll({...payroll,base_amount:v})}/></Field>
@@ -209,18 +232,28 @@ export const ProductionHrView:React.FC=()=>{
           <Field label="Horas extras / adicionais"><Input inputMode="decimal" value={payroll.overtime_amount} onChange={v=>setPayroll({...payroll,overtime_amount:v})}/></Field>
           <Field label="Descontos"><Input inputMode="decimal" value={payroll.discounts} onChange={v=>setPayroll({...payroll,discounts:v})}/></Field>
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl border border-neutral-800 bg-neutral-950">
+            <div className="text-[10px] text-neutral-500">Valor bruto</div>
+            <div className="text-lg font-black text-white mt-1">{money(liveGross)}</div>
+          </div>
+          <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5">
+            <div className="text-[10px] text-neutral-500">Valor líquido</div>
+            <div className="text-lg font-black text-amber-400 mt-1">{money(liveNet)}</div>
+          </div>
+        </div>
         <Field label="Frequência"><select className="input" value={payroll.payment_frequency} onChange={e=>setPayroll({...payroll,payment_frequency:e.target.value})}><option value="DIARIO">Diário</option><option value="SEMANAL">Semanal</option><option value="QUINZENAL">Quinzenal</option><option value="MENSAL">Mensal</option><option value="OUTRO">Outro</option></select></Field>
         <Field label="Status"><select className="input" value={payroll.status} onChange={e=>setPayroll({...payroll,status:e.target.value})}><option value="PENDENTE">Pendente</option><option value="PAGO">Pago</option><option value="CANCELADO">Cancelado</option></select></Field>
         <Field label="Observações"><textarea className="input min-h-20" value={payroll.notes} onChange={e=>setPayroll({...payroll,notes:e.target.value})}/></Field>
         <div className="grid grid-cols-2 gap-2">
           <button onClick={()=>setPayroll(emptyPayroll)} className="h-10 rounded-xl border border-neutral-700 text-xs font-black">Limpar</button>
-          <button disabled={busy||!payroll.employee_id||!payroll.period_start||!payroll.period_end} onClick={()=>void savePayroll()} className="h-10 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black">{payroll.id?'Salvar alterações':'Salvar lançamento'}</button>
+          <button disabled={busy} onClick={()=>void savePayroll()} className="h-10 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black disabled:opacity-50">{busy?'Salvando...':payroll.id?'Salvar alterações':'Salvar lançamento'}</button>
         </div>
       </section>
 
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
         <div className="p-4 border-b border-neutral-800"><h2 className="font-black">Histórico de pagamentos</h2></div>
-        <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Funcionário</th><th className="p-3 text-left">Período</th><th className="p-3 text-right">Base</th><th className="p-3 text-right">Adiant.</th><th className="p-3 text-right">Extras</th><th className="p-3 text-right">Líquido</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Ações</th></tr></thead><tbody>{payrollRows.map((p:any)=>{const emp:any=employeeMap.get(p.employee_id);return <tr key={p.id} className="border-t border-neutral-800"><td className="p-3 font-bold">{emp?.full_name||'—'}</td><td className="p-3">{date(p.period_start)}–{date(p.period_end)}</td><td className="p-3 text-right">{money(p.base_amount)}</td><td className="p-3 text-right">{money(p.advances)}</td><td className="p-3 text-right">{money(p.overtime_amount)}</td><td className="p-3 text-right text-amber-400 font-black">{money(p.net_amount)}</td><td className="p-3"><StatusBadge tone={p.status==='PAGO'?'success':p.status==='CANCELADO'?'danger':'warning'}>{p.status}</StatusBadge></td><td className="p-3"><div className="flex gap-1.5">
+        <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Funcionário</th><th className="p-3 text-left">Período</th><th className="p-3 text-right">Base</th><th className="p-3 text-right">Adiant.</th><th className="p-3 text-right">Extras</th><th className="p-3 text-right">Bruto</th><th className="p-3 text-right">Líquido</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Ações</th></tr></thead><tbody>{payrollRows.map((p:any)=>{const emp:any=employeeMap.get(p.employee_id);return <tr key={p.id} className="border-t border-neutral-800"><td className="p-3 font-bold">{emp?.full_name||'—'}</td><td className="p-3">{date(p.period_start)}–{date(p.period_end)}</td><td className="p-3 text-right">{money(p.base_amount)}</td><td className="p-3 text-right">{money(p.advances)}</td><td className="p-3 text-right">{money(p.overtime_amount)}</td><td className="p-3 text-right font-black">{money(p.gross_amount)}</td><td className="p-3 text-right text-amber-400 font-black">{money(p.net_amount)}</td><td className="p-3"><StatusBadge tone={p.status==='PAGO'?'success':p.status==='CANCELADO'?'danger':'warning'}>{p.status}</StatusBadge></td><td className="p-3"><div className="flex gap-1.5">
   <button onClick={()=>printPayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Printer size={12}/>Imprimir</button>
   <button onClick={()=>editPayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Pencil size={12}/>Alterar</button>
   <button onClick={()=>void sharePayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Share2 size={12}/>Compartilhar</button>
