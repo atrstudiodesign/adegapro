@@ -44,12 +44,14 @@ interface PosScreenProps {
   currentUser: User;
   currentSession?: CashSession;
   onNavigate: (tab: string) => void;
+  onSessionUpdated?: () => void | Promise<void>;
 }
 
 export const PosScreen: React.FC<PosScreenProps> = ({
   currentUser,
   currentSession,
-  onNavigate
+  onNavigate,
+  onSessionUpdated
 }) => {
   const store = db.getStore();
   const products = db.getProducts().filter(p => p.status === 'ACTIVE');
@@ -78,6 +80,8 @@ export const PosScreen: React.FC<PosScreenProps> = ({
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [openingBalance,setOpeningBalance]=useState('100');
+  const [openingBusy,setOpeningBusy]=useState(false);
 
   // Payment Breakdown State
   const [payments, setPayments] = useState<SalePayment[]>([]);
@@ -93,6 +97,23 @@ export const PosScreen: React.FC<PosScreenProps> = ({
   const [isAudioMuted, setIsAudioMuted] = useState(soundService.getMuted());
   const [audioVolume, setAudioVolume] = useState(soundService.getVolume());
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
+
+  const openDemoCash = async () => {
+    const register = db.getCashRegisters().find(r => r.status === 'FECHADO') || db.getCashRegisters()[0];
+    if (!register) { setErrorMessage('Nenhum caixa disponível para abertura no modo demo.'); return; }
+    const amount = Number(String(openingBalance || '0').replace(',','.'));
+    if (!Number.isFinite(amount) || amount < 0) { setErrorMessage('Saldo inicial inválido.'); return; }
+    setOpeningBusy(true); setErrorMessage(null);
+    try {
+      db.openCashSession(register.id, amount);
+      await onSessionUpdated?.();
+      setErrorMessage(null);
+    } catch (e:any) {
+      setErrorMessage(e?.message || 'Não foi possível abrir o caixa demo.');
+    } finally {
+      setOpeningBusy(false);
+    }
+  };
 
   const toggleSound = () => {
     const nextMuted = soundService.toggleMute();
@@ -444,7 +465,7 @@ export const PosScreen: React.FC<PosScreenProps> = ({
 
       setCompletedSale(sale);
       setIsPaymentModalOpen(false);
-      setIsReceiptModalOpen(true);
+      setIsReceiptModalOpen(false);
 
       // Reset cart
       setCart([]);
@@ -463,19 +484,20 @@ export const PosScreen: React.FC<PosScreenProps> = ({
 
   return (
     <div className="flex-1 min-h-0 flex flex-col h-full lg:h-[calc(100vh-4rem)] bg-neutral-950 text-neutral-100 overflow-hidden">
-      {/* Top Banner Alert if Caixa Closed */}
       {!currentSession && (
-        <div className="bg-rose-950/80 border-b border-rose-800 text-rose-200 px-3 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={16} className="text-rose-400 animate-pulse" />
-            <span>CAIXA FECHADO: É necessário abrir uma sessão de caixa para realizar vendas.</span>
+        <div className="fixed inset-0 z-[80] bg-black/75 backdrop-blur-sm grid place-items-center p-4">
+          <div className="w-full max-w-md rounded-3xl border border-amber-500/30 bg-neutral-900 shadow-2xl p-5">
+            <div className="text-[10px] uppercase tracking-[.18em] text-violet-300 font-black">Modo demonstração · fluxo realista</div>
+            <h2 className="text-xl font-black mt-1">Abrir Caixa</h2>
+            <p className="text-xs text-neutral-500 mt-1">Abra o caixa primeiro. Depois você entra direto no PDV demo.</p>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800"><div className="text-[10px] text-neutral-500">Operador</div><div className="text-xs font-black mt-1 truncate">{currentUser.name}</div></div>
+              <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800"><div className="text-[10px] text-neutral-500">Caixa</div><div className="text-xs font-black mt-1">{(db.getCashRegisters().find(r=>r.status==='FECHADO')||db.getCashRegisters()[0])?.number||'—'}</div></div>
+            </div>
+            <label className="block mt-3"><span className="text-[10px] text-neutral-500">Valor inicial (R$)</span><input value={openingBalance} onChange={e=>setOpeningBalance(e.target.value)} inputMode="decimal" className="mt-1 w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm outline-none focus:border-amber-500"/></label>
+            {errorMessage&&<div className="mt-3 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{errorMessage}</div>}
+            <button disabled={openingBusy} onClick={()=>void openDemoCash()} className="mt-4 w-full py-3.5 rounded-xl bg-amber-500 text-neutral-950 font-black disabled:bg-neutral-800 disabled:text-neutral-500">{openingBusy?'ABRINDO...':'Abrir caixa e iniciar PDV'}</button>
           </div>
-          <button
-            onClick={() => onNavigate('cash')}
-            className="px-3 py-1 bg-rose-500 hover:bg-rose-400 text-neutral-950 rounded font-bold cursor-pointer transition-colors"
-          >
-            Abrir Caixa Agora
-          </button>
         </div>
       )}
 
@@ -1139,6 +1161,28 @@ export const PosScreen: React.FC<PosScreenProps> = ({
                 <span>Confirmar Pagamento ({remainingToPay <= 0 ? 'Concluir' : 'Lançar'})</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {completedSale && !isPaymentModalOpen && (
+        <div className="mx-3 sm:mx-4 mb-4 rounded-2xl border border-emerald-700/40 bg-neutral-900 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-[.18em] text-emerald-400 font-black">Pagamento confirmado</div>
+              <h3 className="text-sm font-black mt-1">Cupom / comprovante · Venda #{completedSale.saleNumber}</h3>
+              <div className="text-[10px] text-neutral-500 mt-1">{new Date(completedSale.createdAt).toLocaleString('pt-BR')} · {completedSale.customerName||'Cliente Balcão'}</div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={()=>printService.printReceipt()} className="px-3 py-2 rounded-xl bg-amber-500 text-neutral-950 text-[10px] font-black flex items-center gap-1.5"><Printer size={13}/>Imprimir</button>
+              <button onClick={()=>setIsReceiptModalOpen(true)} className="px-3 py-2 rounded-xl border border-neutral-700 text-[10px] font-black text-neutral-300">Ver completo</button>
+            </div>
+          </div>
+          <div className="mt-3 rounded-xl bg-white text-neutral-900 p-3 font-mono text-[10px]">
+            <div className="flex justify-between gap-3 border-b border-dashed border-neutral-300 pb-2"><b>{store.tradeName}</b><b>R$ {completedSale.total.toFixed(2)}</b></div>
+            <div className="mt-2 space-y-1">{completedSale.items.slice(0,5).map((it,idx)=><div key={idx} className="flex justify-between gap-3"><span>{it.quantity}× {it.productName}</span><span>R$ {it.subtotal.toFixed(2)}</span></div>)}</div>
+            {completedSale.items.length>5&&<div className="mt-1 text-neutral-500">+ {completedSale.items.length-5} item(ns)</div>}
+            <div className="mt-2 pt-2 border-t border-dashed border-neutral-300 flex justify-between"><span>Pagamento</span><span>{completedSale.payments.map(p=>p.method).join(' + ')}</span></div>
           </div>
         </div>
       )}
