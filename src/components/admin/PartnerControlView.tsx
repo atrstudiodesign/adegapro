@@ -136,18 +136,18 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     ['COMMISSIONS','Comissões',WalletCards],['PAYMENTS','Pagamentos',CreditCard],['REPORTS','Relatórios',BarChart3]
   ];
 
-  return <div className="space-y-3">
+  return <div className="space-y-3 min-w-0 overflow-x-hidden">
     <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-      <nav className="flex gap-1.5 overflow-x-auto">
+      <nav className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
         {topTabs.map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`h-10 px-4 rounded-lg border flex items-center gap-2 whitespace-nowrap text-[11px] font-black ${tab===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#0c1115] border-neutral-800 text-neutral-300 hover:border-neutral-600'}`}><I size={14}/>{label}</button>)}
       </nav>
-      <div className="flex flex-wrap gap-2">
-        <div className="px-3 h-10 rounded-lg border border-neutral-800 bg-[#0c1115] flex items-center gap-2 text-[10px] text-neutral-400"><Clock3 size={13}/><span>Período</span><b className="text-neutral-200">Atual</b></div>
-        <button onClick={()=>setShowSellerForm(v=>!v)} className="h-10 px-3 rounded-lg bg-neutral-900 border border-neutral-700 text-xs font-black flex items-center gap-2"><Plus size={14}/>Novo vendedor</button>
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full xl:w-auto">
+        <div className="px-3 h-10 rounded-lg border border-neutral-800 bg-[#0c1115] flex items-center justify-center sm:justify-start gap-2 text-[10px] text-neutral-400"><Clock3 size={13}/><span>Período</span><b className="text-neutral-200">Atual</b></div>
+        <button onClick={()=>setShowSellerForm(v=>!v)} className="h-10 px-3 rounded-lg bg-neutral-900 border border-neutral-700 text-[10px] sm:text-xs font-black flex items-center justify-center gap-2"><Plus size={14}/>Novo vendedor</button>
       </div>
     </div>
 
-    <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 min-[390px]:grid-cols-2 xl:grid-cols-5 gap-3">
       <Kpi icon={Users} label="Vendedores ativos" value={metrics.partners_active||0} sub={`de ${metrics.partners_total||0} cadastrados`}/>
       <Kpi icon={Users} label="Leads gerados" value={metrics.referrals_total||0} sub="via links, códigos e cadastro"/>
       <Kpi icon={ShoppingCart} label="Clientes convertidos" value={metrics.referrals_converted||0} sub="realizaram conversão"/>
@@ -175,7 +175,7 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
           <Field label="Código de indicação"><input className="input" value={form.referral_code||''} onChange={e=>setForm({...form,referral_code:e.target.value.toUpperCase()})}/></Field>
           <Field label="Chave PIX"><input className="input" value={form.pix_key||''} onChange={e=>setForm({...form,pix_key:e.target.value})}/></Field>
           <Field label="Repasse"><select className="input" value={form.payout_mode} onChange={e=>setForm({...form,payout_mode:e.target.value})}><option value="IMEDIATO">Imediato</option><option value="FECHAMENTO_MENSAL">Fechamento mensal</option></select></Field>
-          <div className="sm:col-span-2 lg:col-span-3 flex gap-3 text-xs text-neutral-400"><label><input type="checkbox" checked={!!form.active} onChange={e=>setForm({...form,active:e.target.checked})}/> Ativo</label><label><input type="checkbox" checked={!!form.email_verified} onChange={e=>setForm({...form,email_verified:e.target.checked})}/> E-mail validado</label><label><input type="checkbox" checked={!!form.phone_verified} onChange={e=>setForm({...form,phone_verified:e.target.checked})}/> Telefone validado</label></div>
+          <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap gap-x-3 gap-y-2 text-xs text-neutral-400"><label><input type="checkbox" checked={!!form.active} onChange={e=>setForm({...form,active:e.target.checked})}/> Ativo</label><label><input type="checkbox" checked={!!form.email_verified} onChange={e=>setForm({...form,email_verified:e.target.checked})}/> E-mail validado</label><label><input type="checkbox" checked={!!form.phone_verified} onChange={e=>setForm({...form,phone_verified:e.target.checked})}/> Telefone validado</label></div>
           <button disabled={busy||!form.full_name||!form.email||!form.phone} onClick={()=>void savePartner()} className="sm:col-span-2 lg:col-span-3 btn-primary">Salvar vendedor manualmente</button>
         </div>
         <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
@@ -190,13 +190,13 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     </section>}
 
     <div className="flex flex-col xl:flex-row gap-2 xl:items-center justify-between pt-1">
-      <div className="flex gap-1.5 overflow-x-auto">
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
         {([['SELLERS',`Todos os Vendedores (${metrics.partners_total||0})`],['REFERRALS',`Leads / Indicações (${metrics.referrals_total||0})`],['COMMISSIONS',`Comissões (${commissions.length})`],['PAYMENTS',`Pagamentos (${metrics.payments_confirmed||0})`]] as [Tab,string][]).map(([id,label])=><button key={id} onClick={()=>setTab(id)} className={`h-9 px-4 rounded-lg border whitespace-nowrap text-[10px] font-black ${tab===id?'bg-amber-400 text-neutral-950 border-amber-300':'bg-[#0c1115] text-neutral-400 border-neutral-800'}`}>{label}</button>)}
       </div>
-      <div className="flex gap-2">
-        <div className="relative min-w-[280px]"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar vendedor, cliente, código, link..." className="h-9 w-full rounded-lg bg-[#0c1115] border border-neutral-800 pl-9 pr-3 text-xs outline-none focus:border-amber-500"/></div>
-        <button onClick={()=>setStatusFilter(statusFilter==='ALL'?'PENDING':statusFilter==='PENDING'?'ACTIVE':statusFilter==='ACTIVE'?'CANCELLED':'ALL')} className="h-9 px-3 rounded-lg border border-neutral-800 bg-[#0c1115] text-[10px] font-black flex items-center gap-2"><Filter size={13}/>{statusFilter==='ALL'?'Filtros':statusFilter}</button>
-        <button onClick={exportCsv} className="h-9 px-3 rounded-lg border border-neutral-800 bg-[#0c1115] text-[10px] font-black flex items-center gap-2"><Download size={13}/>Exportar</button>
+      <div className="grid grid-cols-2 sm:flex gap-2 w-full xl:w-auto min-w-0">
+        <div className="relative col-span-2 sm:col-auto sm:min-w-[280px] sm:flex-1"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar vendedor, cliente, código, link..." className="h-10 w-full min-w-0 rounded-lg bg-[#0c1115] border border-neutral-800 pl-9 pr-3 text-xs outline-none focus:border-amber-500"/></div>
+        <button onClick={()=>setStatusFilter(statusFilter==='ALL'?'PENDING':statusFilter==='PENDING'?'ACTIVE':statusFilter==='ACTIVE'?'CANCELLED':'ALL')} className="h-10 px-3 rounded-lg border border-neutral-800 bg-[#0c1115] text-[10px] font-black flex items-center justify-center gap-2"><Filter size={13}/>{statusFilter==='ALL'?'Filtros':statusFilter}</button>
+        <button onClick={exportCsv} className="h-10 px-3 rounded-lg border border-neutral-800 bg-[#0c1115] text-[10px] font-black flex items-center justify-center gap-2"><Download size={13}/>Exportar</button>
       </div>
     </div>
 
