@@ -202,18 +202,21 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
 
     {(tab==='OVERVIEW'||tab==='SELLERS')&&<section className="rounded-xl border border-neutral-800 bg-[#080d10] overflow-hidden">
       <div className="overflow-x-auto"><table className="w-full min-w-[1180px] text-xs">
-        <thead className="text-neutral-500 border-b border-neutral-800"><tr><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Link de Indicação</th><th className="p-3 text-left">Código</th><th className="p-3 text-center">Leads</th><th className="p-3 text-center">Clientes</th><th className="p-3 text-right">Vendas (R$)</th><th className="p-3 text-right">Comissão</th><th className="p-3 text-left">Status Comissão</th><th className="p-3 text-left">Portal</th><th className="p-3 text-left">Ações</th></tr></thead>
+        <thead className="text-neutral-500 border-b border-neutral-800"><tr><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Link de Indicação</th><th className="p-3 text-left">Código</th><th className="p-3 text-center">Leads</th><th className="p-3 text-center">Clientes</th><th className="p-3 text-right">Vendas (R$)</th><th className="p-3 text-right">Comissão</th><th className="p-3 text-left">Status Comissão</th><th className="p-3 text-left">Status Pagamento</th><th className="p-3 text-left">Ações</th></tr></thead>
         <tbody>{sellerRows.map((p:any)=>{
           const commission=Number(p.available_amount||0)+Number(p.scheduled_amount||0);
           const commissionStatus=Number(p.available_amount||0)>0?'LIBERADA':Number(p.scheduled_amount||0)>0?'AGENDADA':Number(p.waiting_payment||0)>0?'AGUARDANDO PAGAMENTO':Number(p.cancelled||0)>0&&!p.converted?'NÃO CONVERTIDO':'SEM COMISSÃO';
+          const partnerReferrals=referrals.filter((r:any)=>r.partner_id===p.id);
+          const hasConfirmedPayment=partnerReferrals.some((r:any)=>r.customer_payment_status==='CONFIRMADO');
+          const paymentStatus=Number(p.waiting_payment||0)>0?'PENDENTE':hasConfirmedPayment?'PAGO':'—';
           return <tr key={p.id} className="border-b border-neutral-900 hover:bg-neutral-900/40">
-            <td className="p-3"><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="text-left"><div className="font-black">{p.full_name}</div><div className="text-[9px] text-neutral-500">{p.email}</div></button></td>
+            <td className="p-3"><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="text-left"><div className="font-black">{p.full_name}</div><div className="text-[9px] text-neutral-500">{p.email}</div><div className={`mt-1 text-[8px] font-black ${p.portal_registered?'text-emerald-400':'text-amber-400'}`}>PORTAL {p.portal_registered?'CADASTRADO':'PENDENTE'}</div></button></td>
             <td className="p-3"><button onClick={()=>void copy(share(p))} className="text-sky-400 hover:underline inline-flex items-center gap-2">{share(p).replace(window.location.origin,'adegapro')}<Copy size={11}/></button></td>
             <td className="p-3"><button onClick={()=>void copy(p.referral_code,'Código')} className="px-2 py-1 rounded bg-neutral-900 border border-neutral-700 font-mono inline-flex items-center gap-2">{p.referral_code}<Copy size={10}/></button></td>
             <td className="p-3 text-center font-bold">{p.referrals||0}</td><td className="p-3 text-center font-bold">{p.converted||0}</td>
             <td className="p-3 text-right">{money(p.sales_value||0)}</td><td className="p-3 text-right text-amber-400 font-black">{money(commission)}</td>
             <td className="p-3"><Status value={commissionStatus}/></td>
-            <td className="p-3"><Status value={p.portal_registered?'CADASTRADO':'PENDENTE'}/></td>
+            <td className="p-3">{paymentStatus==='—'?<span className="text-neutral-600">—</span>:<Status value={paymentStatus}/>}</td>
             <td className="p-3"><div className="flex gap-1"><button onClick={()=>void copy(share(p))} className="h-8 px-2 rounded border border-neutral-800">Link</button><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="h-8 px-2 rounded border border-neutral-800">Ver</button></div></td>
           </tr>
         })}</tbody>
