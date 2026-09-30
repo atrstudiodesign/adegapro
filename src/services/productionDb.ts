@@ -1056,6 +1056,34 @@ async function saveHrPolicy(payload:Record<string,unknown>){
   return data as string;
 }
 
+async function saveHrAgendaEvent(payload:Record<string,unknown>){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('save_hr_agenda_event',{p_store_id:ctx.storeId,p_operator_token:token,p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
+async function setHrAgendaStatus(eventId:string,status:'PENDENTE'|'CONCLUIDO'|'CANCELADO'){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {error}=await supabase.rpc('set_hr_agenda_status',{
+    p_store_id:ctx.storeId,p_operator_token:token,p_event_id:eventId,p_status:status
+  });
+  if(error) throw error;
+}
+
+async function getHrAlerts(){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('get_hr_alerts',{p_store_id:ctx.storeId,p_operator_token:token});
+  if(error) throw error;
+  return data||{pending_total:0,due_today:0,overdue:0,urgent:0,items:[]};
+}
+
 export const productionDb = {
   getContext,
   getAccessibleStores,
@@ -1120,5 +1148,8 @@ export const productionDb = {
   getHrSnapshot,
   saveHrEmployee,
   saveHrPayrollEntry,
-  saveHrPolicy
+  saveHrPolicy,
+  saveHrAgendaEvent,
+  setHrAgendaStatus,
+  getHrAlerts
 };
