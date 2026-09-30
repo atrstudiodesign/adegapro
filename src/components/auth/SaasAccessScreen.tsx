@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ArrowRight, BarChart3, Boxes, CheckCircle2, Eye, EyeOff, LockKeyhole,
   Mail, Phone, ShieldCheck, ShoppingCart, Sparkles, Store, UserRound, WalletCards,
-  PackageCheck, TrendingUp, Truck, CreditCard, Smartphone, Zap, BadgeCheck
+  PackageCheck, TrendingUp, Truck, CreditCard, Smartphone, Zap, BadgeCheck, Gift, UserPlus
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { LegalCenter } from '../legal/LegalCenter';
@@ -366,6 +366,54 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               <div><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Ecossistema conectado</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Pagamentos, delivery e automações preparados para integração.</h2><p className="text-sm text-neutral-400 mt-4 leading-relaxed">O ADEGA PRO possui base de webhooks e conectores para integrar provedores reais. Cada integração é ativada somente após configuração e homologação do estabelecimento.</p></div>
               <div className="grid sm:grid-cols-2 gap-3">
                 {[['iFood','Delivery e catálogo','bg-red-600',Smartphone],['Asaas','PIX, cobrança e recorrência','bg-blue-700',CreditCard],['PagSeguro','Cartão e pagamentos','bg-emerald-700',CreditCard],['Mercado Pago','PIX e pagamentos digitais','bg-sky-700',Zap]].map(([name,desc,bg,I]:any)=><div key={name} className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center gap-4"><div className={`w-11 h-11 rounded-xl ${bg} grid place-items-center text-white font-black`}><I size={19}/></div><div><div className="font-black">{name}</div><div className="text-[10px] text-neutral-500 mt-1">{desc}</div><div className="text-[9px] text-amber-400 mt-2 uppercase font-bold">Integração sob configuração</div></div></div>)}
+              </div>
+            </div>
+          </section>
+
+          <section className="border-y border-white/5 bg-gradient-to-br from-amber-950/30 via-neutral-950 to-neutral-950">
+            <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <div className="grid lg:grid-cols-[.85fr_1.15fr] gap-8 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[10px] font-black uppercase tracking-[.16em]">
+                    <Gift size={13}/> Programa de indicação
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-black mt-4">Indicou. Ganhou.</h2>
+                  <p className="text-sm text-neutral-400 mt-4 leading-relaxed">
+                    Cliente ativo do ADEGA PRO que indicar 1 novo cliente escolhe um dos benefícios abaixo.
+                  </p>
+                  <a
+                    href="https://wa.me/5511939026928?text=Ol%C3%A1%2C%20sou%20cliente%20ativo%20do%20ADEGA%20PRO%20e%20quero%20participar%20do%20programa%20de%20indica%C3%A7%C3%A3o."
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-6 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black shadow-lg shadow-emerald-950/30"
+                  >
+                    <UserPlus size={17}/> Quero indicar um cliente
+                  </a>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-6 rounded-3xl bg-neutral-900 border border-neutral-800">
+                    <div className="text-[10px] text-neutral-500 uppercase tracking-[.18em] font-black">Opção 1</div>
+                    <div className="mt-3 text-4xl font-black text-amber-400">30% OFF</div>
+                    <div className="text-sm font-bold text-white mt-1">por 3 meses</div>
+                    <p className="text-xs text-neutral-400 mt-4 leading-relaxed">
+                      Desconto de 30% na assinatura do ADEGA PRO durante 3 meses.
+                    </p>
+                  </div>
+
+                  <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-950/60 to-neutral-900 border border-amber-700/40">
+                    <div className="text-[10px] text-amber-300 uppercase tracking-[.18em] font-black">Opção 2 · Personalizado</div>
+                    <div className="mt-3 text-4xl font-black text-amber-300">40% OFF</div>
+                    <div className="text-sm font-bold text-white mt-1">+ 6 meses sem mensalidade</div>
+                    <p className="text-xs text-neutral-300 mt-4 leading-relaxed">
+                      40% de desconto na implantação personalizada e 6 meses de acesso ao ADEGA PRO sem mensalidade. Após esse período, o cliente escolhe a assinatura.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 rounded-2xl bg-black/30 border border-white/5 text-[11px] text-neutral-500">
+                Benefício válido para cliente ativo do ADEGA PRO mediante indicação de 1 novo cliente.
               </div>
             </div>
           </section>
