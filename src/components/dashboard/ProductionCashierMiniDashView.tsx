@@ -29,7 +29,7 @@ export const ProductionCashierMiniDashView:React.FC<{onNavigate:(tab:string)=>vo
   },[sales,products]);
 
   return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto text-white space-y-5">
-    <PageHeader eyebrow="Frente de loja" title="Mini dashboard do caixa" description="Visão rápida para o operador com vendas, caixa e alertas de estoque." actions={
+    <PageHeader eyebrow="Frente de loja" title="Mini PDV" description="Visão rápida de vendas, caixa e alertas de estoque, disponível mesmo sem sessão de caixa aberta." actions={
       <button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2">
         <RefreshCw size={14}/>{busy?'Atualizando...':'Atualizar'}
       </button>
