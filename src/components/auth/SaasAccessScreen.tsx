@@ -345,6 +345,52 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             </div>
           </section>
 
+          <section className="border-y border-white/5 bg-gradient-to-br from-sky-950/20 via-neutral-950 to-violet-950/20">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <div className="grid lg:grid-cols-[.9fr_1.1fr] gap-10 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-300 text-[10px] font-black uppercase tracking-[.16em]">
+                    <Sparkles size={13}/> IA & automação inteligente
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-black mt-4">Venda melhor, promova no momento certo e reduza falhas operacionais.</h2>
+                  <p className="text-sm text-neutral-400 mt-4 leading-relaxed">
+                    O ADEGA PRO combina recomendações automáticas, ações comerciais sobre clientes e auditoria assistida para apoiar decisões no balcão e na gestão. A camada de IA generativa pode ser conectada de forma segura no backend, sem expor credenciais no navegador.
+                  </p>
+                  <button onClick={() => navigateView('REGISTER')} className="mt-6 px-5 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-violet-500 text-white font-black text-sm flex items-center gap-2">
+                    Quero usar recursos inteligentes <ArrowRight size={17}/>
+                  </button>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <ShoppingCart size={20} className="text-amber-400"/>
+                    <div className="font-black text-white mt-3">Sugestão na hora da venda</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">Ajuda o operador a oferecer produtos complementares, combos e itens disponíveis em estoque para aumentar o ticket médio.</p>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <TrendingUp size={20} className="text-emerald-400"/>
+                    <div className="font-black text-white mt-3">Marketing sobre clientes e leads</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">Crie promoções, reative clientes e envie recomendações personalizadas por WhatsApp usando os dados comerciais já cadastrados.</p>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <ShieldCheck size={20} className="text-sky-400"/>
+                    <div className="font-black text-white mt-3">Auditoria inteligente</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">Destaca eventos com sinais de erro, bloqueio ou comportamento recorrente para facilitar a revisão antes que um problema operacional cresça.</p>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <Sparkles size={20} className="text-violet-400"/>
+                    <div className="font-black text-white mt-3">Assistência comercial com IA</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">Estrutura preparada para integrar modelos de IA no backend e gerar campanhas, textos, análises e sugestões sem expor chaves ou dados sensíveis no frontend.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 rounded-2xl border border-white/5 bg-black/20 text-[11px] text-neutral-500">
+                Recursos inteligentes apoiam a operação e não substituem a conferência do operador em vendas, preços, estoque, promoções ou auditoria.
+              </div>
+            </div>
+          </section>
+
           <section id="produtos" className="border-y border-white/5 bg-neutral-950/60">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 grid lg:grid-cols-[.85fr_1.15fr] gap-10 items-center">
               <div><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Catálogo visual</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Produtos com experiência de e-commerce.</h2><p className="text-sm text-neutral-400 mt-4 leading-relaxed">Visualize itens com imagem, preço, estoque, categoria e disponibilidade. O mesmo catálogo pode alimentar PDV, vendas online e futuras integrações de delivery.</p><div className="mt-6 space-y-3 text-sm text-neutral-300"><div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Busca rápida por nome, SKU ou código de barras</div><div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Preço e estoque sincronizados com a operação</div><div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Combos, promoções e controle de validade</div></div></div>
