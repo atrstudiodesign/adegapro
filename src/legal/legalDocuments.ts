@@ -5,7 +5,7 @@ export type LegalDocKey =
   | 'software_license'
   | 'legal_notice';
 
-export const LEGAL_VERSION = '2026.09.29-r4';
+export const LEGAL_VERSION = '2026.09.29-r5';
 export const LEGAL_EFFECTIVE_DATE = '29 de setembro de 2026';
 
 export const LEGAL_PROVIDER = {
@@ -78,7 +78,18 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         ]
       },
       {
-        title: '7. Boa-fé, proporcionalidade e legislação aplicável',
+        title: '7. Como usar o ADEGA PRO com segurança',
+        paragraphs: [
+          'Após criar a conta e aceitar os documentos vigentes, o administrador deve completar o cadastro da empresa e de cada loja ou unidade, informar os dados reais do estabelecimento e definir qual unidade está ativa antes de iniciar operações.',
+          'Em seguida, deve cadastrar operadores e permissões, criar ou conferir os caixas disponíveis, cadastrar produtos, categorias e fornecedores e registrar o estoque inicial da unidade correta. Em ambientes com mais de uma loja, estoque, caixa, vendas, compras, inventário e financeiro devem ser operados sempre na unidade selecionada.',
+          'Para iniciar vendas, o operador autorizado entra com suas credenciais ou PIN, abre uma sessão em um caixa disponível, acessa o PDV, seleciona ou pesquisa os produtos, informa o cliente quando necessário, escolhe a forma de pagamento e confirma a venda. Sangrias, suprimentos e fechamento devem ser registrados no mesmo caixa e pelo operador responsável.',
+          'Clientes podem ser cadastrados como AVULSO, MENSAL ou FIADO, com nome, sobrenome e WhatsApp obrigatório e CPF opcional. Compras fiadas devem permanecer vinculadas ao cliente correto para controle de saldo e recebimentos.',
+          'O menu Lojas & Unidades permite alternar entre unidades autorizadas. O menu Configurações & Impressão concentra largura do cupom, modelo de impressora, teste de impressão e preferências operacionais. O menu Suporte contém canais de atendimento e backup geral do ambiente.',
+          'O contratante deve revisar periodicamente usuários, permissões, estoques, caixas e backups. Dúvidas ou erros devem ser reportados pelo Suporte ATR Studio antes de qualquer tentativa de manipulação direta do banco ou uso de arquivo de restauração não validado.'
+        ]
+      },
+      {
+        title: '8. Boa-fé, proporcionalidade e legislação aplicável',
         paragraphs: [
           'As partes se comprometem a agir com boa-fé, cooperação, lealdade contratual e mitigação razoável de danos.',
           'Nenhuma cláusula deve ser interpretada para afastar direito inderrogável previsto em lei. Em relações de consumo, prevalecem as normas protetivas aplicáveis; em relações empresariais paritárias, aplicam-se também os princípios de autonomia privada e alocação contratual de riscos.',
