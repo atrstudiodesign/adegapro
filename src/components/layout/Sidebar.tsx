@@ -23,7 +23,8 @@ import {
   Lock,
   Headphones,
   Store as StoreIcon,
-  Scale
+  Scale,
+  BriefcaseBusiness
 } from 'lucide-react';
 import { User } from '../../types';
 import { APP_VERSION_LABEL } from '../../config/release';
@@ -103,6 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'finance', label: 'Financeiro & Fluxo', icon: DollarSign, permission: 'finance.view' },
         { id: 'employees', label: 'Funcionários & PINs', icon: UserCog, permission: 'employees.manage' },
+        { id: 'hr', label: 'RH Interno', icon: BriefcaseBusiness, permission: null, roles: ['ADMINISTRADOR','GERENTE'] },
         { id: 'reports', label: 'Centro de Relatórios', icon: BarChart3, permission: 'reports.view' },
         { id: 'audit', label: 'Log de Auditoria', icon: ShieldCheck, permission: 'reports.view' },
         { id: 'integrations', label: 'Integrações & Pagamentos', icon: Cable, permission: 'settings.edit' },
@@ -171,6 +173,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {group.group}
             </div>
             {group.items.map(item => {
+              if ('roles' in item && Array.isArray((item as any).roles) && !(item as any).roles.includes(currentUser.role)) return null;
               if ('permission' in item && !hasPermission(item.permission as any)) return null;
               const Icon = item.icon;
               const isActive = currentTab === item.id;
