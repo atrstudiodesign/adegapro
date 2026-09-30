@@ -1019,6 +1019,43 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
   return data;
 }
 
+
+async function getHrSnapshot(){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('get_hr_snapshot',{p_store_id:ctx.storeId,p_operator_token:token});
+  if(error) throw error;
+  return data||{employees:[],payroll:[],policies:[],metrics:{}};
+}
+
+async function saveHrEmployee(payload:Record<string,unknown>){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('save_hr_employee',{p_store_id:ctx.storeId,p_operator_token:token,p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
+async function saveHrPayrollEntry(payload:Record<string,unknown>){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('save_hr_payroll_entry',{p_store_id:ctx.storeId,p_operator_token:token,p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
+async function saveHrPolicy(payload:Record<string,unknown>){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('save_hr_policy',{p_store_id:ctx.storeId,p_operator_token:token,p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
 export const productionDb = {
   getContext,
   getAccessibleStores,
@@ -1079,5 +1116,9 @@ export const productionDb = {
   getCashMovements,
   openCashSession,
   registerCashMovement,
-  closeCashSession
+  closeCashSession,
+  getHrSnapshot,
+  saveHrEmployee,
+  saveHrPayrollEntry,
+  saveHrPolicy
 };
