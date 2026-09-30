@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {
   BriefcaseBusiness,CalendarDays,CheckCircle2,Clock3,DollarSign,FileText,
-  Plus,Printer,RefreshCw,ShieldCheck,Users,WalletCards
+  Plus,Printer,RefreshCw,ShieldCheck,Users,WalletCards,Share2,Pencil
 } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import { MetricCard,PageHeader,StatusBadge } from '../ui/ProUi';
@@ -24,10 +24,11 @@ export const ProductionHrView:React.FC=()=>{
   const[payroll,setPayroll]=useState<any>(emptyPayroll);
   const[policy,setPolicy]=useState<any>(emptyPolicy);
   const[selectedPayroll,setSelectedPayroll]=useState<any>(null);
+  const[store,setStore]=useState<any>(null);
 
   const load=async()=>{
     setBusy(true);setError('');
-    try{setData(await productionDb.getHrSnapshot());}
+    try{const [snapshot,currentStore]=await Promise.all([productionDb.getHrSnapshot(),productionDb.getStore()]);setData(snapshot);setStore(currentStore);}
     catch(e:any){setError(e?.message||'Não foi possível carregar o RH interno.');}
     finally{setBusy(false);}
   };
@@ -84,6 +85,49 @@ export const ProductionHrView:React.FC=()=>{
   const printPayroll=(row:any)=>{
     setSelectedPayroll(row);
     window.setTimeout(()=>window.print(),60);
+  };
+
+  const editPayroll=(row:any)=>{
+    setPayroll({
+      ...row,
+      base_amount:String(row.base_amount??''),
+      advances:String(row.advances??''),
+      overtime_amount:String(row.overtime_amount??''),
+      discounts:String(row.discounts??'')
+    });
+    setTab('PAYROLL');
+    setFeedback('Holerite carregado para alteração.');
+  };
+
+  const sharePayroll=async(row:any)=>{
+    const emp:any=employeeMap.get(row.employee_id);
+    const text=[
+      'HOLERITE / COMPROVANTE DE PAGAMENTO',
+      store?.legalName||store?.tradeName||store?.name||'Empresa',
+      store?.cnpj?'CNPJ: '+store.cnpj:'',
+      '',
+      'Funcionário: '+(emp?.full_name||'—'),
+      emp?.cpf?'CPF: '+emp.cpf:'',
+      'Período: '+date(row.period_start)+' a '+date(row.period_end),
+      'Valor base: '+money(row.base_amount),
+      'Adiantamentos: '+money(row.advances),
+      'Horas extras / adicionais: '+money(row.overtime_amount),
+      'Descontos: '+money(row.discounts),
+      'Valor líquido: '+money(row.net_amount),
+      'Status: '+row.status
+    ].filter(Boolean).join('\n');
+
+    try{
+      if(navigator.share){
+        await navigator.share({title:'Holerite - '+(emp?.full_name||'Funcionário'),text});
+        setFeedback('Holerite compartilhado.');
+      }else{
+        await navigator.clipboard.writeText(text);
+        setFeedback('Resumo do holerite copiado para compartilhar.');
+      }
+    }catch(e:any){
+      if(e?.name!=='AbortError') setError('Não foi possível compartilhar o holerite.');
+    }
   };
 
   return <div className="flex-1 min-h-0 overflow-y-auto bg-neutral-950 text-white p-3 sm:p-4 lg:p-6 space-y-5">
@@ -156,7 +200,7 @@ export const ProductionHrView:React.FC=()=>{
 
     {tab==='PAYROLL'&&<div className="grid xl:grid-cols-[.72fr_1.28fr] gap-4">
       <section className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900 space-y-3">
-        <div><h2 className="font-black">Novo pagamento / holerite interno</h2><p className="text-[10px] text-neutral-500 mt-1">Valores são informados pela gestão. O sistema não calcula encargos legais automaticamente.</p></div>
+        <div><h2 className="font-black">{payroll.id?'Alterar pagamento / holerite':'Novo pagamento / holerite interno'}</h2><p className="text-[10px] text-neutral-500 mt-1">Valores são informados pela gestão. O sistema não calcula encargos legais automaticamente.</p></div>
         <Field label="Funcionário"><select className="input" value={payroll.employee_id} onChange={e=>{const emp:any=employeeMap.get(e.target.value);setPayroll({...payroll,employee_id:e.target.value,base_amount:emp?String(emp.base_amount):payroll.base_amount,payment_frequency:emp?.payment_frequency||payroll.payment_frequency})}}><option value="">Selecione...</option>{employees.filter((e:any)=>e.active).map((e:any)=><option key={e.id} value={e.id}>{e.full_name}</option>)}</select></Field>
         <div className="grid grid-cols-2 gap-3"><Field label="Início do período"><Input type="date" value={payroll.period_start} onChange={v=>setPayroll({...payroll,period_start:v})}/></Field><Field label="Fim do período"><Input type="date" value={payroll.period_end} onChange={v=>setPayroll({...payroll,period_end:v})}/></Field></div>
         <div className="grid grid-cols-2 gap-3">
@@ -168,12 +212,19 @@ export const ProductionHrView:React.FC=()=>{
         <Field label="Frequência"><select className="input" value={payroll.payment_frequency} onChange={e=>setPayroll({...payroll,payment_frequency:e.target.value})}><option value="DIARIO">Diário</option><option value="SEMANAL">Semanal</option><option value="QUINZENAL">Quinzenal</option><option value="MENSAL">Mensal</option><option value="OUTRO">Outro</option></select></Field>
         <Field label="Status"><select className="input" value={payroll.status} onChange={e=>setPayroll({...payroll,status:e.target.value})}><option value="PENDENTE">Pendente</option><option value="PAGO">Pago</option><option value="CANCELADO">Cancelado</option></select></Field>
         <Field label="Observações"><textarea className="input min-h-20" value={payroll.notes} onChange={e=>setPayroll({...payroll,notes:e.target.value})}/></Field>
-        <button disabled={busy||!payroll.employee_id||!payroll.period_start||!payroll.period_end} onClick={()=>void savePayroll()} className="w-full h-10 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black">Salvar lançamento</button>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={()=>setPayroll(emptyPayroll)} className="h-10 rounded-xl border border-neutral-700 text-xs font-black">Limpar</button>
+          <button disabled={busy||!payroll.employee_id||!payroll.period_start||!payroll.period_end} onClick={()=>void savePayroll()} className="h-10 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black">{payroll.id?'Salvar alterações':'Salvar lançamento'}</button>
+        </div>
       </section>
 
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
         <div className="p-4 border-b border-neutral-800"><h2 className="font-black">Histórico de pagamentos</h2></div>
-        <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Funcionário</th><th className="p-3 text-left">Período</th><th className="p-3 text-right">Base</th><th className="p-3 text-right">Adiant.</th><th className="p-3 text-right">Extras</th><th className="p-3 text-right">Líquido</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Ações</th></tr></thead><tbody>{payrollRows.map((p:any)=>{const emp:any=employeeMap.get(p.employee_id);return <tr key={p.id} className="border-t border-neutral-800"><td className="p-3 font-bold">{emp?.full_name||'—'}</td><td className="p-3">{date(p.period_start)}–{date(p.period_end)}</td><td className="p-3 text-right">{money(p.base_amount)}</td><td className="p-3 text-right">{money(p.advances)}</td><td className="p-3 text-right">{money(p.overtime_amount)}</td><td className="p-3 text-right text-amber-400 font-black">{money(p.net_amount)}</td><td className="p-3"><StatusBadge tone={p.status==='PAGO'?'success':p.status==='CANCELADO'?'danger':'warning'}>{p.status}</StatusBadge></td><td className="p-3"><button onClick={()=>printPayroll(p)} className="h-8 px-3 rounded-lg border border-neutral-700 flex items-center gap-2"><Printer size={12}/>Holerite</button></td></tr>})}</tbody></table></div>
+        <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Funcionário</th><th className="p-3 text-left">Período</th><th className="p-3 text-right">Base</th><th className="p-3 text-right">Adiant.</th><th className="p-3 text-right">Extras</th><th className="p-3 text-right">Líquido</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Ações</th></tr></thead><tbody>{payrollRows.map((p:any)=>{const emp:any=employeeMap.get(p.employee_id);return <tr key={p.id} className="border-t border-neutral-800"><td className="p-3 font-bold">{emp?.full_name||'—'}</td><td className="p-3">{date(p.period_start)}–{date(p.period_end)}</td><td className="p-3 text-right">{money(p.base_amount)}</td><td className="p-3 text-right">{money(p.advances)}</td><td className="p-3 text-right">{money(p.overtime_amount)}</td><td className="p-3 text-right text-amber-400 font-black">{money(p.net_amount)}</td><td className="p-3"><StatusBadge tone={p.status==='PAGO'?'success':p.status==='CANCELADO'?'danger':'warning'}>{p.status}</StatusBadge></td><td className="p-3"><div className="flex gap-1.5">
+  <button onClick={()=>printPayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Printer size={12}/>Imprimir</button>
+  <button onClick={()=>editPayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Pencil size={12}/>Alterar</button>
+  <button onClick={()=>void sharePayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Share2 size={12}/>Compartilhar</button>
+</div></td></tr>})}</tbody></table></div>
       </section>
     </div>}
 
@@ -183,12 +234,49 @@ export const ProductionHrView:React.FC=()=>{
     </div>}
 
     {selectedPayroll&&<div className="hidden print:block fixed inset-0 bg-white text-black p-8">
-      <div className="max-w-2xl mx-auto border border-black p-6">
-        <div className="flex justify-between"><div><b className="text-xl">ADEGA PRO</b><div className="text-sm">Comprovante interno de pagamento</div></div><div className="text-right text-sm"><div>Período</div><b>{date(selectedPayroll.period_start)} a {date(selectedPayroll.period_end)}</b></div></div>
-        <hr className="my-5"/>
-        <div className="grid grid-cols-2 gap-4 text-sm"><div><b>Funcionário</b><div>{(employeeMap.get(selectedPayroll.employee_id) as any)?.full_name||'—'}</div></div><div><b>Frequência</b><div>{selectedPayroll.payment_frequency}</div></div></div>
-        <div className="mt-5 space-y-2 text-sm"><Line label="Valor base" value={selectedPayroll.base_amount}/><Line label="Adiantamentos" value={-Number(selectedPayroll.advances||0)}/><Line label="Horas extras / adicionais" value={selectedPayroll.overtime_amount}/><Line label="Descontos" value={-Number(selectedPayroll.discounts||0)}/><div className="flex justify-between border-t border-black pt-3 text-lg font-black"><span>Valor líquido</span><span>{money(selectedPayroll.net_amount)}</span></div></div>
-        <div className="mt-8 text-xs">Documento de controle interno. Não substitui recibos legais, folha oficial ou obrigações trabalhistas.</div>
+      <div className="max-w-4xl mx-auto border border-black text-[11px]">
+        <div className="grid grid-cols-[1fr_210px] border-b border-black">
+          <div className="p-4">
+            <div className="text-lg font-black uppercase">{store?.legalName||store?.tradeName||store?.name||'Empresa'}</div>
+            <div className="mt-1">CNPJ: {store?.cnpj||'—'}</div>
+            <div>{store?.address||''}{store?.city?(' · '+store.city):''}{store?.state?('/'+store.state):''}</div>
+          </div>
+          <div className="p-4 border-l border-black text-center">
+            <div className="font-black text-sm">RECIBO DE PAGAMENTO</div>
+            <div className="mt-1">Controle interno</div>
+            <div className="mt-2 font-bold">{date(selectedPayroll.period_start)} a {date(selectedPayroll.period_end)}</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 border-b border-black">
+          <div className="p-3 col-span-2"><b>Funcionário</b><div>{(employeeMap.get(selectedPayroll.employee_id) as any)?.full_name||'—'}</div></div>
+          <div className="p-3 border-l border-black"><b>CPF</b><div>{(employeeMap.get(selectedPayroll.employee_id) as any)?.cpf||'—'}</div></div>
+          <div className="p-3 border-l border-black"><b>Função</b><div>{(employeeMap.get(selectedPayroll.employee_id) as any)?.role_title||'—'}</div></div>
+        </div>
+
+        <div className="grid grid-cols-[90px_1fr_120px_120px] border-b border-black font-black bg-neutral-100">
+          <div className="p-2 border-r border-black">Código</div><div className="p-2 border-r border-black">Descrição</div><div className="p-2 border-r border-black text-right">Proventos</div><div className="p-2 text-right">Descontos</div>
+        </div>
+        <PayrollRow code="001" label="Valor base" credit={selectedPayroll.base_amount}/>
+        <PayrollRow code="050" label="Horas extras / adicionais" credit={selectedPayroll.overtime_amount}/>
+        <PayrollRow code="201" label="Adiantamentos" debit={selectedPayroll.advances}/>
+        <PayrollRow code="299" label="Outros descontos" debit={selectedPayroll.discounts}/>
+
+        <div className="grid grid-cols-[1fr_120px_120px] border-t border-black">
+          <div className="p-3 text-right font-black">Totais</div>
+          <div className="p-3 border-l border-black text-right font-black">{money(Number(selectedPayroll.base_amount||0)+Number(selectedPayroll.overtime_amount||0))}</div>
+          <div className="p-3 border-l border-black text-right font-black">{money(Number(selectedPayroll.advances||0)+Number(selectedPayroll.discounts||0))}</div>
+        </div>
+        <div className="grid grid-cols-[1fr_240px] border-t border-black">
+          <div className="p-4"><b>Observações</b><div className="mt-1 whitespace-pre-wrap">{selectedPayroll.notes||'—'}</div></div>
+          <div className="p-4 border-l border-black text-right"><div>Valor líquido</div><div className="text-2xl font-black mt-1">{money(selectedPayroll.net_amount)}</div></div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-12 p-8 border-t border-black mt-10">
+          <div className="border-t border-black pt-2 text-center">Assinatura do responsável</div>
+          <div className="border-t border-black pt-2 text-center">Assinatura do colaborador</div>
+        </div>
+        <div className="p-3 border-t border-black text-[9px] text-neutral-600 text-center">Documento de controle interno. Não substitui folha oficial, recibos exigidos por lei, eSocial ou obrigações trabalhistas/contábeis.</div>
       </div>
     </div>}
   </div>;
@@ -197,3 +285,4 @@ export const ProductionHrView:React.FC=()=>{
 const Field=({label,children}:{label:string;children:React.ReactNode})=><label className="block"><span className="block text-[10px] text-neutral-500 mb-1">{label}</span>{children}</label>;
 const Input=({value,onChange,type='text',inputMode}:{value:any;onChange:(v:string)=>void;type?:string;inputMode?:any})=><input className="input" type={type} inputMode={inputMode} value={value??''} onChange={e=>onChange(e.target.value)}/>;
 const Line=({label,value}:{label:string;value:number})=><div className="flex justify-between"><span>{label}</span><span>{money(value)}</span></div>;
+const PayrollRow=({code,label,credit=0,debit=0}:{code:string;label:string;credit?:number;debit?:number})=><div className="grid grid-cols-[90px_1fr_120px_120px] border-b border-black"><div className="p-2 border-r border-black">{code}</div><div className="p-2 border-r border-black">{label}</div><div className="p-2 border-r border-black text-right">{Number(credit||0)?money(credit):''}</div><div className="p-2 text-right">{Number(debit||0)?money(debit):''}</div></div>;
