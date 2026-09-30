@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { db } from '../../services/db';
 import { Customer } from '../../types';
-import { Users, Plus, Phone, MessageSquare, CheckCircle2, DollarSign, X, Ban } from 'lucide-react';
+import { Users, Plus, Phone, MessageSquare, CheckCircle2, DollarSign, X, Ban, Gift, Megaphone, Sparkles } from 'lucide-react';
 import { adegaAlert } from '../ui/AdegaDialog';
 
 export const CustomersView: React.FC = () => {
@@ -69,10 +69,20 @@ export const CustomersView: React.FC = () => {
     setTimeout(() => setFeedback(null), 3500);
   };
 
+  const openWhatsApp = (c: Customer, text: string) => {
+    const cleanPhone = (c.whatsapp || c.phone).replace(/\D/g, '');
+    window.open(`https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(text)}`, '_blank');
+  };
   const sendWhatsAppReminder = (c: Customer) => {
     const zapText = `Olá, ${c.name}! Passando para lembrar sobre o seu saldo em aberto de R$ ${c.creditBalance.toFixed(2)} na ${store.tradeName}. Chave PIX: ${store.cnpj}. Qualquer dúvida estamos à disposição!`;
-    const cleanPhone = (c.whatsapp || c.phone).replace(/\D/g, '');
-    window.open(`https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(zapText)}`, '_blank');
+    openWhatsApp(c, zapText);
+  };
+  const sendPromotion = (c: Customer) => openWhatsApp(c,`Olá, ${c.nickname || c.firstName || c.name}! Temos uma promoção especial na ${store.tradeName}. Quer receber as ofertas de hoje?`);
+  const sendReactivation = (c: Customer) => openWhatsApp(c,`Olá, ${c.nickname || c.firstName || c.name}! Faz um tempinho que não vemos você por aqui. Temos novidades e ofertas especiais esperando por você. Quer que eu te mostre?`);
+  const sendRecommendation = (c: Customer) => {
+    const products=db.getProducts().filter(p=>p.status==='ACTIVE'&&p.currentStock>0&&p.salePrice>0).sort((a,b)=>b.currentStock-a.currentStock).slice(0,3);
+    const list=products.map(p=>`${p.name} por R$ ${p.salePrice.toFixed(2)}`).join(', ');
+    openWhatsApp(c,`Olá, ${c.nickname || c.firstName || c.name}! Separei algumas opções que podem te interessar: ${list || 'temos novidades no catálogo'}. Quer que eu reserve algum para você?`);
   };
 
   return (
@@ -160,29 +170,14 @@ export const CustomersView: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {c.creditBalance > 0 && (
-                          <>
-                            <button
-                              onClick={() => sendWhatsAppReminder(c)}
-                              title="Cobrar via WhatsApp"
-                              className="p-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 transition-colors cursor-pointer"
-                            >
-                              <MessageSquare size={13} />
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setSettleCustomer(c);
-                                setSettleAmount(c.creditBalance);
-                              }}
-                              title="Receber Pagamento do Fiado"
-                              className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs cursor-pointer"
-                            >
-                              Acertar
-                            </button>
-                          </>
-                        )}
+                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                        <button onClick={()=>sendPromotion(c)} title="Enviar promoção" className="p-1.5 rounded-lg bg-violet-950 text-violet-300"><Megaphone size={13}/></button>
+                        <button onClick={()=>sendRecommendation(c)} title="Recomendar produtos" className="p-1.5 rounded-lg bg-sky-950 text-sky-300"><Sparkles size={13}/></button>
+                        <button onClick={()=>sendReactivation(c)} title="Reativar cliente" className="p-1.5 rounded-lg bg-emerald-950 text-emerald-300"><Gift size={13}/></button>
+                        {c.creditBalance > 0 && <>
+                          <button onClick={() => sendWhatsAppReminder(c)} title="Cobrar via WhatsApp" className="p-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 transition-colors cursor-pointer"><MessageSquare size={13} /></button>
+                          <button onClick={() => {setSettleCustomer(c);setSettleAmount(c.creditBalance);}} title="Receber Pagamento do Fiado" className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs cursor-pointer">Acertar</button>
+                        </>}
                       </div>
                     </td>
                   </tr>
