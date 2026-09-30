@@ -1,18 +1,19 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {
   BriefcaseBusiness,CalendarDays,CheckCircle2,Clock3,DollarSign,FileText,
-  Plus,Printer,RefreshCw,ShieldCheck,Users,WalletCards,Share2,Pencil
+  Plus,Printer,RefreshCw,ShieldCheck,Users,WalletCards,Share2,Pencil,BellRing,AlertTriangle
 } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import { MetricCard,PageHeader,StatusBadge } from '../ui/ProUi';
 
-type Tab='EMPLOYEES'|'PAYROLL'|'POLICIES';
+type Tab='EMPLOYEES'|'PAYROLL'|'AGENDA'|'POLICIES';
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
 const date=(v:any)=>v?new Date(String(v)+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 
 const emptyEmployee={id:'',full_name:'',cpf:'',admission_date:'',role_title:'',employment_model:'OUTRO',payment_frequency:'MENSAL',base_amount:'',phone:'',address:'',active:true,notes:''};
 const emptyPayroll={id:'',employee_id:'',period_start:'',period_end:'',payment_frequency:'MENSAL',base_amount:'',advances:'',overtime_amount:'',discounts:'',status:'PENDENTE',notes:''};
 const emptyPolicy={id:'',title:'',description:'',active:true};
+const emptyAgenda={id:'',employee_id:'',title:'',description:'',event_type:'LEMBRETE',priority:'NORMAL',due_at:'',alert_at:'',status:'PENDENTE'};
 
 export const ProductionHrView:React.FC=()=>{
   const[data,setData]=useState<any>({employees:[],payroll:[],policies:[],metrics:{}});
@@ -23,6 +24,7 @@ export const ProductionHrView:React.FC=()=>{
   const[employee,setEmployee]=useState<any>(emptyEmployee);
   const[payroll,setPayroll]=useState<any>(emptyPayroll);
   const[policy,setPolicy]=useState<any>(emptyPolicy);
+  const[agenda,setAgenda]=useState<any>(emptyAgenda);
   const[selectedPayroll,setSelectedPayroll]=useState<any>(null);
   const[store,setStore]=useState<any>(null);
 
@@ -37,6 +39,7 @@ export const ProductionHrView:React.FC=()=>{
   const employees=data?.employees||[];
   const payrollRows=data?.payroll||[];
   const policies=data?.policies||[];
+  const agendaRows=data?.agenda||[];
   const metrics=data?.metrics||{};
   const employeeMap=useMemo(()=>new Map(employees.map((e:any)=>[e.id,e])),[employees]);
   const liveBase=Number(String(payroll.base_amount||0).replace(',','.'))||0;
@@ -92,6 +95,40 @@ export const ProductionHrView:React.FC=()=>{
     finally{setBusy(false);}
   };
 
+  const saveAgenda=async()=>{
+    setError('');setFeedback('');
+    if(!agenda.title.trim()){setError('Informe o título do compromisso/alerta.');return;}
+    if(!agenda.due_at){setError('Informe a data e hora do compromisso.');return;}
+    setBusy(true);
+    try{
+      await productionDb.saveHrAgendaEvent({
+        ...agenda,
+        due_at:new Date(agenda.due_at).toISOString(),
+        alert_at:agenda.alert_at?new Date(agenda.alert_at).toISOString():null
+      });
+      setAgenda(emptyAgenda);
+      setFeedback('Compromisso/alerta salvo na agenda do RH.');
+      await load();
+    }catch(e:any){setError(e?.message||'Não foi possível salvar o compromisso.');}
+    finally{setBusy(false);}
+  };
+
+  const setAgendaStatus=async(id:string,status:'PENDENTE'|'CONCLUIDO'|'CANCELADO')=>{
+    setBusy(true);setError('');setFeedback('');
+    try{
+      await productionDb.setHrAgendaStatus(id,status);
+      setFeedback(status==='CONCLUIDO'?'Pendência concluída.':'Pendência atualizada.');
+      await load();
+    }catch(e:any){setError(e?.message||'Não foi possível atualizar a pendência.');}
+    finally{setBusy(false);}
+  };
+
+  const editAgenda=(row:any)=>{
+    const local=(v:any)=>v?new Date(v).toISOString().slice(0,16):'';
+    setAgenda({...row,due_at:local(row.due_at),alert_at:local(row.alert_at)});
+    setTab('AGENDA');
+  };
+
   const printPayroll=(row:any)=>{
     setSelectedPayroll(row);
     window.setTimeout(()=>window.print(),60);
@@ -144,7 +181,7 @@ export const ProductionHrView:React.FC=()=>{
     <PageHeader
       eyebrow="Acesso restrito · Administrador e Gerente"
       title="RH Interno"
-      description="Contratações, frequência de pagamento, adiantamentos, horas extras, holerites internos e regras da equipe."
+      description="Contratações, pagamentos, agenda, alertas, holerites internos e regras da equipe."
       actions={<button disabled={busy} onClick={()=>void load()} className="h-10 px-3 rounded-xl border border-neutral-700 text-xs font-black flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button>}
     />
 
@@ -156,18 +193,21 @@ export const ProductionHrView:React.FC=()=>{
     {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
     {feedback&&<div className="p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{feedback}</div>}
 
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
       <MetricCard label="Funcionários" value={metrics.employees_total||0} icon={Users}/>
       <MetricCard label="Ativos" value={metrics.employees_active||0} icon={CheckCircle2} tone="emerald"/>
       <MetricCard label="Pagamentos pendentes" value={metrics.pending_payroll||0} icon={Clock3} tone="amber"/>
       <MetricCard label="A pagar" value={money(metrics.pending_amount||0)} icon={WalletCards} tone="amber"/>
       <MetricCard label="Pago no mês" value={money(metrics.paid_amount||0)} icon={DollarSign} tone="emerald"/>
+      <MetricCard label="Agenda pendente" value={metrics.agenda_pending||0} icon={CalendarDays} tone="amber"/>
+      <MetricCard label="Atrasados" value={metrics.agenda_overdue||0} icon={AlertTriangle} tone="rose"/>
     </div>
 
     <div className="flex gap-2 overflow-x-auto pb-1">
       {([
         ['EMPLOYEES','Contratações & Funcionários',Users],
         ['PAYROLL','Pagamentos & Holerites',FileText],
+        ['AGENDA','Agenda & Alertas',BellRing],
         ['POLICIES','Regras Internas',ShieldCheck]
       ] as [Tab,string,any][]).map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`shrink-0 h-10 px-4 rounded-xl border flex items-center gap-2 text-xs font-black ${tab===id?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-900 text-neutral-300 border-neutral-800'}`}><I size={14}/>{label}</button>)}
     </div>
@@ -258,6 +298,34 @@ export const ProductionHrView:React.FC=()=>{
   <button onClick={()=>editPayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Pencil size={12}/>Alterar</button>
   <button onClick={()=>void sharePayroll(p)} className="h-8 px-2.5 rounded-lg border border-neutral-700 flex items-center gap-1.5"><Share2 size={12}/>Compartilhar</button>
 </div></td></tr>})}</tbody></table></div>
+      </section>
+    </div>}
+
+    {tab==='AGENDA'&&<div className="grid xl:grid-cols-[.72fr_1.28fr] gap-4">
+      <section className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900 space-y-3">
+        <div><h2 className="font-black">{agenda.id?'Alterar compromisso':'Novo compromisso / alerta'}</h2><p className="text-[10px] text-neutral-500 mt-1">Cadastre pagamentos, documentos, férias, reuniões, contratações e lembretes. Os avisos relevantes aparecem também no topo do PDV para Administrador e Gerente.</p></div>
+        <Field label="Funcionário (opcional)"><select className="input" value={agenda.employee_id||''} onChange={e=>setAgenda({...agenda,employee_id:e.target.value})}><option value="">Geral / sem funcionário</option>{employees.map((e:any)=><option key={e.id} value={e.id}>{e.full_name}</option>)}</select></Field>
+        <Field label="Título"><Input value={agenda.title} onChange={v=>setAgenda({...agenda,title:v})}/></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Tipo"><select className="input" value={agenda.event_type} onChange={e=>setAgenda({...agenda,event_type:e.target.value})}><option value="LEMBRETE">Lembrete</option><option value="PAGAMENTO">Pagamento</option><option value="DOCUMENTO">Documento</option><option value="CONTRATACAO">Contratação</option><option value="FERIAS">Férias</option><option value="REUNIAO">Reunião</option><option value="OUTRO">Outro</option></select></Field>
+          <Field label="Prioridade"><select className="input" value={agenda.priority} onChange={e=>setAgenda({...agenda,priority:e.target.value})}><option value="BAIXA">Baixa</option><option value="NORMAL">Normal</option><option value="ALTA">Alta</option><option value="URGENTE">Urgente</option></select></Field>
+          <Field label="Data e hora"><Input type="datetime-local" value={agenda.due_at} onChange={v=>setAgenda({...agenda,due_at:v})}/></Field>
+          <Field label="Avisar a partir de"><Input type="datetime-local" value={agenda.alert_at} onChange={v=>setAgenda({...agenda,alert_at:v})}/></Field>
+        </div>
+        <Field label="Descrição / observação"><textarea className="input min-h-24" value={agenda.description||''} onChange={e=>setAgenda({...agenda,description:e.target.value})}/></Field>
+        <div className="grid grid-cols-2 gap-2"><button onClick={()=>setAgenda(emptyAgenda)} className="h-10 rounded-xl border border-neutral-700 text-xs font-black">Limpar</button><button disabled={busy} onClick={()=>void saveAgenda()} className="h-10 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black">{agenda.id?'Salvar alteração':'Salvar na agenda'}</button></div>
+      </section>
+      <section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden">
+        <div className="p-4 border-b border-neutral-800"><h2 className="font-black">Agenda e pendências</h2><p className="text-[10px] text-neutral-500 mt-1">Pendências abertas primeiro; concluídas permanecem no histórico.</p></div>
+        <div className="divide-y divide-neutral-800">
+          {agendaRows.map((a:any)=>{const emp:any=employeeMap.get(a.employee_id);const overdue=a.status==='PENDENTE'&&new Date(a.due_at)<new Date();return <article key={a.id} className="p-4">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
+              <div className="min-w-0"><div className="flex flex-wrap gap-2 items-center"><b>{a.title}</b><StatusBadge tone={a.status==='CONCLUIDO'?'success':overdue?'danger':'warning'}>{overdue?'ATRASADO':a.status}</StatusBadge><StatusBadge tone={a.priority==='URGENTE'?'danger':a.priority==='ALTA'?'warning':'info'}>{a.priority}</StatusBadge></div><div className="text-[10px] text-neutral-500 mt-1">{a.event_type} · {new Date(a.due_at).toLocaleString('pt-BR')}{emp?' · '+emp.full_name:''}</div>{a.description&&<p className="text-xs text-neutral-300 mt-2 whitespace-pre-wrap">{a.description}</p>}</div>
+              <div className="flex flex-wrap gap-1.5 shrink-0"><button onClick={()=>editAgenda(a)} className="h-8 px-3 rounded-lg border border-neutral-700 text-[10px] font-black">Alterar</button>{a.status==='PENDENTE'&&<button disabled={busy} onClick={()=>void setAgendaStatus(a.id,'CONCLUIDO')} className="h-8 px-3 rounded-lg bg-emerald-700 text-white text-[10px] font-black">Concluir</button>}{a.status==='PENDENTE'&&<button disabled={busy} onClick={()=>void setAgendaStatus(a.id,'CANCELADO')} className="h-8 px-3 rounded-lg border border-rose-800 text-rose-300 text-[10px] font-black">Cancelar</button>}</div>
+            </div>
+          </article>})}
+          {!agendaRows.length&&<div className="p-8 text-center text-xs text-neutral-600">Nenhum compromisso cadastrado.</div>}
+        </div>
       </section>
     </div>}
 
