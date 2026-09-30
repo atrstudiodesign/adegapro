@@ -122,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return currentUser.permissions.includes(permission as any);
   };
 
-  const demoAllowed = new Set(['dashboard','minidash','pos','sales','products','stock','customers','support','legal']);
+  const demoAllowed = new Set(['dashboard','minidash','pos','sales','products','stock','customers','hr','support','legal']);
   const featureEnabled = (id:string) => featureAccess[id] !== false;
   const sourceGroups = isCaixa ? cashierMenuGroups : fullMenuGroups;
   const activeGroups = sourceGroups.map(group=>({

@@ -399,14 +399,39 @@ export default function App() {
           {currentTab === 'customers' && (appMode === 'PRODUCTION' ? <ProductionCustomersView currentSession={currentSession} /> : <CustomersView />)}
           {currentTab === 'suppliers' && <SuppliersView appMode={appMode} />}
           {currentTab === 'employees' && (appMode === 'PRODUCTION' ? <ProductionEmployeesView /> : <EmployeesView />)}
-          {currentTab === 'hr' && appMode === 'PRODUCTION' && (
-            ['ADMINISTRADOR','GERENTE'].includes(currentUser.role) ? (
-              <ProductionHrView />
+          {currentTab === 'hr' && (
+            appMode === 'PRODUCTION' ? (
+              ['ADMINISTRADOR','GERENTE'].includes(currentUser.role) ? (
+                <ProductionHrView />
+              ) : (
+                <div className="flex-1 grid place-items-center p-6">
+                  <div className="max-w-md text-center p-6 rounded-2xl border border-rose-800 bg-rose-950/30">
+                    <div className="text-lg font-black text-white">Acesso restrito</div>
+                    <p className="text-xs text-neutral-400 mt-2">O RH Interno pode ser acessado somente por Administrador ou Gerente autenticado.</p>
+                  </div>
+                </div>
+              )
             ) : (
-              <div className="flex-1 grid place-items-center p-6">
-                <div className="max-w-md text-center p-6 rounded-2xl border border-rose-800 bg-rose-950/30">
-                  <div className="text-lg font-black text-white">Acesso restrito</div>
-                  <p className="text-xs text-neutral-400 mt-2">O RH Interno pode ser acessado somente por Administrador ou Gerente autenticado.</p>
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-neutral-950">
+                <div className="max-w-5xl mx-auto space-y-4">
+                  <div className="p-5 rounded-2xl border border-violet-500/30 bg-violet-500/10">
+                    <div className="text-[10px] uppercase tracking-[.18em] text-violet-300 font-black">Demonstração protegida</div>
+                    <h2 className="text-xl font-black mt-1">RH Interno</h2>
+                    <p className="text-xs text-neutral-300 mt-2 leading-relaxed">No modo Demo o módulo pode ser visualizado, mas <b>preencher, salvar, alterar, imprimir holerite, compartilhar ou executar qualquer ação</b> exige uma assinatura ativa do Adega Pro.</p>
+                    <button onClick={()=>{
+                      setAppMode('PRODUCTION');
+                      setCurrentAppMode('PRODUCTION');
+                      setSaasEntryView('REGISTER');
+                      setDemoAccessGranted(false);
+                      setCurrentTab('dashboard');
+                      window.history.pushState({}, '', '/cadastro');
+                    }} className="mt-4 h-11 px-5 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black">Assinar para liberar o RH</button>
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-3 opacity-70 pointer-events-none select-none">
+                    <div className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900"><div className="text-xs font-black">Contratações</div><div className="text-[10px] text-neutral-500 mt-2">Cadastro de funcionário, modalidade, frequência de pagamento e dados internos.</div></div>
+                    <div className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900"><div className="text-xs font-black">Holerites</div><div className="text-[10px] text-neutral-500 mt-2">Pagamentos, adiantamentos, extras, descontos, impressão e compartilhamento.</div></div>
+                    <div className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900"><div className="text-xs font-black">Regras internas</div><div className="text-[10px] text-neutral-500 mt-2">Políticas privadas da equipe para Administrador e Gerente.</div></div>
+                  </div>
                 </div>
               </div>
             )
