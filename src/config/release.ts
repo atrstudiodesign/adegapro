@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-atr-control-backup-multiloja-04',
+  releaseId: '2026-09-marketing-theme-ai-ready-05',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -18,7 +18,10 @@ export const APP_RELEASE = {
     'Suporte ganhou backup geral JSON com download e importação validada.',
     'Lojas & Unidades ganhou troca segura de unidade; Configurações concentra impressão e teste de cupom.',
     'Modo demonstração foi reduzido e as políticas completas ficaram protegidas por contratação.',
-    'Termos r5 incluem guia prático de uso seguro do Adega Pro.'
+    'Termos r5 incluem guia prático de uso seguro do Adega Pro.',
+    'Ações comerciais nos clientes: promoção, reativação, recomendação de produtos e WhatsApp.',
+    'Tema Claro/Escuro disponível no cabeçalho e em Configurações, mantendo responsividade.',
+    'Auditoria ganhou diagnóstico automático de sinais de erro e recorrência.'
   ]
 } as const;
 
