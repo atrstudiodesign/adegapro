@@ -6,6 +6,8 @@ import type { CashSession, Category, Customer, Product, User } from '../../types
 interface Props { currentUser: User; currentSession?: CashSession; onNavigate: (tab:string)=>void; }
 type Line={product:Product;quantity:number};
 
+const normalizeSearch=(value:string)=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+
 export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,onNavigate})=>{
   const [products,setProducts]=useState<Product[]>([]);
   const [customers,setCustomers]=useState<Customer[]>([]);
@@ -38,11 +40,16 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   useEffect(()=>{void load();},[]);
 
   const visibleProducts=useMemo(()=>{
-    const q=query.trim().toLowerCase();
-    let base=q
-      ? products.filter(p=>p.name.toLowerCase().includes(q)||p.barcode.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q))
-      : products;
-    if(selectedCategory!=='ALL') base=base.filter(p=>p.categoryId===selectedCategory);
+    const q=normalizeSearch(query);
+    let base=products;
+    if(q){
+      base=products.filter(p=>{
+        const haystack=[p.name,p.barcode,p.sku,p.brand,p.packageSize].map(normalizeSearch).join(' ');
+        return haystack.includes(q);
+      });
+    }else if(selectedCategory!=='ALL'){
+      base=products.filter(p=>p.categoryId===selectedCategory);
+    }
     return base.slice(0,30);
   },[query,products,selectedCategory]);
 
@@ -107,25 +114,24 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     return()=>window.removeEventListener('keydown',onKey);
   },[cart,busy,total,customerId,discount,method,tendered,currentSession,onNavigate]);
 
-  if(!currentSession)return <div className="flex-1 grid place-items-center p-6 bg-neutral-950 text-white"><div className="max-w-md p-6 rounded-2xl bg-neutral-900 border border-neutral-800 text-center"><AlertTriangle className="mx-auto text-amber-400" size={30}/><h1 className="font-black mt-3">Caixa fechado</h1><p className="text-sm text-neutral-400 mt-2">No ambiente de produção, toda venda exige sessão de caixa segura vinculada ao operador.</p><button onClick={()=>onNavigate('cash')} className="mt-4 px-5 py-2.5 rounded-xl bg-amber-500 text-neutral-950 font-black text-sm">Abrir caixa</button></div></div>;
-
   return <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_430px] bg-[#080808] text-white overflow-y-auto xl:overflow-hidden">
     <section className="p-3 sm:p-4 lg:p-5 xl:overflow-y-auto border-b xl:border-b-0 xl:border-r border-neutral-800">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h1 className="text-xl font-black tracking-tight">PDV · Venda rápida</h1>
-          <p className="text-xs text-neutral-500 mt-1">Operador {currentUser.name} · {currentSession.cashRegisterNumber} · catálogo visual sincronizado</p>
+          <p className="text-xs text-neutral-500 mt-1">Operador {currentUser.name} · {currentSession?currentSession.cashRegisterNumber:'caixa não aberto'} · catálogo visual sincronizado</p>
         </div>
         <span className="w-fit text-[10px] px-2.5 py-1.5 rounded-full border border-emerald-800 bg-emerald-950/40 text-emerald-300">PRODUÇÃO · ONLINE</span>
       </div>
 
+      {!currentSession&&<div className="mb-3 p-3 rounded-xl border border-amber-700/60 bg-amber-950/30 text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"><span className="flex items-center gap-2"><AlertTriangle size={14}/>PDV disponível para consulta. Abra um caixa para finalizar vendas.</span><button onClick={()=>onNavigate('cash')} className="px-3 py-2 rounded-lg bg-amber-500 text-neutral-950 font-black">Abrir / gerenciar caixa</button></div>}
       {error&&<div className="mb-3 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
       {message&&<div className="mb-3 p-3 rounded-xl border border-emerald-800 bg-emerald-950/40 text-emerald-300 text-xs flex items-center gap-2"><CheckCircle2 size={14}/>{message}</div>}
 
       <div className="sticky top-0 z-10 py-2 bg-[#080808]/95 backdrop-blur">
         <div className="relative">
           <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500"/>
-          <input ref={searchRef} autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar produto por nome, marca, EAN ou SKU..." className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl pl-10 pr-12 py-3.5 text-sm outline-none focus:border-amber-400"/>
+          <input ref={searchRef} autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="Busca instantânea por nome, marca, EAN ou SKU..." className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl pl-10 pr-12 py-3.5 text-sm outline-none focus:border-amber-400"/>
           <ScanLine size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400"/>
         </div>
       </div>
@@ -210,7 +216,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
           <div className="flex justify-between text-xl font-black pt-3 border-t border-neutral-800"><span>Total</span><span className="text-amber-400">R$ {total.toFixed(2)}</span></div>
         </div>
 
-        <button disabled={busy||cart.length===0} onClick={()=>void finalize()} className="mt-4 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 font-black">{busy?'PROCESSANDO...':'FINALIZAR VENDA (F5)'}</button>
+        <button disabled={busy||cart.length===0||!currentSession} onClick={()=>void finalize()} className="mt-4 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 font-black">{busy?'PROCESSANDO...':'FINALIZAR VENDA (F5)'}</button>
         <p className="mt-3 text-[10px] text-neutral-500 leading-relaxed">PIX e cartões permanecem confirmação manual até homologação do gateway/TEF. Nenhuma autorização financeira é simulada.</p>
       </div>
     </aside>
