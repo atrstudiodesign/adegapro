@@ -69,6 +69,17 @@ async function savePlatformWebhookConfig(payload: Record<string, unknown>) {
   return data as string;
 }
 
+async function getPlatformTenantFeatures(tenantId:string){
+  const {data,error}=await platformSupabase.rpc('get_platform_tenant_features',{p_tenant_id:tenantId});
+  if(error) throw error;
+  return (data||{}) as Record<string,boolean>;
+}
+
+async function setPlatformTenantFeature(tenantId:string,featureKey:string,enabled:boolean){
+  const {error}=await platformSupabase.rpc('set_platform_tenant_feature',{p_tenant_id:tenantId,p_feature_key:featureKey,p_enabled:enabled});
+  if(error) throw error;
+}
+
 async function setPlatformTenantAccess(tenantId: string, active: boolean, licenseStatus?: 'ACTIVE'|'SUSPENDED'|'ENDED'|'CANCELLED'|'DRAFT') {
   const { error } = await platformSupabase.rpc('set_platform_tenant_access', {
     p_tenant_id: tenantId,
@@ -90,5 +101,7 @@ export const platformDb = {
   savePlatformIncident,
   savePlatformInfrastructure,
   savePlatformWebhookConfig,
+  getPlatformTenantFeatures,
+  setPlatformTenantFeature,
   setPlatformTenantAccess
 };
