@@ -1,14 +1,23 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import { AlertTriangle, CheckCircle2, Clock3, Copy, FileCheck2, Plus, Search, UserCheck, WalletCards } from 'lucide-react';
+import {
+  BarChart3,CheckCircle2,Clock3,Copy,CreditCard,Download,Filter,Info,Link2,
+  Plus,Search,ShoppingCart,UserPlus,Users,WalletCards,XCircle
+} from 'lucide-react';
 import { platformDb } from '../../services/platformDb';
 
+type Tab='OVERVIEW'|'SELLERS'|'REFERRALS'|'COMMISSIONS'|'PAYMENTS'|'REPORTS';
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
 const date=(v:any)=>v?new Date(v).toLocaleDateString('pt-BR'):'—';
 
 export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>void;onError:(s:string)=>void})=>{
   const[data,setData]=useState<any>(null);
   const[busy,setBusy]=useState(false);
+  const[tab,setTab]=useState<Tab>('OVERVIEW');
   const[q,setQ]=useState('');
+  const[statusFilter,setStatusFilter]=useState<'ALL'|'ACTIVE'|'PENDING'|'CANCELLED'>('ALL');
+  const[showSellerForm,setShowSellerForm]=useState(false);
+  const[inviteEmail,setInviteEmail]=useState('');
+  const[lastInvite,setLastInvite]=useState('');
   const[paymentValues,setPaymentValues]=useState<Record<string,string>>({});
   const[form,setForm]=useState<any>({
     full_name:'',email:'',phone:'',email_verified:false,phone_verified:false,active:true,
@@ -21,265 +30,211 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
 
   const load=async()=>{
     setBusy(true);onError('');
-    try{setData(await platformDb.getPlatformPartnerSnapshot())}
-    catch(e:any){onError(e?.message||'Falha ao carregar parceiros.')}
-    finally{setBusy(false)}
+    try{setData(await platformDb.getPlatformPartnerSnapshot());}
+    catch(e:any){onError(e?.message||'Falha ao carregar vendedores.');}
+    finally{setBusy(false);}
   };
-  useEffect(()=>{void load()},[]);
+  useEffect(()=>{void load();},[]);
 
-  const partners=useMemo(()=>{
-    const s=q.trim().toLowerCase();
-    return(data?.partners||[]).filter((p:any)=>!s||[p.full_name,p.email,p.phone,p.referral_code].join(' ').toLowerCase().includes(s));
-  },[data,q]);
-
-  const monthly=data?.monthly||[];
-  const max=Math.max(1,...monthly.map((m:any)=>Number(m.referrals||0)));
+  const partners=data?.partners||[];
+  const referrals=data?.referrals||[];
+  const commissions=data?.commissions||[];
+  const metrics=data?.metrics||{};
   const policy=data?.policy||{};
-  const policyVersion=policy?.version||'2026.09-r1';
+  const partnerMap=useMemo(()=>new Map(partners.map((p:any)=>[p.id,p])),[partners]);
+
+  const sellerRows=useMemo(()=>{
+    const term=q.trim().toLowerCase();
+    return partners.filter((p:any)=>{
+      const hay=[p.full_name,p.email,p.phone,p.referral_code].join(' ').toLowerCase();
+      if(term&&!hay.includes(term))return false;
+      if(statusFilter==='ACTIVE')return p.active&&p.converted>0;
+      if(statusFilter==='PENDING')return Number(p.pending||0)>0||Number(p.waiting_payment||0)>0;
+      if(statusFilter==='CANCELLED')return Number(p.cancelled||0)>0;
+      return true;
+    });
+  },[partners,q,statusFilter]);
+
+  const filteredReferrals=useMemo(()=>{
+    const term=q.trim().toLowerCase();
+    return referrals.filter((r:any)=>{
+      const p=partnerMap.get(r.partner_id) as any;
+      const hay=[r.lead_name,r.lead_email,r.lead_phone,r.status,r.source,p?.full_name,p?.referral_code].join(' ').toLowerCase();
+      return !term||hay.includes(term);
+    });
+  },[referrals,q,partnerMap]);
+
   const share=(p:any)=>`${window.location.origin}/?ref=${encodeURIComponent(p.referral_code)}`;
+
+  const copy=async(v:string,label='Link')=>{
+    await navigator.clipboard?.writeText(v);
+    onFeedback(label+' copiado.');
+  };
+
+  const generateInvite=async()=>{
+    setBusy(true);onError('');
+    try{
+      const result=await platformDb.createPlatformPartnerInvite(inviteEmail||undefined,7);
+      const url=`${window.location.origin}/vendedor/cadastro?invite=${encodeURIComponent(result.token)}`;
+      setLastInvite(url);
+      await navigator.clipboard?.writeText(url);
+      onFeedback('Link de cadastro do vendedor gerado e copiado. Validade: 7 dias e uso único.');
+      await load();
+    }catch(e:any){onError(e?.message||'Não foi possível gerar o convite.');}
+    finally{setBusy(false);}
+  };
 
   const savePartner=async()=>{
     setBusy(true);onError('');
     try{
       await platformDb.savePlatformSalesPartner(form);
-      onFeedback('Vendedor salvo com política de repasse atual.');
+      onFeedback('Vendedor salvo.');
       setForm({full_name:'',email:'',phone:'',email_verified:false,phone_verified:false,active:true,referral_code:'',payout_mode:'IMEDIATO',monthly_payout_day:5,pix_key:'',notes:''});
+      setShowSellerForm(false);
       await load();
-    }catch(e:any){onError(e?.message||'Falha ao salvar vendedor.')}
-    finally{setBusy(false)}
-  };
-
-  const confirmPayment=async(r:any)=>{
-    const fallback=r.referral_type==='PERSONALIZADO'?'330.00':'149.00';
-    const raw=paymentValues[r.id]||fallback;
-    const amount=Number(String(raw).replace(',','.'));
-    if(!amount||amount<=0){onError('Informe um valor de pagamento válido.');return;}
-    setBusy(true);onError('');
-    try{
-      await platformDb.confirmPlatformPartnerCustomerPayment(r.id,amount);
-      onFeedback(r.referral_type==='PERSONALIZADO'
-        ?'Primeira parcela confirmada. Comissão de R$ 200 gerada.'
-        :'Primeira mensalidade confirmada. Comissão de R$ 35 gerada.');
-      await load();
-    }catch(e:any){onError(e?.message||'Falha ao confirmar pagamento.')}
-    finally{setBusy(false)}
-  };
-
-  const acceptPolicy=async(p:any)=>{
-    setBusy(true);onError('');
-    try{
-      await platformDb.acceptPlatformPartnerPolicy(p.id,policyVersion);
-      onFeedback('Ciência da política registrada para o vendedor.');
-      await load();
-    }catch(e:any){onError(e?.message||'Falha ao registrar ciência.')}
-    finally{setBusy(false)}
+    }catch(e:any){onError(e?.message||'Falha ao salvar vendedor.');}
+    finally{setBusy(false);}
   };
 
   const saveReferral=async()=>{
     setBusy(true);onError('');
     try{
       await platformDb.savePlatformPartnerReferral(ref);
-      onFeedback('Indicação registrada. Comissão continuará bloqueada até o primeiro pagamento.');
+      onFeedback('Indicação registrada.');
       setRef({partner_id:'',referral_type:'ASSINATURA',lead_name:'',lead_email:'',lead_phone:'',status:'LEAD',estimated_value:149,converted_value:0,notes:''});
       await load();
-    }catch(e:any){onError(e?.message||'Falha ao registrar indicação.')}
-    finally{setBusy(false)}
+    }catch(e:any){onError(e?.message||'Falha ao registrar indicação.');}
+    finally{setBusy(false);}
   };
 
-  const jump=(id:string)=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  const confirmPayment=async(r:any)=>{
+    const amount=Number(String(paymentValues[r.id]||(r.referral_type==='PERSONALIZADO'?'330':'149')).replace(',','.'));
+    if(!amount||amount<=0){onError('Informe um pagamento válido.');return;}
+    setBusy(true);onError('');
+    try{await platformDb.confirmPlatformPartnerCustomerPayment(r.id,amount);onFeedback('Pagamento confirmado e comissão gerada conforme política.');await load();}
+    catch(e:any){onError(e?.message||'Falha ao confirmar pagamento.');}
+    finally{setBusy(false);}
+  };
 
-  return <div className="space-y-5">
-    <section className="rounded-2xl border border-amber-500/20 bg-[linear-gradient(135deg,rgba(245,158,11,.10),rgba(10,10,10,.94)_45%)] p-4 sm:p-5">
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div>
-          <div className="text-[10px] uppercase tracking-[.2em] text-amber-400 font-black">ATR Control · uso interno</div>
-          <h2 className="text-xl sm:text-2xl font-black mt-1">Vendedores, indicações e comissões</h2>
-          <p className="text-xs text-neutral-500 mt-1">Área exclusiva da ATR Studio. Estes dados não aparecem no painel administrativo dos clientes lojistas.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {[
-            ['partner-overview','Visão geral'],
-            ['partner-sellers','Vendedores'],
-            ['partner-referrals','Indicações / Leads'],
-            ['partner-payouts','Comissões'],
-            ['partner-payouts','Pagamentos']
-          ].map(([id,label])=><button key={label} onClick={()=>jump(id)} className="px-3 py-2 rounded-xl border border-neutral-700 bg-neutral-950 hover:border-amber-500/50 text-[10px] font-black text-neutral-300">{label}</button>)}
-        </div>
+  const markPaid=async(c:any)=>{
+    setBusy(true);onError('');
+    try{await platformDb.updatePlatformPartnerCommission(c.id,'PAGA','ATR-CONTROL');onFeedback('Comissão marcada como paga.');await load();}
+    catch(e:any){onError(e?.message||'Falha ao registrar pagamento da comissão.');}
+    finally{setBusy(false);}
+  };
+
+  const exportCsv=()=>{
+    const rows=[['Vendedor','Código','Indicações','Convertidos','Pendentes','Cancelados','Vendas','Liberado','Agendado','Pago']];
+    partners.forEach((p:any)=>rows.push([p.full_name,p.referral_code,p.referrals,p.converted,p.pending,p.cancelled,p.sales_value,p.available_amount,p.scheduled_amount,p.paid_amount].map(String)));
+    const csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='atr-control-vendedores.csv';a.click();URL.revokeObjectURL(a.href);
+  };
+
+  const topTabs:[Tab,string,any][]=[
+    ['OVERVIEW','Visão Geral',BarChart3],['SELLERS','Vendedores',UserPlus],['REFERRALS','Indicações / Leads',Users],
+    ['COMMISSIONS','Comissões',WalletCards],['PAYMENTS','Pagamentos',CreditCard],['REPORTS','Relatórios',BarChart3]
+  ];
+
+  return <div className="space-y-3">
+    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+      <nav className="flex gap-1.5 overflow-x-auto">
+        {topTabs.map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`h-10 px-4 rounded-lg border flex items-center gap-2 whitespace-nowrap text-[11px] font-black ${tab===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#0c1115] border-neutral-800 text-neutral-300 hover:border-neutral-600'}`}><I size={14}/>{label}</button>)}
+      </nav>
+      <div className="flex flex-wrap gap-2">
+        <div className="px-3 h-10 rounded-lg border border-neutral-800 bg-[#0c1115] flex items-center gap-2 text-[10px] text-neutral-400"><Clock3 size={13}/><span>Período</span><b className="text-neutral-200">Atual</b></div>
+        <button onClick={()=>setShowSellerForm(v=>!v)} className="h-10 px-3 rounded-lg bg-neutral-900 border border-neutral-700 text-xs font-black flex items-center gap-2"><Plus size={14}/>Novo vendedor</button>
       </div>
-    </section>
-    <div id="partner-overview" className="scroll-mt-24 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-      <Card l="Vendedores" v={data?.metrics?.partners_total||0}/>
-      <Card l="Ativos" v={data?.metrics?.partners_active||0}/>
-      <Card l="Indicações" v={data?.metrics?.referrals_total||0}/>
-      <Card l="Aguardando cliente pagar" v={data?.metrics?.payments_waiting||0}/>
-      <Card l="Pagamentos confirmados" v={data?.metrics?.payments_confirmed||0}/>
-      <Card l="Liberado agora" v={money(data?.metrics?.commission_available||0)}/>
-      <Card l="Fechamento mensal" v={money(data?.metrics?.commission_scheduled||0)}/>
-      <Card l="Já pago" v={money(data?.metrics?.commission_paid||0)}/>
     </div>
 
-    <section className="p-4 rounded-2xl bg-neutral-900 border border-amber-900/50">
-      <div className="flex items-start gap-3">
-        <FileCheck2 size={20} className="text-amber-400 shrink-0 mt-0.5"/>
-        <div className="flex-1">
-          <div className="text-[10px] uppercase tracking-[.18em] text-amber-400 font-black">Política comercial ativa · {policyVersion}</div>
-          <h2 className="font-black text-lg mt-1">Indicação de vendedores autônomos</h2>
-          <div className="grid md:grid-cols-2 gap-3 mt-4">
-            <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
-              <div className="text-xs text-neutral-500">ASSINATURA</div>
-              <div className="text-2xl font-black mt-1">R$ 149/mês</div>
-              <div className="text-sm text-emerald-400 font-black mt-2">Repasse único: R$ 35</div>
-              <div className="text-[10px] text-neutral-500 mt-1">Liberado somente após a primeira mensalidade efetivamente paga.</div>
-            </div>
-            <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
-              <div className="text-xs text-neutral-500">PERSONALIZADO</div>
-              <div className="text-2xl font-black mt-1">R$ 990 · 3× R$ 330</div>
-              <div className="text-sm text-emerald-400 font-black mt-2">Repasse único: R$ 200</div>
-              <div className="text-[10px] text-neutral-500 mt-1">Liberado somente após a primeira parcela efetivamente paga.</div>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-2 gap-x-5 gap-y-2 mt-4 text-[11px] text-neutral-300">
-            <PolicyRule>Cadastro, proposta ou promessa de pagamento não geram comissão.</PolicyRule>
-            <PolicyRule>Estorno/fraude antes do repasse cancela a comissão.</PolicyRule>
-            <PolicyRule>IMEDIATO: pagamento confirmado → comissão LIBERADA.</PolicyRule>
-            <PolicyRule>FECHAMENTO MENSAL: pagamento confirmado → comissão AGENDADA.</PolicyRule>
-            <PolicyRule>Uma comissão de aquisição por venda; bônus são tratados separadamente.</PolicyRule>
-            <PolicyRule>Disputas de indicação precisam ser validadas no ATR Control.</PolicyRule>
-            <PolicyRule>Comissão paga não é apagada nem reaberta; correção deve ser por ajuste.</PolicyRule>
-            <PolicyRule>E-mail e telefone precisam estar validados antes do repasse.</PolicyRule>
-          </div>
-        </div>
+    <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
+      <Kpi icon={Users} label="Vendedores ativos" value={metrics.partners_active||0} sub={`de ${metrics.partners_total||0} cadastrados`}/>
+      <Kpi icon={Users} label="Leads gerados" value={metrics.referrals_total||0} sub="via links, códigos e cadastro"/>
+      <Kpi icon={ShoppingCart} label="Clientes convertidos" value={metrics.referrals_converted||0} sub="realizaram conversão"/>
+      <Kpi icon={WalletCards} label="Comissões liberadas" value={money(metrics.commission_available||0)} sub="após confirmação do pagamento"/>
+      <Kpi icon={CreditCard} label="Total pago aos vendedores" value={money(metrics.commission_paid||0)} sub="em comissões pagas"/>
+    </div>
+
+    <section className="rounded-xl border border-amber-500/70 bg-[#080d10] p-3">
+      <div className="flex items-center gap-2 font-black text-sm"><Info size={17} className="text-amber-400"/>Como funciona o sistema de indicações?</div>
+      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-2 mt-3">
+        <Step n="1" icon={Link2} title="Cada vendedor tem seu link e código" text="Compartilhe o link personalizado ou código com seus clientes."/>
+        <Step n="2" icon={Link2} title="O cliente acessa pelo link ou código" text="O sistema identifica automaticamente a origem da indicação."/>
+        <Step n="3" icon={CreditCard} title="Cliente faz a compra e paga" text="A venda fica registrada e vinculada ao vendedor."/>
+        <Step n="4" icon={WalletCards} title="Comissão liberada após pagamento" text="A comissão só é liberada depois da confirmação do pagamento."/>
       </div>
     </section>
 
-    <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
-      <h2 className="font-black">Funil comercial · últimos 6 meses</h2>
-      <div className="h-52 flex items-end gap-3 mt-4">{monthly.map((m:any)=><div key={m.month_key} className="flex-1 h-full flex flex-col justify-end">
-        <div className="flex items-end gap-1 h-40">
-          <div className="flex-1 bg-amber-500/70 rounded-t" style={{height:`${Math.max(5,Number(m.referrals||0)/max*100)}%`}}/>
-          <div className="flex-1 bg-emerald-500/70 rounded-t" style={{height:`${Math.max(5,Number(m.converted||0)/max*100)}%`}}/>
+    {showSellerForm&&<section className="rounded-xl border border-amber-500/30 bg-neutral-900 p-4">
+      <div className="flex items-start justify-between gap-3"><div><h2 className="font-black">Cadastro de vendedor</h2><p className="text-[10px] text-neutral-500 mt-1">Você pode cadastrar manualmente ou enviar um link para o próprio vendedor concluir o cadastro.</p></div><button onClick={()=>setShowSellerForm(false)} className="text-neutral-500"><XCircle size={18}/></button></div>
+      <div className="grid xl:grid-cols-[1fr_.8fr] gap-4 mt-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <Field label="Nome"><input className="input" value={form.full_name||''} onChange={e=>setForm({...form,full_name:e.target.value})}/></Field>
+          <Field label="E-mail"><input className="input" type="email" value={form.email||''} onChange={e=>setForm({...form,email:e.target.value})}/></Field>
+          <Field label="Telefone"><input className="input" value={form.phone||''} onChange={e=>setForm({...form,phone:e.target.value})}/></Field>
+          <Field label="Código de indicação"><input className="input" value={form.referral_code||''} onChange={e=>setForm({...form,referral_code:e.target.value.toUpperCase()})}/></Field>
+          <Field label="Chave PIX"><input className="input" value={form.pix_key||''} onChange={e=>setForm({...form,pix_key:e.target.value})}/></Field>
+          <Field label="Repasse"><select className="input" value={form.payout_mode} onChange={e=>setForm({...form,payout_mode:e.target.value})}><option value="IMEDIATO">Imediato</option><option value="FECHAMENTO_MENSAL">Fechamento mensal</option></select></Field>
+          <div className="sm:col-span-2 lg:col-span-3 flex gap-3 text-xs text-neutral-400"><label><input type="checkbox" checked={!!form.active} onChange={e=>setForm({...form,active:e.target.checked})}/> Ativo</label><label><input type="checkbox" checked={!!form.email_verified} onChange={e=>setForm({...form,email_verified:e.target.checked})}/> E-mail validado</label><label><input type="checkbox" checked={!!form.phone_verified} onChange={e=>setForm({...form,phone_verified:e.target.checked})}/> Telefone validado</label></div>
+          <button disabled={busy||!form.full_name||!form.email||!form.phone} onClick={()=>void savePartner()} className="sm:col-span-2 lg:col-span-3 btn-primary">Salvar vendedor manualmente</button>
         </div>
-        <div className="text-[9px] text-neutral-600 text-center mt-1">{String(m.month_key).slice(5)}</div>
-      </div>)}</div>
-      <div className="text-[10px] text-neutral-500 mt-2">Âmbar: indicações · Verde: conversões confirmadas</div>
-    </section>
+        <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
+          <div className="text-[10px] uppercase tracking-[.16em] text-amber-400 font-black">Autocadastro seguro</div>
+          <h3 className="font-black mt-1">Enviar link para o vendedor</h3>
+          <p className="text-[10px] text-neutral-500 mt-1">O convite é de uso único, expira em 7 dias e pode ser preso ao e-mail informado.</p>
+          <input value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} type="email" placeholder="email@vendedor.com" className="input mt-3"/>
+          <button disabled={busy} onClick={()=>void generateInvite()} className="mt-2 w-full h-10 rounded-lg bg-amber-400 text-neutral-950 font-black text-xs flex items-center justify-center gap-2"><Link2 size={14}/>Gerar e copiar link de cadastro</button>
+          {lastInvite&&<div className="mt-3 p-2 rounded-lg border border-neutral-800 text-[9px] text-sky-400 break-all">{lastInvite}</div>}
+        </div>
+      </div>
+    </section>}
 
-    <div className="grid xl:grid-cols-[1.2fr_.8fr] gap-4">
-      <section id="partner-sellers" className="scroll-mt-24 p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
-        <div className="flex flex-col sm:flex-row gap-3 justify-between">
-          <div><div className="text-[9px] uppercase tracking-[.18em] text-amber-400 font-black">Vendedores</div><h2 className="font-black mt-1">Vendedores parceiros</h2><p className="text-[10px] text-neutral-500">Autônomos comissionados, separados dos clientes lojistas.</p></div>
-          <div className="relative"><Search size={13} className="absolute left-3 top-3 text-neutral-600"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar..." className="input !pl-8"/></div>
-        </div>
-        <div className="space-y-2 mt-4">{partners.map((p:any)=><div key={p.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-          <div className="flex flex-wrap justify-between gap-2">
-            <button className="text-left" onClick={()=>setForm({...p})}><b className="text-sm">{p.full_name}</b><div className="text-[10px] text-neutral-500">{p.email} · {p.phone}</div></button>
-            <div className="flex gap-2">
-              <button className="btn-secondary" onClick={()=>navigator.clipboard?.writeText(share(p)).then(()=>onFeedback('Link copiado.'))}><Copy size={12} className="mr-1"/>Link</button>
-              {p.accepted_policy_version!==policyVersion&&<button className="btn-secondary" onClick={()=>void acceptPolicy(p)}>Registrar ciência</button>}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            <Tag ok={p.email_verified}>E-mail {p.email_verified?'validado':'pendente'}</Tag>
-            <Tag ok={p.phone_verified}>Telefone {p.phone_verified?'validado':'pendente'}</Tag>
-            <Tag ok={p.accepted_policy_version===policyVersion}>Política {p.accepted_policy_version===policyVersion?'aceita':'pendente'}</Tag>
-            <Tag ok={p.active}>{p.active?'Ativo':'Inativo'}</Tag>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mt-3">
-            <Mini l="Código" v={p.referral_code}/>
-            <Mini l="Indicações" v={p.referrals}/>
-            <Mini l="Aguard. pagamento" v={p.waiting_payment}/>
-            <Mini l="Liberado" v={money(p.available_amount)}/>
-            <Mini l="Agendado" v={money(p.scheduled_amount)}/>
-            <Mini l="Pago" v={money(p.paid_amount)}/>
-          </div>
-          <div className="text-[10px] text-neutral-500 mt-3">Repasse: <b className="text-white">{p.payout_mode==='FECHAMENTO_MENSAL'?`Fechamento mensal · dia ${p.monthly_payout_day}`:'Imediato após pagamento confirmado'}</b></div>
-          <div className="mt-2 text-[9px] text-neutral-600 break-all">{share(p)}</div>
-        </div>)}</div>
-      </section>
-
-      <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
-        <h2 className="font-black">{form.id?'Editar vendedor':'Novo vendedor'}</h2>
-        <Field l="Nome"><input className="input" value={form.full_name||''} onChange={e=>setForm({...form,full_name:e.target.value})}/></Field>
-        <Field l="E-mail"><input className="input" value={form.email||''} onChange={e=>setForm({...form,email:e.target.value})}/></Field>
-        <Field l="Telefone"><input className="input" value={form.phone||''} onChange={e=>setForm({...form,phone:e.target.value})}/></Field>
-        <Field l="Código de indicação"><input className="input" value={form.referral_code||''} onChange={e=>setForm({...form,referral_code:e.target.value.toUpperCase()})}/></Field>
-        <div className="grid grid-cols-2 gap-2"><Mini l="Assinatura" v="R$ 35 · uma vez"/><Mini l="Personalizado" v="R$ 200 · uma vez"/></div>
-        <Field l="Modo de repasse"><select className="input" value={form.payout_mode||'IMEDIATO'} onChange={e=>setForm({...form,payout_mode:e.target.value})}><option value="IMEDIATO">Imediato após cliente pagar</option><option value="FECHAMENTO_MENSAL">Acumular para fechamento mensal</option></select></Field>
-        {form.payout_mode==='FECHAMENTO_MENSAL'&&<Field l="Dia do repasse mensal"><input type="number" min="1" max="28" className="input" value={form.monthly_payout_day||5} onChange={e=>setForm({...form,monthly_payout_day:Number(e.target.value)})}/></Field>}
-        <Field l="Chave PIX"><input className="input" value={form.pix_key||''} onChange={e=>setForm({...form,pix_key:e.target.value})}/></Field>
-        <div className="flex flex-wrap gap-3 text-xs">
-          <label><input type="checkbox" checked={!!form.email_verified} onChange={e=>setForm({...form,email_verified:e.target.checked})}/> E-mail validado</label>
-          <label><input type="checkbox" checked={!!form.phone_verified} onChange={e=>setForm({...form,phone_verified:e.target.checked})}/> Telefone validado</label>
-          <label><input type="checkbox" checked={!!form.active} onChange={e=>setForm({...form,active:e.target.checked})}/> Ativo</label>
-        </div>
-        <Field l="Notas"><textarea className="input min-h-20" value={form.notes||''} onChange={e=>setForm({...form,notes:e.target.value})}/></Field>
-        <button className="btn-primary w-full" disabled={busy} onClick={()=>void savePartner()}><UserCheck size={14} className="mr-2"/>Salvar vendedor</button>
-      </section>
+    <div className="flex flex-col xl:flex-row gap-2 xl:items-center justify-between pt-1">
+      <div className="flex gap-1.5 overflow-x-auto">
+        {([['SELLERS',`Todos os Vendedores (${metrics.partners_total||0})`],['REFERRALS',`Leads / Indicações (${metrics.referrals_total||0})`],['COMMISSIONS',`Comissões (${commissions.length})`],['PAYMENTS',`Pagamentos (${metrics.payments_confirmed||0})`]] as [Tab,string][]).map(([id,label])=><button key={id} onClick={()=>setTab(id)} className={`h-9 px-4 rounded-lg border whitespace-nowrap text-[10px] font-black ${tab===id?'bg-amber-400 text-neutral-950 border-amber-300':'bg-[#0c1115] text-neutral-400 border-neutral-800'}`}>{label}</button>)}
+      </div>
+      <div className="flex gap-2">
+        <div className="relative min-w-[280px]"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar vendedor, cliente, código, link..." className="h-9 w-full rounded-lg bg-[#0c1115] border border-neutral-800 pl-9 pr-3 text-xs outline-none focus:border-amber-500"/></div>
+        <button onClick={()=>setStatusFilter(statusFilter==='ALL'?'PENDING':statusFilter==='PENDING'?'ACTIVE':statusFilter==='ACTIVE'?'CANCELLED':'ALL')} className="h-9 px-3 rounded-lg border border-neutral-800 bg-[#0c1115] text-[10px] font-black flex items-center gap-2"><Filter size={13}/>{statusFilter==='ALL'?'Filtros':statusFilter}</button>
+        <button onClick={exportCsv} className="h-9 px-3 rounded-lg border border-neutral-800 bg-[#0c1115] text-[10px] font-black flex items-center gap-2"><Download size={13}/>Exportar</button>
+      </div>
     </div>
 
-    <div id="partner-referrals" className="scroll-mt-24 grid xl:grid-cols-[.7fr_1.3fr] gap-4">
-      <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
-        <h2 className="font-black">Registrar indicação</h2>
-        <Field l="Vendedor"><select className="input" value={ref.partner_id} onChange={e=>setRef({...ref,partner_id:e.target.value})}><option value="">Selecione...</option>{(data?.partners||[]).filter((p:any)=>p.active).map((p:any)=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></Field>
-        <Field l="Tipo"><select className="input" value={ref.referral_type} onChange={e=>setRef({...ref,referral_type:e.target.value,estimated_value:e.target.value==='PERSONALIZADO'?990:149})}><option>ASSINATURA</option><option>PERSONALIZADO</option></select></Field>
-        <Field l="Lead / empresa"><input className="input" value={ref.lead_name} onChange={e=>setRef({...ref,lead_name:e.target.value})}/></Field>
-        <Field l="E-mail"><input className="input" value={ref.lead_email} onChange={e=>setRef({...ref,lead_email:e.target.value})}/></Field>
-        <Field l="Telefone"><input className="input" value={ref.lead_phone} onChange={e=>setRef({...ref,lead_phone:e.target.value})}/></Field>
-        <Mini l="Valor comercial" v={ref.referral_type==='PERSONALIZADO'?'R$ 990 · 3× R$ 330':'R$ 149/mês'}/>
-        <button className="btn-primary w-full" disabled={!ref.partner_id||busy} onClick={()=>void saveReferral()}><Plus size={14} className="mr-2"/>Registrar indicação</button>
-      </section>
-
-      <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
-        <h2 className="font-black">Validação das indicações</h2>
-        <p className="text-[10px] text-neutral-500 mt-1">O repasse só é criado depois que você confirmar o primeiro pagamento real do cliente.</p>
-        <div className="mt-4 space-y-2">{(data?.referrals||[]).map((r:any)=>{
-          const p=(data?.partners||[]).find((x:any)=>x.id===r.partner_id);
-          const defaultAmount=r.referral_type==='PERSONALIZADO'?'330.00':'149.00';
-          return <div key={r.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-              <div><div className="font-bold text-sm">{r.lead_name||'Lead sem nome'}</div><div className="text-[10px] text-neutral-500">{p?.full_name||'—'} · {r.referral_type} · {r.source}</div></div>
-              <div className="flex flex-wrap gap-2">
-                <Tag ok={r.customer_payment_status==='CONFIRMADO'}>{r.customer_payment_status}</Tag>
-                <Tag ok={r.status==='CONVERTIDO'}>{r.status}</Tag>
-              </div>
-            </div>
-            {r.customer_payment_status!=='CONFIRMADO'?<div className="grid sm:grid-cols-[1fr_auto] gap-2 mt-3">
-              <input className="input" inputMode="decimal" value={paymentValues[r.id]??defaultAmount} onChange={e=>setPaymentValues(prev=>({...prev,[r.id]:e.target.value}))} aria-label="Valor pago pelo cliente"/>
-              <button disabled={busy||!p?.email_verified||!p?.phone_verified} className="btn-primary" onClick={()=>void confirmPayment(r)}><CheckCircle2 size={14} className="mr-2"/>Confirmar cliente pagou</button>
-            </div>:<div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3"><Mini l="Primeiro pagamento" v={money(r.first_payment_amount)}/><Mini l="Pago em" v={date(r.first_payment_at)}/><Mini l="Validado em" v={date(r.payment_validated_at)}/><Mini l="Comissão" v={r.referral_type==='PERSONALIZADO'?'R$ 200':'R$ 35'}/></div>}
-            {(!p?.email_verified||!p?.phone_verified)&&r.customer_payment_status!=='CONFIRMADO'&&<div className="mt-2 text-[10px] text-amber-300 flex gap-2 items-center"><AlertTriangle size={12}/>Valide e-mail e telefone do vendedor antes de liberar comissão.</div>}
-          </div>;
-        })}</div>
-      </section>
-    </div>
-
-    <section id="partner-payouts" className="scroll-mt-24 p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
-      <div className="flex items-center gap-2"><WalletCards size={17} className="text-emerald-400"/><div><h2 className="font-black">Repasses & fechamento</h2><p className="text-[10px] text-neutral-500">Histórico financeiro das comissões já originadas por pagamentos confirmados.</p></div></div>
-      <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[900px] text-xs">
-        <thead className="text-neutral-500"><tr><th className="text-left p-2">Vendedor</th><th className="text-left p-2">Tipo</th><th className="text-left p-2">Regra</th><th className="text-right p-2">Repasse</th><th className="text-left p-2">Vencimento</th><th className="text-left p-2">Status</th><th className="text-left p-2">Ação</th></tr></thead>
-        <tbody>{(data?.commissions||[]).map((x:any)=>{
-          const p=(data?.partners||[]).find((y:any)=>y.id===x.partner_id);
-          return <tr key={x.id} className="border-t border-neutral-800">
-            <td className="p-2">{p?.full_name||'—'}</td>
-            <td className="p-2">{x.commission_type}</td>
-            <td className="p-2">{x.payout_mode==='FECHAMENTO_MENSAL'?<span className="flex gap-1 items-center"><Clock3 size={12}/>Fechamento mensal</span>:'Imediato'}</td>
-            <td className="p-2 text-right font-black text-emerald-400">{money(x.amount_due)}</td>
-            <td className="p-2">{date(x.due_at)}</td>
-            <td className="p-2">{x.status}</td>
-            <td className="p-2">
-              {x.status==='AGENDADA'&&<button className="btn-secondary !py-1" onClick={()=>void platformDb.updatePlatformPartnerCommission(x.id,'LIBERADA').then(load)}>Liberar fechamento</button>}
-              {x.status==='LIBERADA'&&<button className="btn-primary !py-1" onClick={()=>void platformDb.updatePlatformPartnerCommission(x.id,'PAGA').then(load)}>Marcar pago</button>}
-              {x.status==='PAGA'&&<span className="text-emerald-400 text-[10px]">Pago {date(x.paid_at)}</span>}
-            </td>
-          </tr>;
+    {(tab==='OVERVIEW'||tab==='SELLERS')&&<section className="rounded-xl border border-neutral-800 bg-[#080d10] overflow-hidden">
+      <div className="overflow-x-auto"><table className="w-full min-w-[1180px] text-xs">
+        <thead className="text-neutral-500 border-b border-neutral-800"><tr><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Link de Indicação</th><th className="p-3 text-left">Código</th><th className="p-3 text-center">Leads</th><th className="p-3 text-center">Clientes</th><th className="p-3 text-right">Vendas (R$)</th><th className="p-3 text-right">Comissão</th><th className="p-3 text-left">Status Comissão</th><th className="p-3 text-left">Portal</th><th className="p-3 text-left">Ações</th></tr></thead>
+        <tbody>{sellerRows.map((p:any)=>{
+          const commission=Number(p.available_amount||0)+Number(p.scheduled_amount||0);
+          const commissionStatus=Number(p.available_amount||0)>0?'LIBERADA':Number(p.scheduled_amount||0)>0?'AGENDADA':Number(p.waiting_payment||0)>0?'AGUARDANDO PAGAMENTO':Number(p.cancelled||0)>0&&!p.converted?'NÃO CONVERTIDO':'SEM COMISSÃO';
+          return <tr key={p.id} className="border-b border-neutral-900 hover:bg-neutral-900/40">
+            <td className="p-3"><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="text-left"><div className="font-black">{p.full_name}</div><div className="text-[9px] text-neutral-500">{p.email}</div></button></td>
+            <td className="p-3"><button onClick={()=>void copy(share(p))} className="text-sky-400 hover:underline inline-flex items-center gap-2">{share(p).replace(window.location.origin,'adegapro')}<Copy size={11}/></button></td>
+            <td className="p-3"><button onClick={()=>void copy(p.referral_code,'Código')} className="px-2 py-1 rounded bg-neutral-900 border border-neutral-700 font-mono inline-flex items-center gap-2">{p.referral_code}<Copy size={10}/></button></td>
+            <td className="p-3 text-center font-bold">{p.referrals||0}</td><td className="p-3 text-center font-bold">{p.converted||0}</td>
+            <td className="p-3 text-right">{money(p.sales_value||0)}</td><td className="p-3 text-right text-amber-400 font-black">{money(commission)}</td>
+            <td className="p-3"><Status value={commissionStatus}/></td>
+            <td className="p-3"><Status value={p.portal_registered?'CADASTRADO':'PENDENTE'}/></td>
+            <td className="p-3"><div className="flex gap-1"><button onClick={()=>void copy(share(p))} className="h-8 px-2 rounded border border-neutral-800">Link</button><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="h-8 px-2 rounded border border-neutral-800">Ver</button></div></td>
+          </tr>
         })}</tbody>
       </table></div>
-    </section>
-  </div>
+      <div className="px-3 py-2 text-[9px] text-neutral-600">Mostrando {sellerRows.length} de {partners.length} vendedores</div>
+    </section>}
+
+    {tab==='REFERRALS'&&<div className="grid xl:grid-cols-[.65fr_1.35fr] gap-4">
+      <section className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 space-y-3"><h2 className="font-black">Registrar indicação</h2><Field label="Vendedor"><select className="input" value={ref.partner_id} onChange={e=>setRef({...ref,partner_id:e.target.value})}><option value="">Selecione...</option>{partners.filter((p:any)=>p.active).map((p:any)=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></Field><Field label="Tipo"><select className="input" value={ref.referral_type} onChange={e=>setRef({...ref,referral_type:e.target.value,estimated_value:e.target.value==='PERSONALIZADO'?990:149})}><option value="ASSINATURA">ASSINATURA</option><option value="PERSONALIZADO">PERSONALIZADO</option></select></Field><Field label="Cliente / empresa"><input className="input" value={ref.lead_name} onChange={e=>setRef({...ref,lead_name:e.target.value})}/></Field><Field label="E-mail"><input className="input" value={ref.lead_email} onChange={e=>setRef({...ref,lead_email:e.target.value})}/></Field><Field label="Telefone"><input className="input" value={ref.lead_phone} onChange={e=>setRef({...ref,lead_phone:e.target.value})}/></Field><button disabled={!ref.partner_id||busy} onClick={()=>void saveReferral()} className="btn-primary w-full">Registrar indicação</button></section>
+      <section className="rounded-xl border border-neutral-800 bg-[#080d10] overflow-hidden"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Cliente</th><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Origem</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Pagamento</th><th className="p-3 text-right">Valor</th><th className="p-3 text-left">Ação</th></tr></thead><tbody>{filteredReferrals.map((r:any)=>{const p=partnerMap.get(r.partner_id) as any;return <tr key={r.id} className="border-t border-neutral-800"><td className="p-3"><b>{r.lead_name||'Lead sem nome'}</b><div className="text-[9px] text-neutral-600">{r.lead_email||r.lead_phone||'—'}</div></td><td className="p-3">{p?.full_name||'—'}</td><td className="p-3">{r.source||'—'}</td><td className="p-3"><Status value={r.status}/></td><td className="p-3"><Status value={r.customer_payment_status}/></td><td className="p-3 text-right">{money(r.converted_value||r.estimated_value)}</td><td className="p-3">{r.customer_payment_status!=='CONFIRMADO'?<div className="flex gap-1"><input className="w-20 h-8 rounded bg-neutral-950 border border-neutral-700 px-2" value={paymentValues[r.id]??(r.referral_type==='PERSONALIZADO'?'330':'149')} onChange={e=>setPaymentValues(v=>({...v,[r.id]:e.target.value}))}/><button onClick={()=>void confirmPayment(r)} className="h-8 px-2 rounded bg-amber-400 text-neutral-950 font-black">Confirmar</button></div>:<span className="text-emerald-400">Confirmado</span>}</td></tr>})}</tbody></table></div></section>
+    </div>}
+
+    {tab==='COMMISSIONS'&&<CommissionTable rows={commissions} partnerMap={partnerMap} onPay={markPaid} busy={busy}/>}
+    {tab==='PAYMENTS'&&<CommissionTable rows={commissions.filter((c:any)=>c.status==='PAGA'||c.status==='LIBERADA'||c.status==='AGENDADA')} partnerMap={partnerMap} onPay={markPaid} busy={busy}/>}
+    {tab==='REPORTS'&&<div className="grid md:grid-cols-3 gap-3"><ReportCard title="Conversão" value={metrics.referrals_total?Math.round((metrics.referrals_converted/metrics.referrals_total)*100)+'%':'0%'} detail="indicações convertidas"/><ReportCard title="Venda convertida" value={money(metrics.conversion_value||0)} detail="valor comercial atribuído"/><ReportCard title="Comissões totais" value={money(Number(metrics.commission_available||0)+Number(metrics.commission_scheduled||0)+Number(metrics.commission_paid||0))} detail="liberadas, agendadas e pagas"/></div>}
+  </div>;
 };
 
-const Card=({l,v}:{l:string;v:any})=><div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="text-lg font-black">{v}</div><div className="text-[10px] text-neutral-500">{l}</div></div>;
-const Mini=({l,v}:{l:string;v:any})=><div className="p-2 rounded-lg bg-neutral-900 border border-neutral-800"><div className="text-[9px] text-neutral-600">{l}</div><div className="text-[11px] font-bold truncate">{String(v??'—')}</div></div>;
-const Field=({l,children}:{l:string;children:React.ReactNode})=><label className="block"><span className="text-[10px] text-neutral-500 block mb-1">{l}</span>{children}</label>;
-const Tag=({ok,children}:{ok:boolean;children:React.ReactNode})=><span className={`text-[9px] px-2 py-1 rounded-full border font-black ${ok?'text-emerald-300 border-emerald-800 bg-emerald-950/30':'text-amber-300 border-amber-800 bg-amber-950/30'}`}>{children}</span>;
-const PolicyRule=({children}:{children:React.ReactNode})=><div className="flex gap-2"><CheckCircle2 size={13} className="text-emerald-400 shrink-0 mt-0.5"/><span>{children}</span></div>;
+const Kpi=({icon:Icon,label,value,sub}:{icon:any;label:string;value:any;sub:string})=><div className="rounded-xl border border-neutral-800 bg-[#0b1014] p-4"><div className="flex items-start justify-between"><div className="w-10 h-10 rounded-xl bg-amber-400/10 text-amber-400 grid place-items-center"><Icon size={20}/></div><span className="text-[9px] text-emerald-400 font-black">↑ ativo</span></div><div className="text-[10px] text-neutral-400 mt-3">{label}</div><div className="text-2xl font-black mt-0.5">{value}</div><div className="text-[9px] text-neutral-500 mt-2">{sub}</div></div>;
+const Step=({n,icon:Icon,title,text}:{n:string;icon:any;title:string;text:string})=><div className="p-3 rounded-lg border border-neutral-800 bg-[#0b1014] flex gap-3"><span className="w-6 h-6 rounded-full bg-amber-400 text-neutral-950 grid place-items-center text-xs font-black">{n}</span><div className="w-9 h-9 rounded-lg bg-amber-400/10 text-amber-400 grid place-items-center"><Icon size={18}/></div><div><div className="text-[10px] font-black">{title}</div><div className="text-[9px] text-neutral-500 mt-1 leading-relaxed">{text}</div></div></div>;
+const Field=({label,children}:{label:string;children:React.ReactNode})=><label className="block"><span className="text-[10px] text-neutral-500 block mb-1">{label}</span>{children}</label>;
+const Status=({value}:{value:string})=>{const v=String(value||'');const good=['LIBERADA','PAGA','CONVERTIDO','CONFIRMADO','CADASTRADO'].some(x=>v.includes(x));const bad=['CANCEL','NÃO CONVERTIDO','PERDIDO','INADIMPLENTE'].some(x=>v.includes(x));return <span className={`px-2 py-1 rounded-md border text-[9px] font-black ${good?'border-emerald-800 bg-emerald-950/40 text-emerald-300':bad?'border-rose-800 bg-rose-950/40 text-rose-300':'border-amber-800 bg-amber-950/30 text-amber-300'}`}>{v}</span>};
+const CommissionTable=({rows,partnerMap,onPay,busy}:{rows:any[];partnerMap:Map<any,any>;onPay:(c:any)=>void;busy:boolean})=><section className="rounded-xl border border-neutral-800 bg-[#080d10] overflow-hidden"><div className="overflow-x-auto"><table className="w-full min-w-[950px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Tipo</th><th className="p-3 text-right">Base</th><th className="p-3 text-right">Comissão</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Vencimento</th><th className="p-3 text-left">Pago em</th><th className="p-3 text-left">Ação</th></tr></thead><tbody>{rows.map((c:any)=>{const p=partnerMap.get(c.partner_id) as any;return <tr key={c.id} className="border-t border-neutral-800"><td className="p-3 font-bold">{p?.full_name||'—'}</td><td className="p-3">{c.commission_type}</td><td className="p-3 text-right">{money(c.base_amount)}</td><td className="p-3 text-right text-amber-400 font-black">{money(c.amount_due)}</td><td className="p-3"><Status value={c.status}/></td><td className="p-3">{date(c.due_at)}</td><td className="p-3">{date(c.paid_at)}</td><td className="p-3">{c.status!=='PAGA'&&c.status!=='CANCELADA'?<button disabled={busy} onClick={()=>void onPay(c)} className="h-8 px-3 rounded bg-emerald-700 text-white font-black">Marcar pago</button>:'—'}</td></tr>})}</tbody></table></div></section>;
+const ReportCard=({title,value,detail}:{title:string;value:string;detail:string})=><div className="p-5 rounded-xl border border-neutral-800 bg-neutral-900"><div className="text-[10px] text-neutral-500">{title}</div><div className="text-2xl font-black mt-2">{value}</div><div className="text-[10px] text-neutral-600 mt-2">{detail}</div></div>;
