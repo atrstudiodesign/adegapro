@@ -1,32 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React,{useEffect,useState} from 'react';
 import { db } from '../../services/db';
 import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
-import { User, CashSession } from '../../types';
+import { User,CashSession } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
 import { PinAuthModal } from '../common/PinAuthModal';
 import { OfflineSyncControl } from '../common/OfflineSyncControl';
 import { PWAInstallButton } from '../common/PWAInstallButton';
-import { ShoppingCart, UserCheck, Bell, Store as StoreIcon, Lock, Menu, Moon, Sun, Zap } from 'lucide-react';
+import {
+  ShoppingCart,UserCheck,Bell,Store as StoreIcon,Lock,Menu,Moon,Sun,Zap,
+  Grid3X3,ChevronDown
+} from 'lucide-react';
 
-interface HeaderProps {
-  currentTab: string;
-  onNavigate: (tab: string) => void;
-  currentUser: User;
-  onUserChanged: (user: User) => void;
-  currentSession?: CashSession;
-  onLock?: () => void;
-  onMenuToggle?: () => void;
-  appMode?: AppMode;
+interface HeaderProps{
+  currentTab:string;
+  onNavigate:(tab:string)=>void;
+  currentUser:User;
+  onUserChanged:(user:User)=>void;
+  currentSession?:CashSession;
+  onLock?:()=>void;
+  onMenuToggle?:()=>void;
+  appMode?:AppMode;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export const Header:React.FC<HeaderProps>=({
   currentTab,onNavigate,currentUser,onUserChanged,currentSession,onLock,onMenuToggle,appMode='DEMO'
-}) => {
-  const [showPinModal,setShowPinModal]=useState(false);
-  const [unreadNotifications,setUnreadNotifications]=useState(0);
-  const [store,setStore]=useState(()=>db.getStore());
-  const [theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
+})=>{
+  const[showPinModal,setShowPinModal]=useState(false);
+  const[unreadNotifications,setUnreadNotifications]=useState(0);
+  const[store,setStore]=useState(()=>db.getStore());
+  const[theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
+  const isPos=currentTab==='pos'||currentTab==='minidash';
 
   useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('adega_pro_theme',theme);},[theme]);
   useEffect(()=>{
@@ -36,8 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
         .then(([s,products,expiry])=>{
           if(!alive)return;
           setStore(s);
-          const low=products.filter(p=>!p.isCombo&&p.currentStock<=p.minStock).length;
-          setUnreadNotifications(low+expiry.length);
+          setUnreadNotifications(products.filter(p=>!p.isCombo&&p.currentStock<=p.minStock).length+expiry.length);
         }).catch(()=>{if(alive)setUnreadNotifications(1);});
     }else{
       setStore(db.getStore());
@@ -46,54 +49,63 @@ export const Header: React.FC<HeaderProps> = ({
     return()=>{alive=false};
   },[currentTab,appMode]);
 
-  const actionClass=(active:boolean)=>`flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] sm:text-xs font-black transition-all ${active?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-900 text-neutral-300 border-neutral-700 hover:border-amber-500/50 hover:text-white'}`;
+  const navClass=(active:boolean)=>`h-11 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs font-black whitespace-nowrap transition-all ${active?'bg-amber-400 border-amber-300 text-neutral-950 shadow-[0_0_22px_rgba(250,204,21,.16)]':'bg-[#0d1217] border-neutral-700 text-neutral-200 hover:border-neutral-500'}`;
+  const initials=currentUser.name.split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'OP';
 
-  return (
-    <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a] border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
-      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-        <button onClick={()=>onNavigate('dashboard')} className="flex items-center text-left focus-visible:outline-none">
-          <BrandLogo size="sm" variant="full"/>
-        </button>
-        <span className="hidden xl:inline-block text-neutral-600">/</span>
-        <div className="hidden xl:flex items-center gap-2 text-xs text-neutral-400">
-          <StoreIcon size={14} className="text-amber-400"/>
-          <span className="text-neutral-200 font-medium">{store.name}</span>
-          <span className="text-neutral-600">·</span>
-          <span>{currentSession?currentSession.cashRegisterNumber+' aberto':'Caixa fechado'}</span>
-        </div>
+  if(isPos){
+    return <header className="min-h-16 px-3 sm:px-5 bg-[#070b0f] border-b border-neutral-800 flex items-center gap-3 sticky top-0 z-40 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
+      <button onClick={onMenuToggle} aria-label="Abrir funcionalidades" className="w-10 h-10 rounded-xl text-neutral-200 grid place-items-center hover:bg-neutral-900 shrink-0"><Menu size={22}/></button>
+      <button onClick={()=>onNavigate('dashboard')} className="shrink-0"><BrandLogo size="sm" variant="full"/></button>
+
+      <div className="hidden md:flex items-center gap-2 ml-4">
+        <button onClick={()=>onNavigate('pos')} className={navClass(currentTab==='pos')}><ShoppingCart size={15}/>PDV Completo</button>
+        <button onClick={()=>onNavigate('minidash')} className={navClass(currentTab==='minidash')}><Zap size={15}/>Mini PDV Rápido</button>
+        <button onClick={onMenuToggle} className={navClass(false)}><Grid3X3 size={15}/>Funcionalidades<ChevronDown size={13}/></button>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 overflow-x-auto">
-        <button onClick={()=>onNavigate('pos')} className={actionClass(currentTab==='pos')}>
-          <ShoppingCart size={15}/><span className="hidden sm:inline">PDV Completo</span>
-        </button>
-        <button onClick={()=>onNavigate('minidash')} className={actionClass(currentTab==='minidash')}>
-          <Zap size={15}/><span className="hidden sm:inline">Mini PDV Rápido</span>
-        </button>
-        <button onClick={onMenuToggle} className={actionClass(false)} title="Abrir funcionalidades administrativas da loja">
-          <Menu size={15}/><span className="hidden md:inline">Funcionalidades</span>
+      <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <button onClick={()=>onNavigate('dashboard')} title={unreadNotifications?unreadNotifications+' alerta(s)':'Sem alertas'} className="relative w-10 h-10 rounded-xl text-neutral-300 grid place-items-center hover:bg-neutral-900">
+          <Bell size={18}/>
+          {unreadNotifications>0&&<span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[8px] font-black grid place-items-center">{unreadNotifications>9?'9+':unreadNotifications}</span>}
         </button>
 
-        <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} title="Alternar tema" className="w-9 h-9 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 grid place-items-center hover:text-amber-400">{theme==='dark'?<Sun size={15}/>:<Moon size={15}/>}</button>
-        <div className="hidden lg:block"><OfflineSyncControl/></div>
-        <div className="hidden lg:block"><PWAInstallButton/></div>
-        <button onClick={()=>setShowPinModal(true)} title="Trocar operador por PIN" className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900 text-neutral-300 text-xs border border-neutral-700">
-          <UserCheck size={14} className="text-amber-400"/><span>PIN</span>
+        <button onClick={()=>onNavigate('store-profile')} className="hidden lg:flex h-11 min-w-48 px-3 rounded-xl border border-neutral-700 bg-[#0d1217] items-center gap-3 text-left">
+          <StoreIcon size={17} className="text-neutral-300"/>
+          <div className="min-w-0 flex-1"><div className="text-[9px] text-neutral-500">Loja Atual</div><div className="text-xs font-bold truncate">{store.tradeName||store.name}</div></div>
+          <ChevronDown size={14} className="text-neutral-500"/>
         </button>
-        {onLock&&<button onClick={onLock} title="Bloquear terminal" className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-700 text-neutral-400 grid place-items-center hover:text-amber-400"><Lock size={14}/></button>}
-        <button onClick={()=>onNavigate('dashboard')} title={unreadNotifications?unreadNotifications+' alerta(s)':'Sem alertas'} className="relative w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-700 text-neutral-400 grid place-items-center">
-          <Bell size={15}/>
-          {unreadNotifications>0&&<span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-amber-400 text-neutral-950 text-[8px] font-black grid place-items-center">{unreadNotifications>9?'9+':unreadNotifications}</span>}
+
+        <button onClick={()=>setShowPinModal(true)} className="flex items-center gap-2 sm:gap-3">
+          <span className="w-10 h-10 rounded-full bg-slate-100 text-slate-900 grid place-items-center text-xs font-black">{initials}</span>
+          <span className="hidden xl:block text-left"><span className="block text-xs font-black">{currentUser.name}</span><span className="block text-[10px] text-neutral-400">Operador PDV</span></span>
+          <ChevronDown size={14} className="hidden xl:block text-neutral-500"/>
         </button>
       </div>
 
-      <PinAuthModal
-        isOpen={showPinModal}
-        onClose={()=>setShowPinModal(false)}
-        onSuccess={onUserChanged}
-        title="Troca Rápida de Operador"
-        description="Digite seu PIN de 4 dígitos para assumir a sessão do terminal"
-      />
-    </header>
-  );
+      <div className="md:hidden fixed bottom-3 left-3 right-3 z-50 grid grid-cols-3 gap-2 p-2 rounded-2xl bg-[#090d11]/95 border border-neutral-700 shadow-2xl backdrop-blur">
+        <button onClick={()=>onNavigate('pos')} className={navClass(currentTab==='pos')}><ShoppingCart size={14}/><span className="hidden min-[420px]:inline">PDV</span></button>
+        <button onClick={()=>onNavigate('minidash')} className={navClass(currentTab==='minidash')}><Zap size={14}/><span className="hidden min-[420px]:inline">Mini PDV</span></button>
+        <button onClick={onMenuToggle} className={navClass(false)}><Grid3X3 size={14}/><span className="hidden min-[420px]:inline">Funções</span></button>
+      </div>
+
+      <PinAuthModal isOpen={showPinModal} onClose={()=>setShowPinModal(false)} onSuccess={onUserChanged} title="Troca Rápida de Operador" description="Digite seu PIN de 4 dígitos para assumir a sessão do terminal"/>
+    </header>;
+  }
+
+  return <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a] border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
+    <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+      <button onClick={onMenuToggle} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 grid place-items-center"><Menu size={18}/></button>
+      <button onClick={()=>onNavigate('dashboard')}><BrandLogo size="sm" variant="full"/></button>
+      <div className="hidden xl:flex items-center gap-2 text-xs text-neutral-400"><StoreIcon size={14} className="text-amber-400"/><span className="text-neutral-200 font-medium">{store.tradeName||store.name}</span><span className="text-neutral-600">·</span><span>{currentSession?currentSession.cashRegisterNumber+' aberto':'Caixa fechado'}</span></div>
+    </div>
+    <div className="flex items-center gap-2">
+      <button onClick={()=>onNavigate('pos')} className={navClass(false)}><ShoppingCart size={15}/><span className="hidden sm:inline">PDV Completo</span></button>
+      <button onClick={()=>onNavigate('minidash')} className={navClass(false)}><Zap size={15}/><span className="hidden md:inline">Mini PDV Rápido</span></button>
+      <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 grid place-items-center">{theme==='dark'?<Sun size={15}/>:<Moon size={15}/>}</button>
+      <div className="hidden lg:block"><OfflineSyncControl/></div><div className="hidden lg:block"><PWAInstallButton/></div>
+      <button onClick={()=>setShowPinModal(true)} className="hidden sm:flex w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-amber-400 grid place-items-center"><UserCheck size={15}/></button>
+      {onLock&&<button onClick={onLock} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-400 grid place-items-center"><Lock size={14}/></button>}
+    </div>
+    <PinAuthModal isOpen={showPinModal} onClose={()=>setShowPinModal(false)} onSuccess={onUserChanged} title="Troca Rápida de Operador" description="Digite seu PIN de 4 dígitos para assumir a sessão do terminal"/>
+  </header>;
 };
