@@ -80,6 +80,46 @@ async function setPlatformTenantFeature(tenantId:string,featureKey:string,enable
   if(error) throw error;
 }
 
+async function getPlatformPartnerSnapshot(){
+  const {data,error}=await platformSupabase.rpc('get_platform_partner_snapshot');
+  if(error) throw error;
+  return data;
+}
+
+async function savePlatformSalesPartner(payload:Record<string,unknown>){
+  const {data,error}=await platformSupabase.rpc('save_platform_sales_partner',{p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
+async function savePlatformPartnerReferral(payload:Record<string,unknown>){
+  const {data,error}=await platformSupabase.rpc('save_platform_partner_referral',{p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
+async function createPlatformPartnerCommission(payload:Record<string,unknown>){
+  const {data,error}=await platformSupabase.rpc('create_platform_partner_commission',{p_payload:payload});
+  if(error) throw error;
+  return data as string;
+}
+
+async function updatePlatformPartnerCommission(id:string,status:string,paymentReference?:string){
+  const {error}=await platformSupabase.rpc('update_platform_partner_commission',{p_id:id,p_status:status,p_payment_reference:paymentReference||null});
+  if(error) throw error;
+}
+
+async function getPlatformTenantSecurity(tenantId:string){
+  const {data,error}=await platformSupabase.rpc('get_platform_tenant_security',{p_tenant_id:tenantId});
+  if(error) throw error;
+  return data;
+}
+
+async function setPlatformTenantSecurity(tenantId:string,status:'BLOQUEADA'|'DISPONIVEL'|'MIGRACAO',notes?:string){
+  const {error}=await platformSupabase.rpc('set_platform_tenant_security',{p_tenant_id:tenantId,p_status:status,p_notes:notes||null});
+  if(error) throw error;
+}
+
 async function setPlatformTenantAccess(tenantId: string, active: boolean, licenseStatus?: 'ACTIVE'|'SUSPENDED'|'ENDED'|'CANCELLED'|'DRAFT') {
   const { error } = await platformSupabase.rpc('set_platform_tenant_access', {
     p_tenant_id: tenantId,
@@ -103,5 +143,12 @@ export const platformDb = {
   savePlatformWebhookConfig,
   getPlatformTenantFeatures,
   setPlatformTenantFeature,
+  getPlatformPartnerSnapshot,
+  savePlatformSalesPartner,
+  savePlatformPartnerReferral,
+  createPlatformPartnerCommission,
+  updatePlatformPartnerCommission,
+  getPlatformTenantSecurity,
+  setPlatformTenantSecurity,
   setPlatformTenantAccess
 };
