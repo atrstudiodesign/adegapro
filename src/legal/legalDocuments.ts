@@ -5,8 +5,8 @@ export type LegalDocKey =
   | 'software_license'
   | 'legal_notice';
 
-export const LEGAL_VERSION = '2026.09.23-r3';
-export const LEGAL_EFFECTIVE_DATE = '23 de setembro de 2026';
+export const LEGAL_VERSION = '2026.09.29-r4';
+export const LEGAL_EFFECTIVE_DATE = '29 de setembro de 2026';
 
 export const LEGAL_PROVIDER = {
   tradeName: 'ATR Studio',
@@ -184,7 +184,21 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         ]
       },
       {
-        title: '5. Dados após o término',
+        title: '5. Programa de indicação e comissionamento comercial',
+        paragraphs: [
+          'O Programa de Indicação do ADEGA PRO é destinado a clientes ativos e poderá coexistir com campanhas comerciais de vendedores, representantes ou parceiros autorizados. Para fins do programa, uma indicação válida deve identificar um novo interessado antes ou durante o primeiro contato comercial, permitindo registrar quem indicou ou originou a oportunidade.',
+          'O benefício do cliente indicador é liberado após a validação de 1 novo cliente indicado, considerando como novo cliente aquele que não possuía contratação ativa do ADEGA PRO vinculada ao mesmo estabelecimento ou grupo econômico no momento da indicação. O benefício é pessoal ao contrato do indicador, não é convertido em dinheiro e não é cumulativo com outro benefício de indicação sobre a mesma conversão, salvo autorização comercial expressa.',
+          'O cliente indicador poderá escolher uma das modalidades vigentes da campanha: (a) 30% de desconto na assinatura recorrente do ADEGA PRO por 3 meses; ou (b) na contratação Personalizada, 40% de desconto sobre a implantação personalizada e 6 meses de acesso ao ADEGA PRO sem cobrança de mensalidade. Encerrado o período gratuito da modalidade Personalizada, o cliente deverá escolher e contratar um plano de assinatura para manter o acesso de produção.',
+          'Os benefícios somente passam a produzir efeito após confirmação da elegibilidade da indicação e da contratação do novo cliente. Cancelamentos, fraude, duplicidade de indicação, autoindicação, chargeback, inadimplência inicial ou desfazimento da contratação indicada poderão impedir a concessão ou cancelar benefício ainda não utilizado, observados os direitos legalmente aplicáveis.',
+          'Vendedores, representantes e parceiros comerciais do ADEGA PRO poderão receber comissão por vendas originadas e devidamente atribuídas a eles. O percentual, valor fixo, base de cálculo, recorrência, prazo de pagamento e metas não são definidos por esta Política e seguirão exclusivamente a tabela comercial, campanha, proposta ou contrato vigente aplicável ao vendedor ou parceiro.',
+          'A comissão comercial somente será considerada devida após a venda ser identificada no sistema ou canal autorizado, vinculada ao vendedor ou parceiro responsável e atingir o evento de validação previsto na regra comercial aplicável, como pagamento confirmado, ativação do cliente ou término de eventual período de cancelamento. Vendas canceladas, estornadas, fraudulentas, duplicadas ou inadimplidas poderão ser excluídas da base de comissão conforme o instrumento comercial correspondente.',
+          'Quando houver simultaneamente um cliente indicador e um vendedor responsável pela conversão, o benefício do indicador e a comissão do vendedor são institutos independentes: o cliente recebe o benefício promocional previsto na campanha e o vendedor recebe a comissão definida em sua regra comercial, desde que ambos estejam corretamente identificados antes da conclusão da venda.',
+          'Vendedores e parceiros não podem alterar preços, prometer descontos adicionais, ampliar prazo gratuito, acumular campanhas ou criar condições em nome da ATR Studio sem autorização expressa. Toda concessão excepcional deverá ser registrada por canal comercial autorizado para fins de auditoria e conferência.',
+          'A ATR Studio poderá encerrar, substituir ou atualizar campanhas futuras, preservando benefícios já confirmados segundo a oferta e as condições aplicáveis no momento da validação.'
+        ]
+      },
+      {
+        title: '6. Dados após o término',
         paragraphs: [
           'Após o encerramento, dados poderão permanecer por período limitado para exportação, cumprimento de obrigação legal, segurança, auditoria ou defesa de direitos, conforme a Política de Privacidade.',
           'O contratante deve realizar exportações necessárias antes do encerramento definitivo. A existência de rotinas de backup não equivale a serviço de arquivamento permanente do cliente.'
