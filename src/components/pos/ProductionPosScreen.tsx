@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, AlertTriangle, Package, ScanLine } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
-import type { CashSession, Category, Customer, Product, User } from '../../types';
+import type { CashRegister, CashSession, Category, Customer, Product, User } from '../../types';
 
-interface Props { currentUser: User; currentSession?: CashSession; onNavigate: (tab:string)=>void; }
+interface Props { currentUser: User; currentSession?: CashSession; onNavigate: (tab:string)=>void; onSessionUpdated:()=>void|Promise<void>; }
 type Line={product:Product;quantity:number};
 
 const normalizeSearch=(value:string|undefined|null)=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 
-export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,onNavigate})=>{
+export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,onNavigate,onSessionUpdated})=>{
   const [products,setProducts]=useState<Product[]>([]);
   const [customers,setCustomers]=useState<Customer[]>([]);
   const [categories,setCategories]=useState<Category[]>([]);
+  const [registers,setRegisters]=useState<CashRegister[]>([]);
   const [selectedCategory,setSelectedCategory]=useState('ALL');
   const [query,setQuery]=useState('');
   const [cart,setCart]=useState<Line[]>([]);
@@ -22,16 +23,19 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState('');
   const [error,setError]=useState('');
+  const [openingBalance,setOpeningBalance]=useState('100');
+  const [lastReceipt,setLastReceipt]=useState<any>(null);
   const searchRef=useRef<HTMLInputElement>(null);
   const customerRef=useRef<HTMLSelectElement>(null);
   const discountRef=useRef<HTMLInputElement>(null);
 
   const load=async()=>{
     try{
-      const [p,c,cats]=await Promise.all([productionDb.getProducts(),productionDb.getCustomers(),productionDb.getCategories()]);
+      const [p,c,cats,regs]=await Promise.all([productionDb.getProducts(),productionDb.getCustomers(),productionDb.getCategories(),productionDb.getCashRegisters()]);
       setProducts(p.filter(x=>x.status==='ACTIVE'));
       setCustomers(c);
       setCategories(cats.filter(x=>x.active));
+      setRegisters(regs);
     }catch(e:any){
       setError(e?.message||'Falha ao carregar PDV.');
     }
@@ -69,6 +73,20 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
   const qty=(id:string,d:number)=>setCart(prev=>prev.map(x=>x.product.id===id?{...x,quantity:Math.max(0,x.quantity+d)}:x).filter(x=>x.quantity>0));
 
+  const openCash=async()=>{
+    const reg=registers.find(r=>r.status==='FECHADO')||registers[0];
+    if(!reg){setError('Nenhum caixa disponível para abertura.');return;}
+    const amount=Number(String(openingBalance||'0').replace(',','.'));
+    if(!Number.isFinite(amount)||amount<0){setError('Saldo inicial inválido.');return;}
+    setBusy(true);setError('');
+    try{
+      await productionDb.openCashSession(reg.id,currentUser.id,amount);
+      await onSessionUpdated();
+      setMessage('Caixa aberto. PDV pronto para venda.');
+    }catch(e:any){setError(e?.message||'Não foi possível abrir o caixa.');}
+    finally{setBusy(false);}
+  };
+
   const finalize=async()=>{
     if(!currentSession){setError('Abra uma sessão de caixa antes de vender.');return;}
     if(cart.length===0||total<=0)return;
@@ -89,6 +107,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         surcharge:0
       });
       setMessage('Venda registrada com sucesso. ID: '+String(id).slice(0,8)+'…');
+      setLastReceipt({id,total,method,amount,change,createdAt:new Date().toISOString(),items:cart.map(l=>({name:l.product.name,quantity:l.quantity,unit:l.product.salePrice,total:l.product.salePrice*l.quantity}))});
       setCart([]);setCustomerId('');setDiscount(0);setTendered('');
       await load();
     }catch(e:any){
@@ -115,6 +134,22 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   },[cart,busy,total,customerId,discount,method,tendered,currentSession,onNavigate]);
 
   return <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_430px] bg-[#080808] text-white overflow-y-auto xl:overflow-hidden">
+    {!currentSession&&<div className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm grid place-items-center p-4">
+      <div className="w-full max-w-md rounded-2xl border border-amber-500/30 bg-neutral-900 shadow-2xl p-5">
+        <div className="text-[10px] uppercase tracking-[.18em] text-amber-400 font-black">Início da operação</div>
+        <h2 className="text-xl font-black mt-1">Abrir Caixa</h2>
+        <p className="text-xs text-neutral-500 mt-1">Abra uma sessão para entrar direto no PDV e começar a vender.</p>
+        <div className="mt-4 p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+          <div className="text-[10px] text-neutral-500">Operador</div><div className="text-sm font-black mt-1">{currentUser.name}</div>
+        </div>
+        <div className="mt-3 p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+          <div className="text-[10px] text-neutral-500">Caixa</div><div className="text-sm font-black mt-1">{(registers.find(r=>r.status==='FECHADO')||registers[0])?.number||'Carregando...'}</div>
+        </div>
+        <label className="block mt-3"><span className="text-[10px] text-neutral-500">Valor inicial (R$)</span><input value={openingBalance} onChange={e=>setOpeningBalance(e.target.value)} inputMode="decimal" className="mt-1 w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm outline-none focus:border-amber-500"/></label>
+        {error&&<div className="mt-3 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
+        <button disabled={busy||registers.length===0} onClick={()=>void openCash()} className="mt-4 w-full py-3.5 rounded-xl bg-amber-500 text-neutral-950 font-black disabled:bg-neutral-800 disabled:text-neutral-500">{busy?'ABRINDO...':'Abrir caixa e iniciar PDV'}</button>
+      </div>
+    </div>}
     <section className="p-3 sm:p-4 lg:p-5 xl:overflow-y-auto border-b xl:border-b-0 xl:border-r border-neutral-800">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
@@ -217,6 +252,18 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         </div>
 
         <button disabled={busy||cart.length===0||!currentSession} onClick={()=>void finalize()} className="mt-4 w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 font-black">{busy?'PROCESSANDO...':'FINALIZAR VENDA (F5)'}</button>
+
+        {lastReceipt&&<div className="mt-4 rounded-2xl bg-white text-neutral-900 p-4 border border-neutral-300 shadow-lg">
+          <div className="flex items-center justify-between gap-3 border-b border-dashed border-neutral-300 pb-3">
+            <div><div className="font-black">ADEGA PRO</div><div className="text-[10px] text-neutral-500">Cupom / comprovante da venda</div></div>
+            <button onClick={()=>window.print()} className="px-3 py-2 rounded-lg bg-neutral-900 text-white text-[10px] font-black">Imprimir</button>
+          </div>
+          <div className="mt-3 text-[10px] text-neutral-500">Venda #{String(lastReceipt.id).slice(0,8)} · {new Date(lastReceipt.createdAt).toLocaleString('pt-BR')}</div>
+          <div className="mt-3 space-y-1.5">{lastReceipt.items.map((item:any,i:number)=><div key={i} className="flex justify-between gap-3 text-[11px]"><span>{item.quantity}× {item.name}</span><b>R$ {Number(item.total).toFixed(2)}</b></div>)}</div>
+          <div className="mt-3 pt-3 border-t border-dashed border-neutral-300 flex justify-between text-sm font-black"><span>Total</span><span>R$ {Number(lastReceipt.total).toFixed(2)}</span></div>
+          <div className="mt-2 text-[10px] text-neutral-500">Pagamento: {lastReceipt.method}{lastReceipt.change>0?' · Troco R$ '+Number(lastReceipt.change).toFixed(2):''}</div>
+        </div>}
+
         <p className="mt-3 text-[10px] text-neutral-500 leading-relaxed">PIX e cartões permanecem confirmação manual até homologação do gateway/TEF. Nenhuma autorização financeira é simulada.</p>
       </div>
     </aside>
