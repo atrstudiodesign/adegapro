@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-partner-payout-policy-r1-10',
+  releaseId: '2026-09-supabase-cyber-hardening-11',
   version: '1.9',
   dateLabel: '09/2026',
   title: 'Adega Pro atualizado',
@@ -29,7 +29,9 @@ export const APP_RELEASE = {
     'Controle de proteção avançada de dados por cliente com estados BLOQUEADA, DISPONÍVEL e MIGRAÇÃO.',
     'Dashboard administrativo ampliado com gráficos, distribuição operacional e central de prioridades.',
     'Política comercial dos autônomos fechada: R$ 35 na assinatura e R$ 200 no personalizado, somente após pagamento confirmado.',
-    'Repasse por vendedor pode ser imediato ou acumulado para fechamento mensal, com validação e histórico no ATR Control.'
+    'Repasse por vendedor pode ser imediato ou acumulado para fechamento mensal, com validação e histórico no ATR Control.',
+    'Supabase endurecido: privilégios anônimos reduzidos, TRUNCATE removido, defaults fechados e tabelas administrativas em modo RPC-only.',
+    'RLS corrigido em acesso a lojas e financeiro; auditoria futura deixa de duplicar campos sensíveis de clientes.'
   ]
 } as const;
 
