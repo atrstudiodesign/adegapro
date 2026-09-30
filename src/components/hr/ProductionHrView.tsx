@@ -131,7 +131,7 @@ export const ProductionHrView:React.FC=()=>{
 
   const printPayroll=(row:any)=>{
     setSelectedPayroll(row);
-    window.setTimeout(()=>window.print(),60);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));
   };
 
   const editPayroll=(row:any)=>{
@@ -334,7 +334,7 @@ export const ProductionHrView:React.FC=()=>{
       <section className="space-y-3">{policies.map((r:any)=><article key={r.id} className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900"><div className="flex items-start justify-between gap-3"><div><h3 className="font-black">{r.title}</h3><p className="mt-2 text-xs leading-relaxed text-neutral-300 whitespace-pre-wrap">{r.description}</p></div><StatusBadge tone={r.active?'success':'danger'}>{r.active?'ATIVA':'INATIVA'}</StatusBadge></div><button onClick={()=>setPolicy({...r})} className="mt-3 text-[10px] text-amber-400 font-black">EDITAR REGRA</button></article>)}{!policies.length&&<div className="p-8 rounded-2xl border border-dashed border-neutral-800 text-center text-xs text-neutral-600">Nenhuma regra interna cadastrada.</div>}</section>
     </div>}
 
-    {selectedPayroll&&<div className="hidden print:block fixed inset-0 bg-white text-black p-8">
+    {selectedPayroll&&<div id="hr-payslip-print" className="hidden print:block fixed inset-0 bg-white text-black p-8">
       <div className="max-w-4xl mx-auto border border-black text-[11px]">
         <div className="grid grid-cols-[1fr_210px] border-b border-black">
           <div className="p-4">
