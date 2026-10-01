@@ -716,6 +716,44 @@ async function getDashboardAnalytics() {
   return data || {};
 }
 
+async function getMultiStoreOverview() {
+  const ctx = await getContext();
+  const stores = await getAccessibleStores();
+  const tenantStores = stores.filter((store:any) => store.tenantId === ctx.tenantId);
+  const ids = tenantStores.map((store:any) => store.id);
+  if (!ids.length) return [];
+
+  const start = new Date();
+  start.setHours(0,0,0,0);
+
+  const [{ data: sales, error: salesError }, { data: finance, error: financeError }, { data: sessions, error: sessionsError }] = await Promise.all([
+    supabase.from('sales').select('store_id,total,status,created_at').eq('tenant_id',ctx.tenantId).in('store_id',ids).gte('created_at',start.toISOString()),
+    supabase.from('financial_transactions').select('store_id,transaction_type,amount,created_at').eq('tenant_id',ctx.tenantId).in('store_id',ids).gte('created_at',start.toISOString()),
+    supabase.from('cash_sessions').select('store_id,status').eq('tenant_id',ctx.tenantId).in('store_id',ids).eq('status','ABERTO')
+  ]);
+  if (salesError) throw salesError;
+  if (financeError) throw financeError;
+  if (sessionsError) throw sessionsError;
+
+  return tenantStores.map((store:any) => {
+    const storeSales=(sales||[]).filter((x:any)=>x.store_id===store.id&&x.status==='PAGA');
+    const storeFinance=(finance||[]).filter((x:any)=>x.store_id===store.id);
+    const revenue=storeSales.reduce((sum:number,x:any)=>sum+Number(x.total||0),0);
+    const entries=storeFinance.filter((x:any)=>x.transaction_type==='RECEITA').reduce((sum:number,x:any)=>sum+Number(x.amount||0),0);
+    const exits=storeFinance.filter((x:any)=>x.transaction_type==='DESPESA').reduce((sum:number,x:any)=>sum+Number(x.amount||0),0);
+    return {
+      store,
+      active: store.id===ctx.storeId,
+      cashOpen:(sessions||[]).some((x:any)=>x.store_id===store.id),
+      salesCount:storeSales.length,
+      revenue,
+      entries,
+      exits,
+      balance:entries-exits
+    };
+  });
+}
+
 async function getSales(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -1136,6 +1174,7 @@ export const productionDb = {
   getAccountsPayable,
   getAccountsReceivable,
   getDashboardAnalytics,
+  getMultiStoreOverview,
   getSales,
   getSaleDetails,
   getStockMovements,
