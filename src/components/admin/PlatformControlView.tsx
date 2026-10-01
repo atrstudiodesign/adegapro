@@ -2,13 +2,13 @@ import React,{useEffect,useMemo,useState} from 'react';
 import {
   Activity, AlertTriangle, Ban, BellRing, Building2, CheckCircle2, ClipboardList, CreditCard,
   Database, Headphones, History, MessageSquareText, RefreshCw, Search, ServerCog, ShieldCheck,
-  Users, WalletCards, X, Handshake, LockKeyhole
+  Users, WalletCards, X, Handshake, LockKeyhole, Gift, Coins
 } from 'lucide-react';
 import { platformDb } from '../../services/platformDb';
 import { PartnerControlView } from './PartnerControlView';
 import { LandingPageControl } from './LandingPageControl';
 
-type Tab='OVERVIEW'|'TENANTS'|'BILLING'|'PARTNERS'|'LANDING'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
+type Tab='OVERVIEW'|'TENANTS'|'BILLING'|'REFERRALS'|'PARTNERS'|'LANDING'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
 
 const FEATURE_CATALOG=[
   ['dashboard','Dashboard geral','Visão consolidada da operação'],['minidash','Mini PDV','Resumo rápido de vendas e caixa'],['pos','Frente de caixa (PDV)','Venda rápida e recebimentos'],['sales','Vendas & cupons','Histórico e comprovantes'],['cash','Caixas & sessões','Abertura, movimentação e fechamento'],
@@ -122,6 +122,7 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
             ['OVERVIEW','Visão geral',Activity],
             ['TENANTS','Clientes',Building2],
             ['BILLING','Assinaturas',CreditCard],
+            ['REFERRALS','Indicações & Fidelidade',Gift],
             ['PARTNERS','Vendedores & Comissões',Handshake],
             ['LANDING','Landing Page',ClipboardList],
             ['SUPPORT','Suporte',Headphones],
@@ -199,6 +200,7 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
           </article>)}</div>
         </>}
 
+        {tab==='REFERRALS'&&<CustomerLoyaltyControl onFeedback={setFeedback} onError={setError}/>}
         {tab==='PARTNERS'&&<PartnerControlView onFeedback={setFeedback} onError={setError}/>}
         {tab==='LANDING'&&<LandingPageControl onFeedback={setFeedback} onError={setError}/>}
         {tab==='SUPPORT'&&<GlobalSupport tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}
@@ -388,3 +390,16 @@ const Field=({label,children}:{label:string;children:React.ReactNode})=><label c
 const FormCard=({title,description,children}:{title:string;description?:string;children:React.ReactNode})=><section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-4"><div><h3 className="font-black">{title}</h3>{description&&<p className="text-[10px] text-neutral-500 mt-1">{description}</p>}</div>{children}</section>;
 const List=({title,children}:{title:string;children:React.ReactNode})=><section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h3 className="font-black mb-4">{title}</h3><div className="space-y-2">{children}</div></section>;
 const Row=({title,subtitle,right}:{title:string;subtitle:string;right?:React.ReactNode})=><div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-between gap-3"><div className="min-w-0"><div className="text-sm font-bold truncate">{title}</div><div className="text-[10px] text-neutral-500 mt-1 truncate">{subtitle}</div></div>{right}</div>;
+
+
+const CustomerLoyaltyControl=({onFeedback,onError}:{onFeedback:(s:string)=>void;onError:(s:string)=>void})=>{
+ const[data,setData]=useState<any>(null); const[busy,setBusy]=useState(false); const[search,setSearch]=useState('');
+ const load=async()=>{setBusy(true);try{setData(await platformDb.getPlatformCustomerLoyaltySnapshot());}catch(e:any){onError(e?.message||'Falha ao carregar indicações.');}finally{setBusy(false)}};
+ useEffect(()=>{void load()},[]);
+ const m=data?.metrics||{}; const rows=(data?.referrals||[]).filter((r:any)=>[r.client,r.lead_name,r.lead_phone,r.status].join(' ').toLowerCase().includes(search.toLowerCase()));
+ const change=async(r:any,status:string)=>{try{await platformDb.updatePlatformCustomerReferral(r.id,status,r.discount_value,r.cashback_points,r.cashback_value);onFeedback('Indicação atualizada.');await load();}catch(e:any){onError(e?.message||'Falha ao atualizar.')}};
+ return <div className="space-y-4"><div className="flex items-center justify-between gap-3"><div><div className="text-[10px] uppercase tracking-[.2em] text-amber-400 font-black">Clientes ativos · programa próprio</div><h2 className="text-xl font-black mt-1">Indicações & Fidelidade</h2><p className="text-xs text-neutral-500 mt-1">Separado integralmente de Vendedores & Comissões.</p></div><button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex gap-2 items-center"><RefreshCw size={14} className={busy?'animate-spin':''}/>Atualizar</button></div>
+ <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-2">{[['Total',m.total||0],['Pendentes',m.pending||0],['Ativas',m.active||0],['Convertidas',m.converted||0],['Canceladas',m.cancelled||0],['Pontos',m.cashback_points||0],['Cashback',money(m.cashback_value||0)]].map(([a,b])=><div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800"><div className="text-[9px] uppercase text-neutral-500">{a}</div><div className="text-lg font-black mt-1">{b}</div></div>)}</div>
+ <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="flex flex-col md:flex-row gap-3 justify-between"><div><h3 className="font-black">Indicações feitas por clientes</h3><p className="text-[10px] text-neutral-500">Pendentes, ativas, convertidas, canceladas e inelegíveis.</p></div><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar cliente ou indicado..." className="rounded-xl bg-neutral-950 border border-neutral-800 px-3 py-2 text-xs"/></div><div className="overflow-x-auto mt-4"><table className="w-full text-xs"><thead className="text-neutral-500"><tr><th className="text-left p-2">Cliente</th><th className="text-left p-2">Indicado</th><th className="text-left p-2">Status</th><th className="text-right p-2">Desconto</th><th className="text-right p-2">Pontos</th><th className="text-right p-2">Cashback</th><th className="text-right p-2">Ação</th></tr></thead><tbody>{rows.map((r:any)=><tr key={r.id} className="border-t border-neutral-800"><td className="p-2 font-bold">{r.client}</td><td className="p-2">{r.lead_name}<div className="text-[9px] text-neutral-600">{r.lead_phone}</div></td><td className="p-2"><Badge tone={r.status==='CONVERTED'?'emerald':r.status==='CANCELLED'?'rose':'amber'}>{r.status}</Badge></td><td className="p-2 text-right">{money(r.discount_value)}</td><td className="p-2 text-right">{r.cashback_points||0}</td><td className="p-2 text-right">{money(r.cashback_value)}</td><td className="p-2 text-right"><select value={r.status} onChange={e=>void change(r,e.target.value)} className="bg-neutral-950 border border-neutral-700 rounded-lg p-1.5"><option>PENDING</option><option>ACTIVE</option><option>CONVERTED</option><option>CANCELLED</option><option>INELIGIBLE</option></select></td></tr>)}</tbody></table>{rows.length===0&&<div className="py-8 text-center text-neutral-600 text-xs">Nenhuma indicação registrada.</div>}</div></section>
+ <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h3 className="font-black">Planos de fidelidade dos clientes</h3><p className="text-[10px] text-neutral-500 mt-1">Valor regular, desconto atual, valor final, período FREE, 50% OFF, fidelidade e saldo.</p><div className="grid lg:grid-cols-2 gap-3 mt-4">{(data?.loyalty||[]).map((l:any)=><div key={l.tenant_id} className="p-4 rounded-xl bg-neutral-950 border border-neutral-800"><div className="flex justify-between"><b>{l.client}</b><Badge tone={l.status==='ACTIVE'?'emerald':'rose'}>{l.status}</Badge></div><div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3"><Info l="Regular" v={money(l.regular_monthly_price)}/><Info l="Desconto atual" v={(l.current_discount_percent||0)+'%'}/><Info l="Valor final" v={money(l.final_monthly_price)}/><Info l="Fidelidade" v={(l.loyalty_months||12)+' meses'}/><Info l="FREE" v={(l.free_months||4)+' meses'}/><Info l="50% OFF" v={(l.half_price_months||6)+' meses'}/><Info l="Pontos" v={l.cashback_points||0}/><Info l="Saldo" v={money(l.cashback_balance)}/></div></div>)}</div>{(data?.loyalty||[]).length===0&&<div className="py-8 text-center text-neutral-600 text-xs">Nenhum plano de fidelidade configurado.</div>}</section></div>;
+};
