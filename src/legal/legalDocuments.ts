@@ -3,7 +3,8 @@ export type LegalDocKey =
   | 'privacy_policy'
   | 'subscription_policy'
   | 'software_license'
-  | 'legal_notice';
+  | 'legal_notice'
+  | 'sales_partner_policy';
 
 export const LEGAL_VERSION = '2026.09.29-r6';
 export const LEGAL_EFFECTIVE_DATE = '29 de setembro de 2026';
@@ -305,6 +306,41 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
           'Comunicações contratuais, solicitações de privacidade e notificações técnicas poderão ser registradas pelos canais oficiais indicados acima e pelo módulo de suporte do sistema.'
         ]
       }
+    ]
+  },
+  sales_partner_policy: {
+    title: 'Política Comercial de Vendedores Autônomos e Indicações',
+    shortTitle: 'Política de Vendedores',
+    version: LEGAL_VERSION,
+    sections: [
+      { title: '1. Natureza do programa', paragraphs: [
+        'O programa permite que vendedores autônomos indiquem potenciais clientes ao ADEGA PRO por meio de código ou fluxo individual de indicação. A participação não cria vínculo empregatício, sociedade, representação exclusiva, salário fixo, jornada, subordinação ou garantia de renda.',
+        'A ATR Studio poderá validar, suspender ou encerrar a participação em caso de fraude, abuso, informação falsa, violação desta política ou uso indevido da marca.'
+      ]},
+      { title: '2. Comissão por assinatura', paragraphs: [
+        'Na política comercial vigente, a indicação elegível de assinatura mensal gera comissão única de R$ 35,00, somente após a confirmação do primeiro pagamento do cliente indicado.',
+        'A comissão não é recorrente sobre mensalidades futuras, salvo condição comercial específica formalizada pela ATR Studio.'
+      ]},
+      { title: '3. Comissão por implantação personalizada', paragraphs: [
+        'Na política comercial vigente, a indicação elegível de implantação personalizada gera comissão única de R$ 200,00 após a confirmação da primeira parcela do cliente.',
+        'Serviços adicionais, integrações, customizações, hospedagem, manutenção ou valores fora da proposta-base não geram comissão automática, salvo autorização expressa.'
+      ]},
+      { title: '4. Elegibilidade, atribuição e validação', paragraphs: [
+        'A indicação deve estar vinculada ao vendedor no fluxo oficial antes da conversão. Leads duplicados, clientes já ativos, negociações previamente abertas ou indicações sem vínculo verificável poderão não ser elegíveis.',
+        'A ATR Control registra lead, conversão, situação do pagamento do cliente e comissão. A comissão somente é liberada após validação do pagamento elegível e das informações do vendedor.'
+      ]},
+      { title: '5. Repasse e cadastro', paragraphs: [
+        'O vendedor poderá operar no modo de repasse imediato ou por fechamento mensal, conforme disponibilidade e configuração do cadastro. E-mail, telefone e dados de pagamento devem estar corretos e, quando exigido, validados antes do repasse.',
+        'Comissões já pagas não são reabertas automaticamente. Divergências comprovadas serão tratadas por ajuste administrativo e permanecerão sujeitas à trilha de auditoria.'
+      ]},
+      { title: '6. Conduta comercial', paragraphs: [
+        'O vendedor não pode prometer descontos, funcionalidades, integrações, prazos, garantias, exclusividade, condições de segurança absoluta ou condições contratuais que não estejam formalmente publicadas ou autorizadas pela ATR Studio.',
+        'É vedado usar publicidade enganosa, spam, identidade falsa, dados pessoais obtidos de forma irregular ou qualquer prática que viole legislação consumerista, concorrencial, de proteção de dados ou direitos de terceiros.'
+      ]},
+      { title: '7. Cancelamentos, fraude e estornos', paragraphs: [
+        'Fraude, pagamento inválido, chargeback, duplicidade, cancelamento anterior à elegibilidade ou manipulação da indicação podem impedir a liberação da comissão. Valores já pagos em situação posteriormente comprovada como irregular poderão ser objeto de ajuste conforme a legislação e os documentos aplicáveis.',
+        'A ATR Studio poderá atualizar condições comerciais para novas indicações mediante publicação de nova versão desta política. Direitos já definitivamente constituídos sob versão anterior serão tratados conforme as condições aplicáveis à respectiva indicação.'
+      ]}
     ]
   }
 };
