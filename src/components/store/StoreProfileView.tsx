@@ -10,6 +10,7 @@ import { adegaPrompt } from '../ui/AdegaDialog';
 export const StoreProfileView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
   const[store,setStore]=useState<Store>(db.getStore());
   const[stores,setStores]=useState<Store[]>([]);
+  const[overview,setOverview]=useState<any[]>([]);
   const[saved,setSaved]=useState(false),[busy,setBusy]=useState(appMode==='PRODUCTION'),[error,setError]=useState('');
   const fileRef=useRef<HTMLInputElement>(null);
 
@@ -17,7 +18,7 @@ export const StoreProfileView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
     setError('');
     if(appMode==='DEMO'){setStore(db.getStore());setStores([db.getStore()]);setBusy(false);return;}
     setBusy(true);
-    try{const [active,all]=await Promise.all([productionDb.getStore(),productionDb.getAccessibleStores()]);setStore(active);setStores(all);}
+    try{const [active,all,summary]=await Promise.all([productionDb.getStore(),productionDb.getAccessibleStores(),productionDb.getMultiStoreOverview()]);setStore(active);setStores(all);setOverview(summary);}
     catch(e:any){setError(e?.message||'Falha ao carregar lojas.');}
     finally{setBusy(false);}
   };
@@ -70,6 +71,22 @@ export const StoreProfileView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
     </section>
 
     <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-start gap-3"><ShieldCheck size={18} className="text-amber-400 shrink-0"/><div className="text-xs text-neutral-300"><b className="text-white">Separação por unidade:</b> estoque, caixa, vendas, compras, inventário e financeiro usam a loja ativa. O catálogo de produtos permanece compartilhado pelo mesmo cliente.</div></div>
+
+    {appMode==='PRODUCTION'&&overview.length>0&&<section className="space-y-3">
+      <div><h2 className="font-black text-white">Visão administrativa multi-loja</h2><p className="text-[11px] text-neutral-500 mt-1">Indicadores de hoje separados por unidade. Estoques nunca são consolidados entre lojas.</p></div>
+      <div className="grid lg:grid-cols-2 gap-3">
+        {overview.map((item:any)=><div key={item.store.id} className={`p-4 rounded-2xl border ${item.active?'border-amber-500/40 bg-amber-500/5':'border-neutral-800 bg-neutral-900'}`}>
+          <div className="flex items-start justify-between gap-3"><div><div className="text-[10px] uppercase tracking-wider text-neutral-500">{item.active?'Loja ativa':'Outra unidade'}</div><div className="font-black text-white mt-1">{item.store.tradeName||item.store.name}</div></div><StatusBadge tone={item.cashOpen?'success':'info'}>{item.cashOpen?'CAIXA ABERTO':'CAIXA FECHADO'}</StatusBadge></div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+            <div className="p-2 rounded-xl bg-neutral-950 border border-neutral-800"><div className="text-[9px] text-neutral-500">Faturamento hoje</div><div className="text-xs font-black text-emerald-400 mt-1">{Number(item.revenue||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
+            <div className="p-2 rounded-xl bg-neutral-950 border border-neutral-800"><div className="text-[9px] text-neutral-500">Entradas</div><div className="text-xs font-black text-emerald-400 mt-1">{Number(item.entries||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
+            <div className="p-2 rounded-xl bg-neutral-950 border border-neutral-800"><div className="text-[9px] text-neutral-500">Saídas</div><div className="text-xs font-black text-rose-400 mt-1">{Number(item.exits||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
+            <div className="p-2 rounded-xl bg-neutral-950 border border-neutral-800"><div className="text-[9px] text-neutral-500">Saldo</div><div className="text-xs font-black text-amber-400 mt-1">{Number(item.balance||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
+          </div>
+          {!item.active&&<button type="button" disabled={busy} onClick={()=>void switchStore(item.store.id)} className="mt-3 text-[10px] font-black text-amber-400">ABRIR ESTA LOJA →</button>}
+        </div>)}
+      </div>
+    </section>}
 
     <form onSubmit={save} className="grid lg:grid-cols-[280px_1fr] gap-5">
       <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">

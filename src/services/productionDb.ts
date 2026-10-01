@@ -716,11 +716,50 @@ async function getDashboardAnalytics() {
   return data || {};
 }
 
+async function getMultiStoreOverview() {
+  const ctx = await getContext();
+  const stores = await getAccessibleStores();
+  const tenantStores = stores.filter((store:any) => store.tenantId === ctx.tenantId);
+  const ids = tenantStores.map((store:any) => store.id);
+  if (!ids.length) return [];
+
+  const start = new Date();
+  start.setHours(0,0,0,0);
+
+  const [{ data: sales, error: salesError }, { data: finance, error: financeError }, { data: sessions, error: sessionsError }] = await Promise.all([
+    supabase.from('sales').select('store_id,total,status,created_at').eq('tenant_id',ctx.tenantId).in('store_id',ids).gte('created_at',start.toISOString()),
+    supabase.from('financial_transactions').select('store_id,transaction_type,amount,created_at').eq('tenant_id',ctx.tenantId).in('store_id',ids).gte('created_at',start.toISOString()),
+    supabase.from('cash_sessions').select('store_id,status').eq('tenant_id',ctx.tenantId).in('store_id',ids).eq('status','ABERTO')
+  ]);
+  if (salesError) throw salesError;
+  if (financeError) throw financeError;
+  if (sessionsError) throw sessionsError;
+
+  return tenantStores.map((store:any) => {
+    const storeSales=(sales||[]).filter((x:any)=>x.store_id===store.id&&x.status==='PAGA');
+    const storeFinance=(finance||[]).filter((x:any)=>x.store_id===store.id);
+    const revenue=storeSales.reduce((sum:number,x:any)=>sum+Number(x.total||0),0);
+    const entries=storeFinance.filter((x:any)=>x.transaction_type==='RECEITA').reduce((sum:number,x:any)=>sum+Number(x.amount||0),0);
+    const exits=storeFinance.filter((x:any)=>x.transaction_type==='DESPESA').reduce((sum:number,x:any)=>sum+Number(x.amount||0),0);
+    return {
+      store,
+      active: store.id===ctx.storeId,
+      cashOpen:(sessions||[]).some((x:any)=>x.store_id===store.id),
+      salesCount:storeSales.length,
+      revenue,
+      entries,
+      exits,
+      balance:entries-exits
+    };
+  });
+}
+
 async function getSales(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
     .from('sales')
     .select('id,sale_number,total,subtotal,discount,surcharge,status,digital_receipt_id,customer_id,operator_ref,created_at')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -733,6 +772,7 @@ async function getStockMovements(limit = 300) {
   const { data, error } = await supabase
     .from('stock_movements')
     .select('id,product_id,movement_type,quantity,previous_stock,next_stock,reason,document_ref,created_at')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -757,6 +797,7 @@ async function getFinancialTransactions(limit = 300) {
   const { data, error } = await supabase
     .from('financial_transactions')
     .select('*')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -935,6 +976,7 @@ async function getCurrentCashSession(): Promise<CashSession | undefined> {
   const { data, error } = await supabase
     .from('cash_sessions')
     .select('*')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .eq('operator_ref', operator.id)
     .eq('status', 'ABERTO')
@@ -952,6 +994,7 @@ async function getCashSessions(): Promise<CashSession[]> {
   const { data, error } = await supabase
     .from('cash_sessions')
     .select('*')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('opened_at', { ascending: false })
     .limit(100);
@@ -1136,6 +1179,7 @@ export const productionDb = {
   getAccountsPayable,
   getAccountsReceivable,
   getDashboardAnalytics,
+  getMultiStoreOverview,
   getSales,
   getSaleDetails,
   getStockMovements,
