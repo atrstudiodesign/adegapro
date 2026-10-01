@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import { CheckCircle2, Moon, Printer, Save, Settings, SlidersHorizontal, Sun } from 'lucide-react';
+import { CheckCircle2, Gift, Moon, Printer, Save, Settings, SlidersHorizontal, Sun, Users } from 'lucide-react';
 import { db } from '../../services/db';
 import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
@@ -11,6 +11,11 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
   const[busy,setBusy]=useState(appMode==='PRODUCTION');
   const[feedback,setFeedback]=useState('');
   const[error,setError]=useState('');
+  const[referral,setReferral]=useState({name:'',phone:'',email:''});
+  const[referralData,setReferralData]=useState<any>(null);
+  const[referralBusy,setReferralBusy]=useState(false);
+  const loadReferrals=()=>appMode==='PRODUCTION'&&productionDb.getMyCustomerReferralSnapshot().then(setReferralData).catch(()=>{});
+  const sendReferral=async()=>{setReferralBusy(true);setError('');setFeedback('');try{await productionDb.createMyCustomerReferral(referral);setReferral({name:'',phone:'',email:''});setFeedback('Indicação enviada e sincronizada com o ATR Control.');await loadReferrals();}catch(e:any){setError(e?.message||'Não foi possível enviar a indicação.');}finally{setReferralBusy(false);}};
   const[theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
   const applyTheme=(next:'dark'|'light')=>{setTheme(next);localStorage.setItem('adega_pro_theme',next);document.documentElement.dataset.theme=next;};
 
@@ -18,7 +23,7 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
     let alive=true;
     if(appMode==='DEMO'){setStore(db.getStore());setBusy(false);return;}
     setBusy(true);
-    productionDb.getStore().then(s=>alive&&setStore(s)).catch((e:any)=>alive&&setError(e?.message||'Falha ao carregar configurações.')).finally(()=>alive&&setBusy(false));
+    productionDb.getStore().then(s=>alive&&setStore(s)); productionDb.getMyCustomerReferralSnapshot().then(d=>alive&&setReferralData(d)).catch(()=>{}).catch((e:any)=>alive&&setError(e?.message||'Falha ao carregar configurações.')).finally(()=>alive&&setBusy(false));
     return()=>{alive=false;};
   },[appMode]);
 
@@ -50,6 +55,8 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
         <p className="text-xs text-neutral-500 mt-1">O tema é salvo neste dispositivo e mantém o layout responsivo.</p>
         <div className="flex gap-2 mt-4"><button type="button" onClick={()=>applyTheme('dark')} className={theme==='dark'?'btn-primary':'btn-secondary'}><Moon size={14} className="mr-2"/>Dark</button><button type="button" onClick={()=>applyTheme('light')} className={theme==='light'?'btn-primary':'btn-secondary'}><Sun size={14} className="mr-2"/>Claro</button></div>
       </section>
+
+      {appMode==='PRODUCTION'&&<section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="flex items-center gap-2"><Users size={18} className="text-amber-400"/><h2 className="font-black text-white">Indique um cliente</h2></div><p className="text-xs text-neutral-500 mt-1">Exclusivo para clientes ativos. A indicação entra automaticamente no ATR Control para acompanhamento e benefício.</p><div className="grid md:grid-cols-3 gap-3 mt-4"><Field label="Nome"><input className="input" value={referral.name} onChange={e=>setReferral({...referral,name:e.target.value})} placeholder="Nome do indicado"/></Field><Field label="WhatsApp"><input className="input" value={referral.phone} onChange={e=>setReferral({...referral,phone:e.target.value})} placeholder="(11) 99999-9999"/></Field><Field label="E-mail (opcional)"><input className="input" type="email" value={referral.email} onChange={e=>setReferral({...referral,email:e.target.value})}/></Field></div><div className="flex items-center justify-between gap-3 mt-4"><div className="text-xs text-neutral-400"><Gift size={14} className="inline mr-1 text-amber-400"/>Saldo: <b className="text-white">{Number(referralData?.account?.cashback_points||0)} pts</b> · R$ {Number(referralData?.account?.cashback_balance||0).toFixed(2).replace('.',',')} · {referralData?.referrals?.length||0} indicação(ões)</div><button type="button" disabled={referralBusy||!referral.name.trim()||!referral.phone.trim()} onClick={sendReferral} className="btn-primary">{referralBusy?'Enviando...':'Enviar indicação'}</button></div>{referralData?.referrals?.length>0&&<div className="mt-4 border-t border-neutral-800 pt-3 space-y-2">{referralData.referrals.slice(0,5).map((r:any)=><div key={r.id} className="flex justify-between gap-3 text-xs"><span className="text-neutral-300">{r.lead_name} · {r.lead_phone}</span><StatusBadge tone={r.status==='CONVERTED'?'success':r.status==='CANCELLED'?'danger':'warning'}>{r.status}</StatusBadge></div>)}</div>}</section>}
 
       <form onSubmit={save} className="space-y-5">
         <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
