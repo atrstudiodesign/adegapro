@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-01-force-v5.6',
-  version: '5.6',
-  dateLabel: '01/10/2026 · force deploy',
+  releaseId: '2026-10-01-card-payment-v5.7',
+  version: '5.7',
+  dateLabel: '01/10/2026 · cartão PDV',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
+    'PDV: botão Cartão abre janela para escolha entre Débito e Crédito antes da finalização da venda.',
     'Force deploy: republicação integral da main para atualizar produção com o Dashboard 360 e correções acumuladas.',
     'ATR Control: correção de abertura dos detalhes do cliente e proteção do Dashboard 360 contra dados incompletos.',
     'PIX manual por loja: cadastro em Integrações, QR Code sincronizado com o PDV e confirmação Pendente/Cancelado/Pago antes de finalizar a venda.',
