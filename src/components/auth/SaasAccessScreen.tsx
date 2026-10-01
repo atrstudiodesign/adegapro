@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ArrowRight, BarChart3, Boxes, CheckCircle2, Eye, EyeOff, LockKeyhole,
-  Mail, Phone, ShieldCheck, ShoppingCart, Sparkles, Store, UserRound, WalletCards,
+  Mail, Phone, ShieldCheck, ShoppingCart, Sparkles, Store, UserRound, WalletCards, PlayCircle,
   PackageCheck, TrendingUp, Truck, CreditCard, Smartphone, Zap, BadgeCheck, Gift, UserPlus, Handshake, Banknote, FileCheck2, Database, KeyRound
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
@@ -242,6 +242,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             <button type="button" onClick={() => navigateMarketing('/planos')} className="hover:text-amber-400 transition-colors">Planos</button>
           </nav>
           <div className="flex items-center gap-2">
+            <button onClick={onDemo} className="hidden md:flex px-4 py-2.5 rounded-xl border border-amber-500/40 text-xs font-black text-amber-300 hover:bg-amber-500/10 items-center gap-2"><PlayCircle size={15}/>Demonstração</button>
             <button onClick={() => navigateView('LOGIN')} className="hidden sm:block px-4 py-2.5 text-xs font-bold text-neutral-300 hover:text-white">Entrar</button>
             <button onClick={() => navigateView('REGISTER')} className="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 text-neutral-950 text-xs font-black shadow-lg shadow-amber-950/30">Comece agora</button>
           </div>
@@ -294,6 +295,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               >
                 <Phone size={17}/> Falar no WhatsApp
               </a>
+              <button type="button" onClick={onDemo} className="w-full min-h-12 rounded-xl border border-amber-500/50 text-amber-300 font-black text-sm flex items-center justify-center gap-2"><PlayCircle size={17}/> Ver demonstração</button>
               <button
                 type="button"
                 onClick={() => navigateView('REGISTER')}
@@ -375,9 +377,10 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                   <div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Estoque e operação integrados</div>
                   <div className="flex gap-2"><BadgeCheck size={17} className="text-amber-400"/> Financeiro e indicadores em tempo real</div>
                 </div>
-                <button onClick={() => navigateView('REGISTER')} className="mt-7 px-5 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-black text-sm flex items-center gap-2">
-                  Quero conhecer o sistema <ArrowRight size={17}/>
-                </button>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <button onClick={onDemo} className="px-5 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-black text-sm flex items-center gap-2"><PlayCircle size={17}/>Acessar demonstração</button>
+                  <button onClick={() => navigateView('REGISTER')} className="px-5 py-3.5 rounded-xl border border-neutral-700 hover:border-amber-500/50 text-white font-black text-sm flex items-center gap-2">Começar agora <ArrowRight size={17}/></button>
+                </div>
               </div>
               <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-black shadow-2xl shadow-amber-950/20">
                 <img
