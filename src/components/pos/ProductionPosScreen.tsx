@@ -1,3 +1,4 @@
+import QRCode from 'qrcode';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Package,
@@ -42,25 +43,27 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [selectedRegisterId,setSelectedRegisterId]=useState('');
   const [miniPdvOpen,setMiniPdvOpen]=useState(false);
   const [lastReceipt,setLastReceipt]=useState<any>(null);
+  const [pixConfig,setPixConfig]=useState<any>(null);const [pixQr,setPixQr]=useState('');const [pixOpen,setPixOpen]=useState(false);const [pixStatus,setPixStatus]=useState<'PENDING'|'CANCELLED'|'PAID'>('PENDING');
   const [integrationConfigs,setIntegrationConfigs]=useState<any[]>([]);
   const searchRef=useRef<HTMLInputElement>(null);
 
   const load=async()=>{
     try{
-      const [p,c,cats,regs,s,integrations]=await Promise.all([
+      const [p,c,cats,regs,s,integrations,pix]=await Promise.all([
         productionDb.getProducts(),
         productionDb.getCustomers(),
         productionDb.getCategories(),
         productionDb.getCashRegisters(),
         productionDb.getStore(),
-        productionDb.getIntegrationWebhookConfigs().catch(()=>[])
+        productionDb.getIntegrationWebhookConfigs().catch(()=>[]),
+        productionDb.getPixConfig().catch(()=>null)
       ]);
       setProducts(p.filter(x=>x.status==='ACTIVE'));
       setCustomers(c);
       setCategories(cats.filter(x=>x.active));
       setRegisters(regs);
       setStore(s);
-      setIntegrationConfigs(integrations);
+      setIntegrationConfigs(integrations);setPixConfig(pix);
       setSelectedRegisterId(prev=>prev||regs.find(r=>r.status==='FECHADO')?.id||regs[0]?.id||'');
     }catch(e:any){
       setError(e?.message||'Falha ao carregar PDV.');
@@ -118,6 +121,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const finalize=async()=>{
     if(!currentSession){setError('Abra o caixa antes de finalizar a venda.');return;}
     if(cart.length===0||total<=0)return;
+    if(method==='PIX'&&pixStatus!=='PAID'){setError('Confirme o PIX como PAGO antes de finalizar.');return;}
     if(method==='FIADO'&&!customerId){setError('Selecione um cliente para venda fiada.');return;}
     const amount=method==='DINHEIRO'?tenderedNumber:total;
     if(!Number.isFinite(amount)||amount<total){setError('Valor recebido insuficiente.');return;}
@@ -192,8 +196,9 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     setError('');
   };
 
+  const selectPayment=async(id:PayMethod)=>{setMethod(id);if(id==='PIX'){if(!pixConfig?.enabled||!pixConfig?.pix_key){setError('PIX não configurado. Cadastre em Integrações & Pagamentos.');return;}setPixStatus('PENDING');try{setPixQr(await QRCode.toDataURL(pixConfig.pix_key,{width:320,margin:2}));setPixOpen(true);}catch{setError('Não foi possível gerar o QR Code PIX.');}}};
   const paymentButton=(id:PayMethod,label:string,Icon:any)=>(
-    <button onClick={()=>setMethod(id)} className={`flex-1 min-w-[82px] h-11 rounded-xl border flex items-center justify-center gap-2 text-xs font-black transition-all ${method===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200 hover:border-neutral-500'}`}>
+    <button onClick={()=>void selectPayment(id)} className={`flex-1 min-w-[82px] h-11 rounded-xl border flex items-center justify-center gap-2 text-xs font-black transition-all ${method===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200 hover:border-neutral-500'}`}>
       <Icon size={15}/>{label}
     </button>
   );
@@ -208,6 +213,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
       currentCartCount={cart.reduce((sum,line)=>sum+line.quantity,0)}
       currentCartTotal={subtotal}
     />
+    {pixOpen&&<div className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm grid place-items-center p-4"><div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-[#0d1217] p-5 shadow-2xl"><div className="flex justify-between items-start"><div><div className="text-[10px] uppercase tracking-wider text-amber-400 font-black">Pagamento PIX manual</div><h2 className="text-xl font-black mt-1">{money(total)}</h2><p className="text-xs text-neutral-500">{pixConfig?.merchant_name||store?.tradeName||'Loja'}</p></div><button onClick={()=>setPixOpen(false)}><X size={20}/></button></div><div className="mt-4 bg-white rounded-2xl p-3 w-fit mx-auto">{pixQr&&<img src={pixQr} alt="QR Code PIX" className="w-[260px] h-[260px]"/>}</div><div className="mt-3 p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-center"><div className="text-[9px] text-neutral-500">CHAVE PIX</div><div className="text-xs font-mono break-all mt-1">{pixConfig?.pix_key}</div></div><div className="grid grid-cols-3 gap-2 mt-4"><button onClick={()=>setPixStatus('PENDING')} className={`py-3 rounded-xl border font-black text-xs ${pixStatus==='PENDING'?'bg-amber-500 text-black border-amber-400':'border-neutral-700'}`}>PENDENTE</button><button onClick={()=>{setPixStatus('CANCELLED');setPixOpen(false);}} className={`py-3 rounded-xl border font-black text-xs ${pixStatus==='CANCELLED'?'bg-rose-600 border-rose-500':'border-neutral-700'}`}>CANCELADO</button><button onClick={()=>setPixStatus('PAID')} className={`py-3 rounded-xl border font-black text-xs ${pixStatus==='PAID'?'bg-emerald-600 border-emerald-500':'border-neutral-700'}`}>PAGO</button></div><button disabled={pixStatus!=='PAID'||busy} onClick={()=>{setPixOpen(false);void finalize();}} className="mt-3 w-full py-3 rounded-xl bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-600 text-neutral-950 font-black">Finalizar venda</button><p className="text-[9px] text-neutral-600 text-center mt-2">Confirmação manual pelo operador. O sistema não consulta o banco.</p></div></div>}
     <div className="flex-1 min-h-0 bg-[#070b0f] text-white overflow-hidden">
     {!currentSession&&<div className="fixed inset-0 z-[80] bg-black/55 backdrop-blur-[2px] grid place-items-center p-4">
       <div className="w-full max-w-[520px] rounded-2xl border border-amber-400 bg-[#0d1217] shadow-[0_28px_90px_rgba(0,0,0,.65)] p-5 sm:p-6">
