@@ -350,7 +350,8 @@ export const REQUIRED_LEGAL_ACCEPTANCES = ([
   'privacy_policy',
   'subscription_policy',
   'software_license',
-  'legal_notice'
+  'legal_notice',
+  'sales_partner_policy'
 ] as LegalDocKey[]).map(document_key => ({
   document_key,
   version: LEGAL_DOCS[document_key].version
