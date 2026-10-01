@@ -759,6 +759,7 @@ async function getSales(limit = 200) {
   const { data, error } = await supabase
     .from('sales')
     .select('id,sale_number,total,subtotal,discount,surcharge,status,digital_receipt_id,customer_id,operator_ref,created_at')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -771,6 +772,7 @@ async function getStockMovements(limit = 300) {
   const { data, error } = await supabase
     .from('stock_movements')
     .select('id,product_id,movement_type,quantity,previous_stock,next_stock,reason,document_ref,created_at')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -795,6 +797,7 @@ async function getFinancialTransactions(limit = 300) {
   const { data, error } = await supabase
     .from('financial_transactions')
     .select('*')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -973,6 +976,7 @@ async function getCurrentCashSession(): Promise<CashSession | undefined> {
   const { data, error } = await supabase
     .from('cash_sessions')
     .select('*')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .eq('operator_ref', operator.id)
     .eq('status', 'ABERTO')
@@ -990,6 +994,7 @@ async function getCashSessions(): Promise<CashSession[]> {
   const { data, error } = await supabase
     .from('cash_sessions')
     .select('*')
+    .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('opened_at', { ascending: false })
     .limit(100);
