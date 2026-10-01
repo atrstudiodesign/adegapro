@@ -1,10 +1,13 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-01-card-payment-v5.7',
-  version: '5.7',
-  dateLabel: '01/10/2026 · cartão PDV',
+  releaseId: '2026-10-01-cashback-r8-v5.8',
+  version: '5.8',
+  dateLabel: '01/10/2026 · outubro · 14:09 BRT',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Cashback de clientes: 1 indicação elegível convertida = 100 pontos = R$ 10, com limite de 1 crédito por mês-calendário.',
+    'Cashback: uso limitado a 50% da mensalidade líquida após descontos, com idempotência, autoindicação, duplicidade, fraude e estornos auditáveis.',
+    'Legal r8 sincronizado: política de clientes separada da política exclusiva do portal de vendedores.',
     'PDV: botão Cartão abre janela para escolha entre Débito e Crédito antes da finalização da venda.',
     'Force deploy: republicação integral da main para atualizar produção com o Dashboard 360 e correções acumuladas.',
     'ATR Control: correção de abertura dos detalhes do cliente e proteção do Dashboard 360 contra dados incompletos.',
