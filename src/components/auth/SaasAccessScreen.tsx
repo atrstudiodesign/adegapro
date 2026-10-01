@@ -409,7 +409,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                   </div>
                   <h2 className="text-3xl sm:text-4xl font-black mt-4">Indicou. Ganhou.</h2>
                   <p className="text-sm text-neutral-400 mt-4 leading-relaxed">
-                    Cliente ativo do ADEGA PRO que indicar 1 novo cliente escolhe um dos benefícios abaixo.
+                    Cliente ativo do ADEGA PRO pode registrar até 1 indicação elegível por mês e escolher um dos benefícios abaixo. Indicações não acumulam para meses seguintes.
                   </p>
                   <a
                     href="https://wa.me/5511939026928?text=Ol%C3%A1%2C%20sou%20cliente%20ativo%20do%20ADEGA%20PRO%20e%20quero%20participar%20do%20programa%20de%20indica%C3%A7%C3%A3o."
@@ -434,16 +434,16 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                   <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-950/60 to-neutral-900 border border-amber-700/40">
                     <div className="text-[10px] text-amber-300 uppercase tracking-[.18em] font-black">Opção 2 · Personalizado</div>
                     <div className="mt-3 text-4xl font-black text-amber-300">40% OFF</div>
-                    <div className="text-sm font-bold text-white mt-1">+ 6 meses sem mensalidade</div>
+                    <div className="text-sm font-bold text-white mt-1">4 meses FREE + 6 meses com 50% OFF</div>
                     <p className="text-xs text-neutral-300 mt-4 leading-relaxed">
-                      40% de desconto na implantação personalizada e 6 meses de acesso ao ADEGA PRO sem mensalidade. Após esse período, o cliente escolhe a assinatura.
+                      40% de desconto na implantação personalizada, 4 meses de assinatura FREE e depois 50% OFF na assinatura por mais 6 meses. Oferta vinculada à fidelidade de 12 meses e ao aceite específico das condições.
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-6 p-4 rounded-2xl bg-black/30 border border-white/5 text-[11px] text-neutral-500">
-                Benefício válido para cliente ativo do ADEGA PRO mediante indicação de 1 novo cliente.
+                Benefício válido para cliente ativo mediante 1 indicação elegível por mês. Não cumulativo e separado do programa de vendedores autônomos.
               </div>
             </div>
           </section>
