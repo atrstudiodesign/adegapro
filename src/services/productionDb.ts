@@ -776,6 +776,9 @@ async function getAuditLogs(limit = 300) {
   return data || [];
 }
 
+async function getPixConfig(){ const ctx=await getContext(); const {data,error}=await supabase.from('store_pix_configs').select('*').eq('store_id',ctx.storeId).maybeSingle(); if(error) throw error; return data; }
+async function savePixConfig(input:{pixKey:string;pixKeyType:string;merchantName:string;merchantCity:string;enabled:boolean}){ const ctx=await getContext(); const values={tenant_id:ctx.tenantId,store_id:ctx.storeId,pix_key:input.pixKey.trim(),pix_key_type:input.pixKeyType,merchant_name:input.merchantName.trim(),merchant_city:input.merchantCity.trim(),enabled:input.enabled,updated_at:new Date().toISOString()}; const {data,error}=await supabase.from('store_pix_configs').upsert(values,{onConflict:'store_id'}).select().single(); if(error) throw error; return data; }
+
 async function getIntegrationWebhookConfigs() {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -1126,6 +1129,8 @@ export const productionDb = {
   adjustStock,
   getFinancialTransactions,
   getAuditLogs,
+  getPixConfig,
+  savePixConfig,
   getIntegrationWebhookConfigs,
   saveIntegrationWebhookConfig,
   createSupportTicket,
