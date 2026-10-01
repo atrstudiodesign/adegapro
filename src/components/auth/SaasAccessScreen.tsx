@@ -536,7 +536,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                   </span>
                 </label>
                 <div className="flex flex-wrap gap-x-3 gap-y-2 text-[11px]">
-                  {(Object.keys(LEGAL_DOCS) as LegalDocKey[]).map(key => (
+                  {(Object.keys(LEGAL_DOCS) as LegalDocKey[]).filter(key => key !== 'sales_partner_policy').map(key => (
                     <button key={key} type="button" onClick={() => setLegalDoc(key)} className="text-amber-400 hover:text-amber-300 underline underline-offset-2">
                       {LEGAL_DOCS[key].shortTitle}
                     </button>
@@ -555,7 +555,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             <div className="md:col-span-1"><img src="/adega-pro-brand.svg" alt="ADEGA PRO" className="h-12 w-auto"/><p className="text-xs text-neutral-500 mt-3 leading-relaxed">Gestão profissional para adegas, conveniências e operações de bebidas.</p></div>
             <div><div className="text-xs font-black text-white mb-3">ADEGA PRO</div><div className="space-y-2 text-xs text-neutral-500"><button onClick={()=>navigateMarketing('/recursos')} className="block hover:text-amber-400">Recursos</button><button onClick={()=>navigateMarketing('/integracoes')} className="block hover:text-amber-400">Integrações</button><button onClick={()=>navigateMarketing('/planos')} className="block hover:text-amber-400">Planos</button><button onClick={()=>navigateView('LOGIN')} className="block hover:text-amber-400">Entrar</button></div></div>
             <div><div className="text-xs font-black text-white mb-3">PARCEIROS</div><div className="space-y-2 text-xs text-neutral-500"><a href="/vendedor" className="block hover:text-amber-400">Área do vendedor</a><a href="https://wa.me/5511939026928?text=Quero%20participar%20do%20programa%20de%20vendedores%20ADEGA%20PRO" target="_blank" rel="noreferrer" className="block hover:text-amber-400">Quero ser vendedor</a><span className="block">Comissões sujeitas à política vigente</span></div></div>
-            <div><div className="text-xs font-black text-white mb-3">LEGAL & SEGURANÇA</div><div className="space-y-2 text-xs text-neutral-500">{(Object.keys(LEGAL_DOCS) as LegalDocKey[]).map(key=><button key={key} type="button" onClick={()=>setLegalDoc(key)} className="block hover:text-amber-400">{LEGAL_DOCS[key].shortTitle}</button>)}</div></div>
+            <div><div className="text-xs font-black text-white mb-3">LEGAL & SEGURANÇA</div><div className="space-y-2 text-xs text-neutral-500">{(Object.keys(LEGAL_DOCS) as LegalDocKey[]).filter(key => key !== 'sales_partner_policy').map(key=><button key={key} type="button" onClick={()=>setLegalDoc(key)} className="block hover:text-amber-400">{LEGAL_DOCS[key].shortTitle}</button>)}</div></div>
           </div>
           <div className="mt-8 pt-5 border-t border-neutral-900 flex flex-col lg:flex-row gap-3 lg:items-center justify-between text-[11px] text-neutral-600"><span>© {new Date().getFullYear()} ADEGA PRO · Software de gestão · CNPJ 57.514.866/0001-38</span><span>Produto desenvolvido e mantido por <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-amber-400">ATR Studio</a> · São Paulo/SP · Brasil</span></div>
         </div>
