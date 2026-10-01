@@ -820,6 +820,9 @@ async function getAuditLogs(limit = 300) {
 async function getPixConfig(){ const ctx=await getContext(); const {data,error}=await supabase.from('store_pix_configs').select('*').eq('store_id',ctx.storeId).maybeSingle(); if(error) throw error; return data; }
 async function savePixConfig(input:{pixKey:string;pixKeyType:string;merchantName:string;merchantCity:string;enabled:boolean}){ const ctx=await getContext(); const values={tenant_id:ctx.tenantId,store_id:ctx.storeId,pix_key:input.pixKey.trim(),pix_key_type:input.pixKeyType,merchant_name:input.merchantName.trim(),merchant_city:input.merchantCity.trim(),enabled:input.enabled,updated_at:new Date().toISOString()}; const {data,error}=await supabase.from('store_pix_configs').upsert(values,{onConflict:'store_id'}).select().single(); if(error) throw error; return data; }
 
+async function getMyCustomerReferralSnapshot(){ const {data,error}=await supabase.rpc('get_my_customer_referral_snapshot'); if(error) throw error; return data||{account:{},referrals:[]}; }
+async function createMyCustomerReferral(input:{name:string;phone:string;email?:string}){ const {data,error}=await supabase.rpc('create_my_customer_referral',{p_lead_name:input.name.trim(),p_lead_phone:input.phone.trim(),p_lead_email:input.email?.trim()||null}); if(error) throw error; return data as string; }
+
 async function getIntegrationWebhookConfigs() {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -1188,6 +1191,8 @@ export const productionDb = {
   getAuditLogs,
   getPixConfig,
   savePixConfig,
+  getMyCustomerReferralSnapshot,
+  createMyCustomerReferral,
   getIntegrationWebhookConfigs,
   saveIntegrationWebhookConfig,
   createSupportTicket,
