@@ -157,6 +157,17 @@ async function uploadLandingMedia(file:File){
   return platformSupabase.storage.from('landing-media').getPublicUrl(path).data.publicUrl;
 }
 
+async function getPlatformCustomerLoyaltySnapshot(){
+  const {data,error}=await platformSupabase.rpc('get_platform_customer_loyalty_snapshot');
+  if(error) throw error; return data;
+}
+async function savePlatformCustomerLoyalty(payload:Record<string,unknown>){
+  const {error}=await platformSupabase.rpc('save_platform_customer_loyalty',{p_payload:payload}); if(error) throw error;
+}
+async function updatePlatformCustomerReferral(id:string,status:string,discount?:number,points?:number,cashback?:number){
+  const {error}=await platformSupabase.rpc('update_platform_customer_referral',{p_id:id,p_status:status,p_discount:discount??null,p_points:points??null,p_cashback:cashback??null}); if(error) throw error;
+}
+
 async function setPlatformTenantAccess(tenantId: string, active: boolean, licenseStatus?: 'ACTIVE'|'SUSPENDED'|'ENDED'|'CANCELLED'|'DRAFT') {
   const { error } = await platformSupabase.rpc('set_platform_tenant_access', {
     p_tenant_id: tenantId,
@@ -192,5 +203,8 @@ export const platformDb = {
   setPlatformTenantAccess,
   getLandingPageContent,
   saveLandingPageContent,
-  uploadLandingMedia
+  uploadLandingMedia,
+  getPlatformCustomerLoyaltySnapshot,
+  savePlatformCustomerLoyalty,
+  updatePlatformCustomerReferral
 };
