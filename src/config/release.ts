@@ -1,7 +1,7 @@
 export const APP_RELEASE = {
-  releaseId: '2026-09-supabase-cyber-hardening-11',
-  version: '1.9',
-  dateLabel: '09/2026',
+  releaseId: '2026-09-30-2353-v5.2',
+  version: '5.2',
+  dateLabel: '30/09/2026 · 23:53',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
@@ -31,7 +31,9 @@ export const APP_RELEASE = {
     'Política comercial dos autônomos fechada: R$ 35 na assinatura e R$ 200 no personalizado, somente após pagamento confirmado.',
     'Repasse por vendedor pode ser imediato ou acumulado para fechamento mensal, com validação e histórico no ATR Control.',
     'Supabase endurecido: privilégios anônimos reduzidos, TRUNCATE removido, defaults fechados e tabelas administrativas em modo RPC-only.',
-    'RLS corrigido em acesso a lojas e financeiro; auditoria futura deixa de duplicar campos sensíveis de clientes.'
+    'RLS corrigido em acesso a lojas e financeiro; auditoria futura deixa de duplicar campos sensíveis de clientes.',
+    'ATR Control ganhou gestão independente de indicações de clientes, fidelidade, descontos, pontos e cashback.',
+    'Central de notificações, CTAs de demonstração e políticas de fidelidade atualizados.'
   ]
 } as const;
 
