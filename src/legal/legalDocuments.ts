@@ -7,8 +7,8 @@ export type LegalDocKey =
   | 'loyalty_discount_policy'
   | 'sales_partner_policy';
 
-export const LEGAL_VERSION = '2026.10.01-r7';
-export const LEGAL_EFFECTIVE_DATE = '1º de outubro de 2026';
+export const LEGAL_VERSION = '2026.09.30-r8';
+export const LEGAL_EFFECTIVE_DATE = '30 de setembro de 2026';
 
 export const LEGAL_PROVIDER = {
   tradeName: 'ATR Studio',
@@ -337,7 +337,16 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         'Cada contrato de cliente ativo pode ter no máximo 1 indicação elegível por mês-calendário. Indicações excedentes no mesmo mês não acumulam crédito, benefício futuro nem direito de transferência para outro mês.',
         'O benefício somente é validado após a conversão elegível do novo cliente, sem duplicidade, autoindicação, fraude, chargeback ou contratação já existente. Benefícios de indicação não são cumulativos entre si, salvo autorização comercial expressa.'
       ]},
-      { title: '6. Continuidade e confiança', paragraphs: [
+      { title: '6. Cashback por indicação de clientes', paragraphs: [
+        'O cashback é benefício exclusivo de clientes ativos do ADEGA PRO e não integra, substitui ou altera o programa de vendedores autônomos, suas comissões ou seus repasses.',
+        'Cada indicação elegível efetivamente convertida e validada gera 100 pontos, equivalentes a R$ 10,00 de crédito de cashback. O crédito depende da confirmação da contratação e do pagamento elegível do novo cliente.',
+        'É permitido no máximo 1 crédito de indicação por cliente em cada mês-calendário. Indicações excedentes, não convertidas ou registradas fora das regras não geram pontos retroativos, não acumulam cota para meses futuros e não multiplicam benefícios.',
+        'O cashback não é dinheiro, não pode ser sacado, transferido, vendido ou convertido em comissão. O saldo pode ser usado exclusivamente para abater cobranças futuras elegíveis do próprio ADEGA PRO, limitado a 50% do valor de uma mensalidade por competência.',
+        'Pontos e saldo permanecem vinculados ao contrato do cliente. Em caso de fraude, duplicidade, autoindicação, chargeback, cancelamento da contratação indicada ou crédito concedido por erro, o benefício poderá ser estornado mediante registro administrativo.',
+        'O saldo não substitui os descontos de fidelidade já contratados. Quando houver desconto promocional vigente, o limite de utilização do cashback será calculado sobre o valor líquido da mensalidade após o desconto aplicável, sem gerar valor negativo ou crédito em dinheiro.',
+        'A ATR Studio poderá alterar a regra para novas indicações mediante publicação de nova versão desta política. Créditos já definitivamente validados permanecem registrados conforme as condições aplicáveis no momento da concessão, ressalvados fraude, erro material e estorno da operação que lhes deu origem.'
+      ]},
+      { title: '7. Continuidade e confiança', paragraphs: [
         'O objetivo do período promocional é permitir adoção progressiva do ADEGA PRO com previsibilidade de custo. O cliente permanece livre para avaliar o serviço e exercer os direitos de cancelamento previstos em lei e no contrato.',
         'A ATR Studio deve manter informações claras sobre suporte, segurança, cobrança e evolução do produto. Nenhuma condição desta política representa promessa de disponibilidade absoluta ou risco zero.'
       ]}
