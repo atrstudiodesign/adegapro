@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-01-0000-v5.3',
-  version: '5.3',
-  dateLabel: '01/10/2026 · 00:00',
+  releaseId: '2026-10-01-0010-v5.4',
+  version: '5.4',
+  dateLabel: '01/10/2026 · 00:10',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
+    'PIX manual por loja: cadastro em Integrações, QR Code sincronizado com o PDV e confirmação Pendente/Cancelado/Pago antes de finalizar a venda.',
     'ATR Control: dashboard 360 por cliente ativo, com visão consolidada de operação, contrato, cobrança, segurança, suporte e infraestrutura.',
     'Cadastro de clientes simplificado com Mensal/Avulso e WhatsApp obrigatório.',
     'Categorias e fornecedores sincronizados para o ambiente do cliente.',
