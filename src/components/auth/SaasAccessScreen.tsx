@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ArrowRight, BarChart3, Boxes, CheckCircle2, Eye, EyeOff, LockKeyhole,
   Mail, Phone, ShieldCheck, ShoppingCart, Sparkles, Store, UserRound, WalletCards,
-  PackageCheck, TrendingUp, Truck, CreditCard, Smartphone, Zap, BadgeCheck, Gift, UserPlus
+  PackageCheck, TrendingUp, Truck, CreditCard, Smartphone, Zap, BadgeCheck, Gift, UserPlus, Handshake, Banknote, FileCheck2, Database, KeyRound
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { platformDb } from '../../services/platformDb';
@@ -448,6 +448,39 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             </div>
           </section>
 
+          <section className="border-y border-white/5 bg-neutral-900/30">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-16 grid lg:grid-cols-[1.05fr_.95fr] gap-8 items-center">
+              <div>
+                <div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Programa de vendedores autônomos</div>
+                <h2 className="text-3xl sm:text-4xl font-black mt-2">Indique o ADEGA PRO e receba por vendas elegíveis.</h2>
+                <p className="text-sm text-neutral-400 mt-4 leading-relaxed">Programa independente de indicação comercial, com painel próprio, código individual, acompanhamento de leads e comissões. Não há vínculo empregatício, salário ou exclusividade; o pagamento depende das regras comerciais vigentes e da confirmação do primeiro pagamento do cliente.</p>
+                <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                  <a href="/vendedor" className="px-5 py-3.5 rounded-xl bg-amber-500 text-neutral-950 font-black text-sm flex items-center justify-center gap-2"><Handshake size={17}/> Área do vendedor</a>
+                  <a href="https://wa.me/5511939026928?text=Ol%C3%A1%2C%20quero%20ser%20vendedor%20aut%C3%B4nomo%20do%20ADEGA%20PRO." target="_blank" rel="noreferrer" className="px-5 py-3.5 rounded-xl border border-neutral-700 bg-neutral-950 font-black text-sm flex items-center justify-center gap-2"><UserPlus size={17}/> Quero participar</a>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Feature icon={Banknote} title="Assinatura" desc="Comissão única de R$ 35 após a primeira mensalidade elegível ser confirmada."/>
+                <Feature icon={TrendingUp} title="Personalizado" desc="Comissão única de R$ 200 após a primeira parcela elegível ser confirmada."/>
+                <Feature icon={WalletCards} title="Repasse" desc="Modalidade imediata ou fechamento mensal, conforme cadastro e política vigente."/>
+                <Feature icon={FileCheck2} title="Rastreabilidade" desc="Lead, conversão, pagamento do cliente e comissão ficam registrados no painel do vendedor."/>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-gradient-to-br from-emerald-950/25 via-neutral-950 to-sky-950/20 border-b border-white/5">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <div className="text-center max-w-3xl mx-auto"><div className="text-emerald-400 text-[10px] font-black uppercase tracking-[.2em]">Segurança do cliente</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Sua operação protegida desde o acesso até a auditoria.</h2><p className="text-sm text-neutral-400 mt-4">O ADEGA PRO combina isolamento lógico por empresa, autenticação, permissões, trilhas de auditoria e controles administrativos. Segurança é tratada em camadas; nenhuma plataforma pode prometer risco zero.</p></div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-9">
+                <Feature icon={LockKeyhole} title="Acesso protegido" desc="Autenticação e controle de sessão para reduzir acessos indevidos."/>
+                <Feature icon={KeyRound} title="Permissões" desc="Perfis e módulos controlam o que cada operador pode acessar."/>
+                <Feature icon={Database} title="Dados separados" desc="Controles multitenant mantêm cada empresa dentro do seu próprio escopo operacional."/>
+                <Feature icon={ShieldCheck} title="Auditoria" desc="Ações administrativas e eventos relevantes podem ser rastreados para conferência."/>
+              </div>
+              <div className="mt-6 p-4 rounded-2xl border border-emerald-800/40 bg-emerald-950/20 text-xs text-neutral-300 leading-relaxed"><b className="text-emerald-300">Compromisso de segurança:</b> atualizações, correções e controles técnicos são mantidos para reduzir riscos. O cliente também é responsável por senhas, usuários, dispositivos e permissões de sua equipe, conforme os Termos e a Política de Privacidade.</div>
+            </div>
+          </section>
+
           <section id="planos" className="border-t border-white/5 bg-gradient-to-b from-neutral-950 to-black">
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
               <div className="text-center"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Planos</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Comece com uma operação profissional.</h2></div>
@@ -516,17 +549,15 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
         </main>
       )}
 
-      <footer className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 py-5 border-t border-neutral-900 text-[11px] text-neutral-500 flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row gap-2 items-center justify-between w-full">
-          <span>© {new Date().getFullYear()} ADEGA PRO · Software de gestão.</span>
-          <span>CNPJ 57.514.866/0001-38 · <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="hover:text-amber-400">atrstudio.com.br</a></span>
-        </div>
-        <div className="flex flex-wrap justify-center sm:justify-start gap-x-3 gap-y-1">
-          {(Object.keys(LEGAL_DOCS) as LegalDocKey[]).map(key => (
-            <button key={key} type="button" onClick={() => setLegalDoc(key)} className="hover:text-amber-400">
-              {LEGAL_DOCS[key].shortTitle}
-            </button>
-          ))}
+      <footer className="relative z-10 border-t border-neutral-800 bg-black">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="md:col-span-1"><img src="/adega-pro-brand.svg" alt="ADEGA PRO" className="h-12 w-auto"/><p className="text-xs text-neutral-500 mt-3 leading-relaxed">Gestão profissional para adegas, conveniências e operações de bebidas.</p></div>
+            <div><div className="text-xs font-black text-white mb-3">ADEGA PRO</div><div className="space-y-2 text-xs text-neutral-500"><button onClick={()=>navigateMarketing('/recursos')} className="block hover:text-amber-400">Recursos</button><button onClick={()=>navigateMarketing('/integracoes')} className="block hover:text-amber-400">Integrações</button><button onClick={()=>navigateMarketing('/planos')} className="block hover:text-amber-400">Planos</button><button onClick={()=>navigateView('LOGIN')} className="block hover:text-amber-400">Entrar</button></div></div>
+            <div><div className="text-xs font-black text-white mb-3">PARCEIROS</div><div className="space-y-2 text-xs text-neutral-500"><a href="/vendedor" className="block hover:text-amber-400">Área do vendedor</a><a href="https://wa.me/5511939026928?text=Quero%20participar%20do%20programa%20de%20vendedores%20ADEGA%20PRO" target="_blank" rel="noreferrer" className="block hover:text-amber-400">Quero ser vendedor</a><span className="block">Comissões sujeitas à política vigente</span></div></div>
+            <div><div className="text-xs font-black text-white mb-3">LEGAL & SEGURANÇA</div><div className="space-y-2 text-xs text-neutral-500">{(Object.keys(LEGAL_DOCS) as LegalDocKey[]).map(key=><button key={key} type="button" onClick={()=>setLegalDoc(key)} className="block hover:text-amber-400">{LEGAL_DOCS[key].shortTitle}</button>)}</div></div>
+          </div>
+          <div className="mt-8 pt-5 border-t border-neutral-900 flex flex-col lg:flex-row gap-3 lg:items-center justify-between text-[11px] text-neutral-600"><span>© {new Date().getFullYear()} ADEGA PRO · Software de gestão · CNPJ 57.514.866/0001-38</span><span>Produto desenvolvido e mantido por <a href="https://atrstudio.com.br" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-amber-400">ATR Studio</a> · São Paulo/SP · Brasil</span></div>
         </div>
       </footer>
     </div>
