@@ -5,6 +5,7 @@ import {
   PackageCheck, TrendingUp, Truck, CreditCard, Smartphone, Zap, BadgeCheck, Gift, UserPlus
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
+import { platformDb } from '../../services/platformDb';
 import { LegalCenter } from '../legal/LegalCenter';
 import { LEGAL_DOCS, LegalDocKey } from '../../legal/legalDocuments';
 
@@ -37,6 +38,9 @@ const emptyRegister: RegisterForm = {
 };
 
 export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAuthenticated, initialView = 'LANDING' }) => {
+  const [landingCms, setLandingCms] = useState<any>(null);
+  useEffect(() => { void platformDb.getLandingPageContent().then(setLandingCms).catch(() => setLandingCms(null)); }, []);
+  const heroImage = landingCms?.hero?.image_url || '/adega-pro-hero.webp';
   const [view, setView] = useState<View>(() => {
     if (window.location.pathname === '/entrar') return 'LOGIN';
     if (window.location.pathname === '/cadastro') return 'REGISTER';
@@ -249,9 +253,9 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
           <section className="relative border-b border-white/5 bg-black" aria-label="Apresentação ADEGA PRO">
             <div className="relative w-full mx-auto overflow-hidden">
               <picture className="block w-full">
-                <source srcSet="/adega-pro-hero.webp" type="image/webp" />
+                <source srcSet={heroImage} type="image/webp" />
                 <img
-                  src="/adega-pro-hero.webp"
+                  src={heroImage}
                   alt="ADEGA PRO — sua adega mais organizada, lucrativa e no controle. PDV completo, estoque inteligente, financeiro em tempo real, clientes e fidelização."
                   className="block w-full h-auto select-none bg-neutral-950"
                   width="1400"
@@ -377,7 +381,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               </div>
               <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-black shadow-2xl shadow-amber-950/20">
                 <img
-                  src="/adega-pro-hero.webp"
+                  src={heroImage}
                   alt="Tela real do sistema ADEGA PRO com PDV, caixa e recursos de gestão"
                   className="block w-full h-auto"
                   loading="lazy"
