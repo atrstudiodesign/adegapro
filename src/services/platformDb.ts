@@ -138,6 +138,25 @@ async function setPlatformTenantSecurity(tenantId:string,status:'BLOQUEADA'|'DIS
   if(error) throw error;
 }
 
+async function getLandingPageContent(){
+  const {data,error}=await platformSupabase.rpc('get_landing_page_content');
+  if(error) throw error;
+  return (data||{}) as Record<string,any>;
+}
+
+async function saveLandingPageContent(content:Record<string,any>){
+  const {error}=await platformSupabase.rpc('save_landing_page_content',{p_content:content});
+  if(error) throw error;
+}
+
+async function uploadLandingMedia(file:File){
+  const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,'-');
+  const path=`${Date.now()}-${safe}`;
+  const {error}=await platformSupabase.storage.from('landing-media').upload(path,file,{upsert:false,cacheControl:'3600'});
+  if(error) throw error;
+  return platformSupabase.storage.from('landing-media').getPublicUrl(path).data.publicUrl;
+}
+
 async function setPlatformTenantAccess(tenantId: string, active: boolean, licenseStatus?: 'ACTIVE'|'SUSPENDED'|'ENDED'|'CANCELLED'|'DRAFT') {
   const { error } = await platformSupabase.rpc('set_platform_tenant_access', {
     p_tenant_id: tenantId,
@@ -170,5 +189,8 @@ export const platformDb = {
   updatePlatformPartnerCommission,
   getPlatformTenantSecurity,
   setPlatformTenantSecurity,
-  setPlatformTenantAccess
+  setPlatformTenantAccess,
+  getLandingPageContent,
+  saveLandingPageContent,
+  uploadLandingMedia
 };

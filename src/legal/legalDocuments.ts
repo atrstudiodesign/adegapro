@@ -3,10 +3,12 @@ export type LegalDocKey =
   | 'privacy_policy'
   | 'subscription_policy'
   | 'software_license'
-  | 'legal_notice';
+  | 'legal_notice'
+  | 'loyalty_discount_policy'
+  | 'sales_partner_policy';
 
-export const LEGAL_VERSION = '2026.09.29-r6';
-export const LEGAL_EFFECTIVE_DATE = '29 de setembro de 2026';
+export const LEGAL_VERSION = '2026.10.01-r7';
+export const LEGAL_EFFECTIVE_DATE = '1º de outubro de 2026';
 
 export const LEGAL_PROVIDER = {
   tradeName: 'ATR Studio',
@@ -306,6 +308,75 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
         ]
       }
     ]
+  },
+  loyalty_discount_policy: {
+    title: 'Política de Fidelidade, Descontos e Indicações de Clientes',
+    shortTitle: 'Fidelidade e Descontos',
+    version: LEGAL_VERSION,
+    sections: [
+      { title: '1. Finalidade e transparência da oferta', paragraphs: [
+        'Esta política disciplina benefícios promocionais vinculados ao ADEGA PRO para clientes que aderirem expressamente à condição de fidelidade. Antes da contratação, o cliente deve visualizar o preço regular da assinatura, os descontos aplicáveis, sua duração, o prazo de fidelidade e as consequências de eventual cancelamento antecipado.',
+        'O benefício promocional não reduz funcionalidades contratadas nem altera os deveres de segurança, suporte e tratamento de dados assumidos nos demais documentos do ADEGA PRO.'
+      ]},
+      { title: '2. Plano Personalizado com fidelidade de 12 meses', paragraphs: [
+        'Na oferta promocional Personalizado, o cliente elegível recebe 40% de desconto na implantação personalizada, 4 meses de assinatura sem mensalidade e, na sequência, 50% de desconto sobre o preço regular da assinatura por mais 6 meses.',
+        'A concessão integral desses benefícios está condicionada à adesão expressa a um período mínimo de fidelidade de 12 meses, contado conforme a data de ativação definida na contratação. Encerrados os períodos promocionais, a cobrança segue o preço regular do plano contratado durante o restante da vigência, salvo nova oferta formal.',
+        'O preço regular utilizado como referência, o valor efetivamente cobrado em cada fase e o cronograma da promoção devem ser apresentados ao cliente antes do aceite.'
+      ]},
+      { title: '3. Aceite específico da fidelidade', paragraphs: [
+        'A adesão à fidelidade deve possuir aceite eletrônico específico e destacado no cadastro ou contratação, separado do simples acesso ao sistema. O registro deve identificar a versão desta política, data e hora, conta autenticada e informações técnicas necessárias à prova do aceite.',
+        'A contratação não deve utilizar caixa previamente marcado nem ocultar a existência do prazo mínimo. O cliente deve poder consultar posteriormente as condições aceitas.'
+      ]},
+      { title: '4. Cancelamento durante a fidelidade', paragraphs: [
+        'O cliente pode solicitar cancelamento pelos canais oficiais. Se o encerramento ocorrer antes do término da fidelidade, eventual cobrança compensatória somente poderá incidir quando tiver sido informada previamente, for proporcional ao benefício efetivamente concedido e ao período restante e for juridicamente admissível no caso concreto.',
+        'Não haverá cobrança destinada a impedir o exercício de direito legal de arrependimento, rescisão por inadimplemento imputável ao fornecedor ou outro direito inderrogável. A apuração de eventual valor deve ser demonstrável ao cliente antes da conclusão do cancelamento.',
+        'Não se presume vencimento antecipado de todas as mensalidades restantes. Qualquer compensação deve observar o contrato, a oferta aceita, boa-fé, proporcionalidade e a legislação aplicável.'
+      ]},
+      { title: '5. Indicação por cliente ativo', paragraphs: [
+        'O programa de indicação de clientes ativos é independente do programa de vendedores autônomos. Não gera comissão em dinheiro ao cliente indicador e não utiliza o legado, regras ou métricas dos vendedores.',
+        'Cada contrato de cliente ativo pode ter no máximo 1 indicação elegível por mês-calendário. Indicações excedentes no mesmo mês não acumulam crédito, benefício futuro nem direito de transferência para outro mês.',
+        'O benefício somente é validado após a conversão elegível do novo cliente, sem duplicidade, autoindicação, fraude, chargeback ou contratação já existente. Benefícios de indicação não são cumulativos entre si, salvo autorização comercial expressa.'
+      ]},
+      { title: '6. Continuidade e confiança', paragraphs: [
+        'O objetivo do período promocional é permitir adoção progressiva do ADEGA PRO com previsibilidade de custo. O cliente permanece livre para avaliar o serviço e exercer os direitos de cancelamento previstos em lei e no contrato.',
+        'A ATR Studio deve manter informações claras sobre suporte, segurança, cobrança e evolução do produto. Nenhuma condição desta política representa promessa de disponibilidade absoluta ou risco zero.'
+      ]}
+    ]
+  },
+  sales_partner_policy: {
+    title: 'Política Comercial de Vendedores Autônomos e Indicações',
+    shortTitle: 'Política de Vendedores',
+    version: LEGAL_VERSION,
+    sections: [
+      { title: '1. Natureza do programa', paragraphs: [
+        'O programa permite que vendedores autônomos indiquem potenciais clientes ao ADEGA PRO por meio de código ou fluxo individual de indicação. A participação não cria vínculo empregatício, sociedade, representação exclusiva, salário fixo, jornada, subordinação ou garantia de renda.',
+        'A ATR Studio poderá validar, suspender ou encerrar a participação em caso de fraude, abuso, informação falsa, violação desta política ou uso indevido da marca.'
+      ]},
+      { title: '2. Comissão por assinatura', paragraphs: [
+        'Na política comercial vigente, a indicação elegível de assinatura mensal gera comissão única de R$ 35,00, somente após a confirmação do primeiro pagamento do cliente indicado.',
+        'A comissão não é recorrente sobre mensalidades futuras, salvo condição comercial específica formalizada pela ATR Studio.'
+      ]},
+      { title: '3. Comissão por implantação personalizada', paragraphs: [
+        'Na política comercial vigente, a indicação elegível de implantação personalizada gera comissão única de R$ 200,00 após a confirmação da primeira parcela do cliente.',
+        'Serviços adicionais, integrações, customizações, hospedagem, manutenção ou valores fora da proposta-base não geram comissão automática, salvo autorização expressa.'
+      ]},
+      { title: '4. Elegibilidade, atribuição e validação', paragraphs: [
+        'A indicação deve estar vinculada ao vendedor no fluxo oficial antes da conversão. Leads duplicados, clientes já ativos, negociações previamente abertas ou indicações sem vínculo verificável poderão não ser elegíveis.',
+        'A ATR Control registra lead, conversão, situação do pagamento do cliente e comissão. A comissão somente é liberada após validação do pagamento elegível e das informações do vendedor.'
+      ]},
+      { title: '5. Repasse e cadastro', paragraphs: [
+        'O vendedor poderá operar no modo de repasse imediato ou por fechamento mensal, conforme disponibilidade e configuração do cadastro. E-mail, telefone e dados de pagamento devem estar corretos e, quando exigido, validados antes do repasse.',
+        'Comissões já pagas não são reabertas automaticamente. Divergências comprovadas serão tratadas por ajuste administrativo e permanecerão sujeitas à trilha de auditoria.'
+      ]},
+      { title: '6. Conduta comercial', paragraphs: [
+        'O vendedor não pode prometer descontos, funcionalidades, integrações, prazos, garantias, exclusividade, condições de segurança absoluta ou condições contratuais que não estejam formalmente publicadas ou autorizadas pela ATR Studio.',
+        'É vedado usar publicidade enganosa, spam, identidade falsa, dados pessoais obtidos de forma irregular ou qualquer prática que viole legislação consumerista, concorrencial, de proteção de dados ou direitos de terceiros.'
+      ]},
+      { title: '7. Cancelamentos, fraude e estornos', paragraphs: [
+        'Fraude, pagamento inválido, chargeback, duplicidade, cancelamento anterior à elegibilidade ou manipulação da indicação podem impedir a liberação da comissão. Valores já pagos em situação posteriormente comprovada como irregular poderão ser objeto de ajuste conforme a legislação e os documentos aplicáveis.',
+        'A ATR Studio poderá atualizar condições comerciais para novas indicações mediante publicação de nova versão desta política. Direitos já definitivamente constituídos sob versão anterior serão tratados conforme as condições aplicáveis à respectiva indicação.'
+      ]}
+    ]
   }
 };
 
@@ -314,7 +385,8 @@ export const REQUIRED_LEGAL_ACCEPTANCES = ([
   'privacy_policy',
   'subscription_policy',
   'software_license',
-  'legal_notice'
+  'legal_notice',
+  'loyalty_discount_policy'
 ] as LegalDocKey[]).map(document_key => ({
   document_key,
   version: LEGAL_DOCS[document_key].version

@@ -26,9 +26,9 @@ export const ProductionCombosView:React.FC=()=>{
   const visibleCombos=useMemo(()=>showInactive?combos:combos.filter(c=>c.active),[combos,showInactive]);
   const original=useMemo(()=>items.reduce((sum,i)=>sum+(available.find(p=>p.id===i.productId)?.salePrice||0)*i.quantity,0),[items,available]);
 
-  const load=async()=>{setBusy(true);setError('');try{
+  const load=async(showFeedback=false)=>{setBusy(true);setError('');if(showFeedback)setFeedback('');try{
     const[p,c]=await Promise.all([productionDb.getProducts(),productionDb.getCombos()]);
-    setProducts(p as any);setCombos(c as any);
+    setProducts(p as any);setCombos(c as any);if(showFeedback)setFeedback('Dados atualizados agora.');
   }catch(e:any){setError(e?.message||'Falha ao carregar combos.');}finally{setBusy(false);}};
 
   useEffect(()=>{void load();},[]);
@@ -82,7 +82,7 @@ export const ProductionCombosView:React.FC=()=>{
       description="A venda do combo baixa automaticamente o estoque físico de cada componente."
       actions={<div className="flex flex-wrap gap-2">
         <button onClick={()=>setShowInactive(v=>!v)} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs">{showInactive?'Ocultar inativos':'Mostrar inativos'}</button>
-        <button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button>
+        <button onClick={()=>void load(true)} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs flex items-center gap-2"><RefreshCw size={14} className={busy?'animate-spin':''}/>{busy?'Atualizando...':'Atualizar'}</button>
         <button onClick={()=>start()} disabled={busy||available.length===0} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><Plus size={15}/>Novo combo</button>
       </div>}
     />

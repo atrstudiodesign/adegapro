@@ -1,0 +1,35 @@
+import React,{useEffect,useState} from 'react';
+import { Eye, ImagePlus, Loader2, Save, UploadCloud } from 'lucide-react';
+import { platformDb } from '../../services/platformDb';
+
+type Props={onFeedback:(s:string)=>void;onError:(s:string)=>void};
+const defaults={
+  header:{logo_url:'',menu_recursos:'Recursos',menu_produtos:'Produtos',menu_integracoes:'Integrações',menu_planos:'Planos',login_label:'Entrar',cta_label:'Comece agora'},
+  hero:{image_url:'',eyebrow:'ADEGA PRO',title:'Mais vendas. Controle total para sua adega.',description:'PDV completo, estoque inteligente, financeiro em tempo real e muito mais.',cta_label:'Quero conhecer agora',cta_url:'https://wa.me/5511939026928'},
+  sections:{features_title:'Tudo que sua adega precisa em um só sistema',features_text:'Controle sua operação com recursos integrados.',system_title:'Veja o ADEGA PRO funcionando de verdade.',system_text:'PDV, caixa, estoque, financeiro e clientes centralizados.',system_image_url:''},
+  contact:{whatsapp:'5511939026928',site:'https://atrstudio.com.br'},
+  footer:{text:'ADEGA PRO · Sistema para adegas',credit:'Desenvolvido por ATR Studio',credit_url:'https://atrstudio.com.br'}
+};
+const merge=(a:any,b:any)=>({...a,...b,header:{...a.header,...b?.header},hero:{...a.hero,...b?.hero},sections:{...a.sections,...b?.sections},contact:{...a.contact,...b?.contact},footer:{...a.footer,...b?.footer}});
+
+export const LandingPageControl:React.FC<Props>=({onFeedback,onError})=>{
+ const[data,setData]=useState<any>(defaults); const[busy,setBusy]=useState(true); const[uploading,setUploading]=useState('');
+ useEffect(()=>{platformDb.getLandingPageContent().then(v=>setData(merge(defaults,v))).catch(e=>onError(e?.message||'Falha ao carregar a landing page.')).finally(()=>setBusy(false));},[]);
+ const patch=(group:string,key:string,value:any)=>setData((p:any)=>({...p,[group]:{...p[group],[key]:value}}));
+ const save=async()=>{setBusy(true);onError('');try{await platformDb.saveLandingPageContent(data);onFeedback('Landing page salva no ATR Control.');}catch(e:any){onError(e?.message||'Falha ao salvar.');}finally{setBusy(false);}};
+ const upload=async(group:string,key:string,file?:File)=>{if(!file)return;setUploading(group+key);try{const url=await platformDb.uploadLandingMedia(file);patch(group,key,url);onFeedback('Imagem enviada. Clique em Salvar alterações para publicar a referência.');}catch(e:any){onError(e?.message||'Falha no upload.');}finally{setUploading('');}};
+ const input=(group:string,key:string,label:string)=><label className="block"><span className="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">{label}</span><input value={data[group]?.[key]||''} onChange={e=>patch(group,key,e.target.value)} className="mt-1 w-full rounded-xl bg-neutral-950 border border-neutral-800 px-3 py-2.5 text-xs outline-none focus:border-amber-500"/></label>;
+ const media=(group:string,key:string,label:string)=><div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800"><div className="flex items-center justify-between gap-3"><div><div className="text-xs font-black">{label}</div><div className="text-[10px] text-neutral-500 mt-1">JPG, PNG, WebP ou AVIF · até 10 MB</div></div><label className="cursor-pointer px-3 py-2 rounded-lg bg-amber-500 text-neutral-950 text-[10px] font-black flex items-center gap-2">{uploading===group+key?<Loader2 size={14} className="animate-spin"/>:<UploadCloud size={14}/>}ENVIAR<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={e=>void upload(group,key,e.target.files?.[0])}/></label></div>{data[group]?.[key]&&<><img src={data[group][key]} className="mt-3 w-full max-h-52 object-contain rounded-lg bg-black" alt="Prévia"/><input value={data[group][key]} onChange={e=>patch(group,key,e.target.value)} className="mt-2 w-full rounded-lg bg-black border border-neutral-800 px-2 py-2 text-[10px] text-neutral-400"/></>}</div>;
+ if(busy&&!data)return <div className="py-20 text-center text-neutral-500">Carregando editor...</div>;
+ return <div className="max-w-7xl mx-auto space-y-4">
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-5 rounded-2xl bg-gradient-to-r from-neutral-900 to-neutral-950 border border-amber-500/20"><div><div className="text-[10px] uppercase tracking-[.22em] text-amber-400 font-black">ATR Control · CMS</div><h2 className="text-xl font-black mt-1">Landing Page ADEGA PRO</h2><p className="text-xs text-neutral-500 mt-1">Controle cabeçalho, hero, imagens, textos, CTAs, seções, contato e rodapé.</p></div><div className="flex gap-2"><a href="/" target="_blank" rel="noreferrer" className="px-4 py-2.5 rounded-xl border border-neutral-700 text-xs font-black flex items-center gap-2"><Eye size={15}/>Visualizar</a><button onClick={()=>void save()} disabled={busy} className="px-4 py-2.5 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><Save size={15}/>Salvar alterações</button></div></div>
+  <div className="grid xl:grid-cols-2 gap-4">
+   <Card title="Cabeçalho" desc="Navegação e chamadas principais.">{input('header','logo_url','URL da logomarca')}{input('header','menu_recursos','Menu Recursos')}{input('header','menu_produtos','Menu Produtos')}{input('header','menu_integracoes','Menu Integrações')}{input('header','menu_planos','Menu Planos')}{input('header','login_label','Texto Entrar')}{input('header','cta_label','CTA do cabeçalho')}</Card>
+   <Card title="Hero / Banner principal" desc="Imagem e conteúdo da primeira dobra.">{media('hero','image_url','Banner principal')}{input('hero','eyebrow','Linha superior')}{input('hero','title','Título')}{input('hero','description','Descrição')}{input('hero','cta_label','Texto do CTA')}{input('hero','cta_url','Destino do CTA')}</Card>
+   <Card title="Seções da página" desc="Conteúdo institucional e demonstração do sistema.">{input('sections','features_title','Título de recursos')}{input('sections','features_text','Texto de recursos')}{input('sections','system_title','Título Sistema real')}{input('sections','system_text','Texto Sistema real')}{media('sections','system_image_url','Imagem real do sistema')}</Card>
+   <Card title="Contato e rodapé" desc="Canais oficiais e assinatura da página.">{input('contact','whatsapp','WhatsApp')}{input('contact','site','Site')}{input('footer','text','Texto do rodapé')}{input('footer','credit','Crédito')}{input('footer','credit_url','Link do crédito')}</Card>
+  </div>
+  <div className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900 text-xs text-neutral-400 flex gap-3"><ImagePlus size={18} className="text-amber-400 shrink-0"/><span>As imagens enviadas ficam na biblioteca de mídia do ADEGA PRO. O editor mantém a URL publicada e permite substituição sem novo upload no GitHub.</span></div>
+ </div>;
+};
+const Card=({title,desc,children}:{title:string;desc:string;children:React.ReactNode})=><section className="p-4 sm:p-5 rounded-2xl bg-neutral-900 border border-neutral-800"><h3 className="font-black">{title}</h3><p className="text-[10px] text-neutral-500 mt-1 mb-4">{desc}</p><div className="space-y-3">{children}</div></section>;

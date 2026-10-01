@@ -34,7 +34,9 @@
     visibility: hidden;
   }
   #thermal-receipt,
-  #thermal-receipt * {
+  #thermal-receipt *,
+  #hr-payslip-print,
+  #hr-payslip-print * {
     visibility: visible;
   }
   #thermal-receipt {
@@ -47,6 +49,23 @@
     background: white !important;
     color: black !important;
     font-family: 'JetBrains Mono', monospace !important;
+  }
+
+  #hr-payslip-print {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+
+  #hr-payslip-print * {
+    color: black !important;
+    visibility: visible !important;
   }
   .receipt-58mm {
     width: 58mm !important;
