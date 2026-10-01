@@ -131,7 +131,7 @@ export const ProductionHrView:React.FC=()=>{
 
   const printPayroll=(row:any)=>{
     setSelectedPayroll(row);
-    requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));
+    window.setTimeout(()=>window.print(),60);
   };
 
   const editPayroll=(row:any)=>{
@@ -334,51 +334,11 @@ export const ProductionHrView:React.FC=()=>{
       <section className="space-y-3">{policies.map((r:any)=><article key={r.id} className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900"><div className="flex items-start justify-between gap-3"><div><h3 className="font-black">{r.title}</h3><p className="mt-2 text-xs leading-relaxed text-neutral-300 whitespace-pre-wrap">{r.description}</p></div><StatusBadge tone={r.active?'success':'danger'}>{r.active?'ATIVA':'INATIVA'}</StatusBadge></div><button onClick={()=>setPolicy({...r})} className="mt-3 text-[10px] text-amber-400 font-black">EDITAR REGRA</button></article>)}{!policies.length&&<div className="p-8 rounded-2xl border border-dashed border-neutral-800 text-center text-xs text-neutral-600">Nenhuma regra interna cadastrada.</div>}</section>
     </div>}
 
-    {selectedPayroll&&<div id="hr-payslip-print" className="hidden print:block fixed inset-0 bg-white text-black p-8">
-      <div className="max-w-4xl mx-auto border border-black text-[11px]">
-        <div className="grid grid-cols-[1fr_210px] border-b border-black">
-          <div className="p-4">
-            <div className="text-[9px] uppercase text-neutral-600 font-bold">Razão social</div>
-            <div className="text-lg font-black">{store?.name||'Empresa'}</div>
-            <div className="mt-1"><b>CNPJ:</b> {store?.cnpj||'—'}</div>
-            <div><b>Endereço:</b> {store?.address||'—'}</div>
-          </div>
-          <div className="p-4 border-l border-black text-center">
-            <div className="font-black text-sm">RECIBO DE PAGAMENTO</div>
-            <div className="mt-1">Controle interno</div>
-            <div className="mt-2 font-bold">{date(selectedPayroll.period_start)} a {date(selectedPayroll.period_end)}</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-4 border-b border-black">
-          <div className="p-3 col-span-2"><b>Funcionário</b><div>{(employeeMap.get(selectedPayroll.employee_id) as any)?.full_name||'—'}</div></div>
-          <div className="p-3 border-l border-black"><b>CPF</b><div>{(employeeMap.get(selectedPayroll.employee_id) as any)?.cpf||'—'}</div></div>
-          <div className="p-3 border-l border-black"><b>Função</b><div>{(employeeMap.get(selectedPayroll.employee_id) as any)?.role_title||'—'}</div></div>
-        </div>
-
-        <div className="grid grid-cols-[90px_1fr_120px_120px] border-b border-black font-black bg-neutral-100">
-          <div className="p-2 border-r border-black">Código</div><div className="p-2 border-r border-black">Descrição</div><div className="p-2 border-r border-black text-right">Proventos</div><div className="p-2 text-right">Descontos</div>
-        </div>
-        <PayrollRow code="001" label="Valor base" credit={selectedPayroll.base_amount}/>
-        <PayrollRow code="050" label="Horas extras / adicionais" credit={selectedPayroll.overtime_amount}/>
-        <PayrollRow code="201" label="Adiantamentos" debit={selectedPayroll.advances}/>
-        <PayrollRow code="299" label="Outros descontos" debit={selectedPayroll.discounts}/>
-
-        <div className="grid grid-cols-[1fr_120px_120px] border-t border-black">
-          <div className="p-3 text-right font-black">Totais</div>
-          <div className="p-3 border-l border-black text-right font-black">{money(Number(selectedPayroll.base_amount||0)+Number(selectedPayroll.overtime_amount||0))}</div>
-          <div className="p-3 border-l border-black text-right font-black">{money(Number(selectedPayroll.advances||0)+Number(selectedPayroll.discounts||0))}</div>
-        </div>
-        <div className="grid grid-cols-[1fr_240px] border-t border-black">
-          <div className="p-4"><b>Observações</b><div className="mt-1 whitespace-pre-wrap">{selectedPayroll.notes||'—'}</div></div>
-          <div className="p-4 border-l border-black text-right"><div>Valor líquido</div><div className="text-2xl font-black mt-1">{money(selectedPayroll.net_amount)}</div></div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-12 p-8 border-t border-black mt-10">
-          <div className="border-t border-black pt-2 text-center">Assinatura do responsável</div>
-          <div className="border-t border-black pt-2 text-center">Assinatura do colaborador</div>
-        </div>
-        <div className="p-3 border-t border-black text-[9px] text-neutral-600 text-center">Documento de controle interno. Não substitui folha oficial, recibos exigidos por lei, eSocial ou obrigações trabalhistas/contábeis.</div>
+    {selectedPayroll&&<div className="hidden print:block fixed inset-0 bg-white text-black p-5">
+      <div className="max-w-4xl mx-auto">
+        <PayslipCopy payroll={selectedPayroll} employee={employeeMap.get(selectedPayroll.employee_id) as any} store={store}/>
+        <div className="my-5 border-t border-dashed border-neutral-500 relative"><span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-3 text-[9px] text-neutral-500">RECORTE / 2ª VIA</span></div>
+        <PayslipCopy payroll={selectedPayroll} employee={employeeMap.get(selectedPayroll.employee_id) as any} store={store}/>
       </div>
     </div>}
   </div>;
@@ -387,4 +347,62 @@ export const ProductionHrView:React.FC=()=>{
 const Field=({label,children}:{label:string;children:React.ReactNode})=><label className="block"><span className="block text-[10px] text-neutral-500 mb-1">{label}</span>{children}</label>;
 const Input=({value,onChange,type='text',inputMode}:{value:any;onChange:(v:string)=>void;type?:string;inputMode?:any})=><input className="input" type={type} inputMode={inputMode} value={value??''} onChange={e=>onChange(e.target.value)}/>;
 const Line=({label,value}:{label:string;value:number})=><div className="flex justify-between"><span>{label}</span><span>{money(value)}</span></div>;
-const PayrollRow=({code,label,credit=0,debit=0}:{code:string;label:string;credit?:number;debit?:number})=><div className="grid grid-cols-[90px_1fr_120px_120px] border-b border-black"><div className="p-2 border-r border-black">{code}</div><div className="p-2 border-r border-black">{label}</div><div className="p-2 border-r border-black text-right">{Number(credit||0)?money(credit):''}</div><div className="p-2 text-right">{Number(debit||0)?money(debit):''}</div></div>;
+const PayrollRow=({code,label,credit=0,debit=0}:{code:string;label:string;credit?:number;debit?:number})=><div className="grid grid-cols-[64px_1fr_105px_105px] border-b border-black"><div className="p-1.5 border-r border-black">{code}</div><div className="p-1.5 border-r border-black">{label}</div><div className="p-1.5 border-r border-black text-right">{Number(credit||0)?money(credit):''}</div><div className="p-1.5 text-right">{Number(debit||0)?money(debit):''}</div></div>;
+
+const PayslipCopy=({payroll,employee,store}:{payroll:any;employee:any;store:any})=>{
+  const gross=Number(payroll.base_amount||0)+Number(payroll.overtime_amount||0);
+  const deductions=Number(payroll.advances||0)+Number(payroll.discounts||0);
+  return <section className="border border-black text-[9px] break-inside-avoid bg-white">
+    <div className="grid grid-cols-[1fr_180px] border-b border-black">
+      <div className="p-3">
+        <div className="text-sm font-black uppercase">{store?.name||store?.tradeName||'Empresa'}</div>
+        <div className="mt-0.5">Nome fantasia: {store?.tradeName||store?.name||'—'}</div>
+        <div>CNPJ: {store?.cnpj||'—'}</div>
+        <div>{store?.address||'—'}{store?.city?(' · '+store.city):''}{store?.state?(' / '+store.state):''}</div>
+      </div>
+      <div className="p-3 border-l border-black text-center">
+        <div className="font-black text-[11px]">RECIBO DE PAGAMENTO</div>
+        <div>Folha interna / holerite</div>
+        <div className="mt-1 font-bold">{date(payroll.period_start)} a {date(payroll.period_end)}</div>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-black">
+      <div className="p-2"><b>Funcionário</b><div>{employee?.full_name||'—'}</div></div>
+      <div className="p-2 border-l border-black"><b>CPF</b><div>{employee?.cpf||'—'}</div></div>
+      <div className="p-2 border-l border-black"><b>Admissão</b><div>{date(employee?.admission_date)}</div></div>
+      <div className="p-2 border-l border-black"><b>Função</b><div>{employee?.role_title||'—'}</div></div>
+    </div>
+
+    <div className="grid grid-cols-[64px_1fr_105px_105px] border-b border-black font-black bg-neutral-100">
+      <div className="p-1.5 border-r border-black">Cód.</div>
+      <div className="p-1.5 border-r border-black">Descrição</div>
+      <div className="p-1.5 border-r border-black text-right">Proventos</div>
+      <div className="p-1.5 text-right">Descontos</div>
+    </div>
+    <PayrollRow code="001" label="Salário / valor base" credit={payroll.base_amount}/>
+    <PayrollRow code="050" label="Horas extras / adicionais" credit={payroll.overtime_amount}/>
+    <PayrollRow code="201" label="Adiantamentos" debit={payroll.advances}/>
+    <PayrollRow code="299" label="Outros descontos" debit={payroll.discounts}/>
+
+    <div className="grid grid-cols-[1fr_105px_105px] border-t border-black">
+      <div className="p-2 text-right font-black">Totais</div>
+      <div className="p-2 border-l border-black text-right font-black">{money(gross)}</div>
+      <div className="p-2 border-l border-black text-right font-black">{money(deductions)}</div>
+    </div>
+    <div className="grid grid-cols-3 border-t border-black">
+      <div className="p-2"><div className="text-neutral-600">Valor bruto</div><b>{money(gross)}</b></div>
+      <div className="p-2 border-l border-black"><div className="text-neutral-600">Total descontos</div><b>{money(deductions)}</b></div>
+      <div className="p-2 border-l border-black"><div className="text-neutral-600">Valor líquido</div><b className="text-[12px]">{money(payroll.net_amount)}</b></div>
+    </div>
+    <div className="grid grid-cols-[1fr_190px] border-t border-black">
+      <div className="p-2"><b>Observações</b><div className="mt-1 whitespace-pre-wrap min-h-8">{payroll.notes||'—'}</div></div>
+      <div className="p-2 border-l border-black"><b>Status do pagamento</b><div className="mt-1">{payroll.status}{payroll.paid_at?' · '+new Date(payroll.paid_at).toLocaleDateString('pt-BR'):''}</div></div>
+    </div>
+    <div className="grid grid-cols-2 gap-10 p-5 pt-7 border-t border-black">
+      <div className="border-t border-black pt-1.5 text-center">Assinatura do responsável</div>
+      <div className="border-t border-black pt-1.5 text-center">Assinatura do colaborador</div>
+    </div>
+    <div className="p-1.5 border-t border-black text-[7px] text-neutral-600 text-center">Documento de controle interno. Não substitui folha oficial, recibos exigidos por lei, eSocial ou obrigações trabalhistas/contábeis.</div>
+  </section>;
+};
