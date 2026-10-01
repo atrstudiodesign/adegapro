@@ -338,7 +338,7 @@ export const ProductionHrView:React.FC=()=>{
       <div className="max-w-4xl mx-auto border border-black text-[11px]">
         <div className="grid grid-cols-[1fr_210px] border-b border-black">
           <div className="p-4">
-            <div className="text-lg font-black uppercase">{store?.legalName||store?.tradeName||store?.name||'Empresa'}</div>
+            <div className="text-lg font-black uppercase">{store?.name||'Empresa'}</div>
             <div className="mt-1">CNPJ: {store?.cnpj||'—'}</div>
             <div>{store?.address||''}{store?.city?(' · '+store.city):''}{store?.state?('/'+store.state):''}</div>
           </div>
