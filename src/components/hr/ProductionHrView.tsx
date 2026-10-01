@@ -150,7 +150,7 @@ export const ProductionHrView:React.FC=()=>{
     const emp:any=employeeMap.get(row.employee_id);
     const text=[
       'HOLERITE / COMPROVANTE DE PAGAMENTO',
-      store?.legalName||store?.tradeName||store?.name||'Empresa',
+      store?.name||'Empresa',
       store?.cnpj?'CNPJ: '+store.cnpj:'',
       '',
       'Funcionário: '+(emp?.full_name||'—'),
@@ -355,10 +355,10 @@ const PayslipCopy=({payroll,employee,store}:{payroll:any;employee:any;store:any}
   return <section className="border border-black text-[9px] break-inside-avoid bg-white">
     <div className="grid grid-cols-[1fr_180px] border-b border-black">
       <div className="p-3">
-        <div className="text-sm font-black uppercase">{store?.name||store?.tradeName||'Empresa'}</div>
-        <div className="mt-0.5">Nome fantasia: {store?.tradeName||store?.name||'—'}</div>
+        <div className="text-sm font-black uppercase">{store?.name||'Empresa'}</div>
+        <div className="mt-0.5">Razão social: {store?.name||'—'}</div>
         <div>CNPJ: {store?.cnpj||'—'}</div>
-        <div>{store?.address||'—'}{store?.city?(' · '+store.city):''}{store?.state?(' / '+store.state):''}</div>
+        <div>Endereço: {store?.address||'—'}</div>
       </div>
       <div className="p-3 border-l border-black text-center">
         <div className="font-black text-[11px]">RECIBO DE PAGAMENTO</div>
