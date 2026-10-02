@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Delete, LockKeyhole, ShieldCheck, UserRound } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import type { User } from '../../types';
@@ -42,6 +42,7 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
+  const pinRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -56,6 +57,8 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
       .finally(() => alive && setLoading(false));
     return () => { alive = false; };
   }, []);
+
+  useEffect(()=>{const focus=()=>setTimeout(()=>pinRef.current?.focus(),0);focus();window.addEventListener('focus',focus);return()=>window.removeEventListener('focus',focus);},[selectedId,checking]);
 
   const selected = useMemo(() => operators.find(o => o.id === selectedId), [operators, selectedId]);
 
@@ -178,6 +181,7 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
               <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-950 px-3 focus-within:border-amber-500">
                 <LockKeyhole size={16} className="text-neutral-500"/>
                 <input
+                  ref={pinRef}
                   autoFocus
                   type="password"
                   inputMode="numeric"
