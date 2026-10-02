@@ -14,7 +14,7 @@ export const ProductionStockView:React.FC=()=>{
  const[busy,setBusy]=useState(false);
  const[error,setError]=useState('');
  const[feedback,setFeedback]=useState('');
- const[filter,setFilter]=useState<'ALL'|'CRITICAL'|'LOW'|'NORMAL'|'EXCESS'>('ALL');
+ const[filter,setFilter]=useState<'ALL'|'CRITICAL'|'LOW'|'NORMAL'|'EXCESS'|'EXPIRED'|'EXP7'|'EXP15'|'EXP30'|'NOEXP'>('ALL');
 
  const load=async()=>{
    setBusy(true);setError('');
@@ -69,7 +69,8 @@ export const ProductionStockView:React.FC=()=>{
  const critical=products.filter(p=>!p.isCombo&&p.currentStock<=0).length;
  const low=products.filter(p=>!p.isCombo&&p.currentStock>0&&p.currentStock<=p.minStock).length;
  const excess=products.filter(p=>!p.isCombo&&p.maxStock>0&&p.currentStock>p.maxStock).length;
- const filteredProducts=products.filter(p=>{if(filter==='ALL')return true;if(p.isCombo)return filter==='NORMAL';if(filter==='CRITICAL')return p.currentStock<=0;if(filter==='LOW')return p.currentStock>0&&p.currentStock<=p.minStock;if(filter==='EXCESS')return p.maxStock>0&&p.currentStock>p.maxStock;return p.currentStock>p.minStock&&!(p.maxStock>0&&p.currentStock>p.maxStock);});
+ const expiryFor=(p:Product)=>{const rows=expiry.filter((x:any)=>x.product_id===p.id&&Number(x.quantity_remaining||0)>0);if(!rows.length)return null;return rows.sort((a:any,b:any)=>Number(a.days_to_expiry??99999)-Number(b.days_to_expiry??99999))[0];};
+ const filteredProducts=products.filter(p=>{const ex=expiryFor(p);if(filter==='ALL')return true;if(filter==='EXPIRED')return !!ex&&Number(ex.days_to_expiry)<0;if(filter==='EXP7')return !!ex&&Number(ex.days_to_expiry)>=0&&Number(ex.days_to_expiry)<=7;if(filter==='EXP15')return !!ex&&Number(ex.days_to_expiry)>7&&Number(ex.days_to_expiry)<=15;if(filter==='EXP30')return !!ex&&Number(ex.days_to_expiry)>15&&Number(ex.days_to_expiry)<=30;if(filter==='NOEXP')return !ex;if(p.isCombo)return filter==='NORMAL';if(filter==='CRITICAL')return p.currentStock<=0;if(filter==='LOW')return p.currentStock>0&&p.currentStock<=p.minStock;if(filter==='EXCESS')return p.maxStock>0&&p.currentStock>p.maxStock;return p.currentStock>p.minStock&&!(p.maxStock>0&&p.currentStock>p.maxStock);});
 
  return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5">
   <PageHeader eyebrow="Inventário" title="Estoque" description="Campos alinhados à planilha sem duplicar dados: entradas, saídas e saldos são calculados pelas movimentações auditadas." actions={<button disabled={busy} onClick={()=>void load()} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs text-neutral-300 flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button>}/>
@@ -87,7 +88,7 @@ export const ProductionStockView:React.FC=()=>{
   <section className="rounded-2xl bg-neutral-900 border border-neutral-800 overflow-hidden">
     <div className="p-4 border-b border-neutral-800">
       <h2 className="font-bold text-white">Controle de estoque — visão compatível com a planilha</h2>
-      <p className="text-[11px] text-neutral-500 mt-1">Adega = loja ativa. Estoque final = saldo atual. Valor final só aparece quando há custo cadastrado.</p><div className="flex flex-wrap gap-2 mt-3">{[['ALL','Todos'],['CRITICAL','Críticos'],['LOW','Estoque baixo'],['NORMAL','Normal'],['EXCESS','Acima da média']].map(([value,label])=><button key={value} onClick={()=>setFilter(value as any)} className={'px-3 py-1.5 rounded-lg border text-[10px] font-black '+(filter===value?'border-amber-400 bg-amber-400/10 text-amber-300':'border-neutral-700 bg-neutral-950 text-neutral-400 hover:text-white')}>{label}</button>)}</div>
+      <p className="text-[11px] text-neutral-500 mt-1">Adega = loja ativa. Estoque final = saldo atual. Valor final só aparece quando há custo cadastrado.</p><div className="flex flex-wrap gap-2 mt-3">{[['ALL','Todos'],['CRITICAL','Críticos'],['LOW','Estoque baixo'],['NORMAL','Normal'],['EXCESS','Acima da média'],['EXPIRED','Vencidos'],['EXP7','≤ 7 dias'],['EXP15','8–15 dias'],['EXP30','16–30 dias'],['NOEXP','Sem validade']].map(([value,label])=><button key={value} onClick={()=>setFilter(value as any)} className={'px-3 py-1.5 rounded-lg border text-[10px] font-black '+(filter===value?'border-amber-400 bg-amber-400/10 text-amber-300':'border-neutral-700 bg-neutral-950 text-neutral-400 hover:text-white')}>{label}</button>)}</div>
     </div>
     <div className="overflow-x-auto">
       <table className="w-full min-w-[1180px] text-xs">
@@ -102,12 +103,12 @@ export const ProductionStockView:React.FC=()=>{
             <th className="p-3 text-right">Entradas</th>
             <th className="p-3 text-right">Saídas</th>
             <th className="p-3 text-right">Estoque final</th>
-            <th className="p-3 text-right">Valor estoque final</th>
+            <th className="p-3 text-right">Valor estoque final</th><th className="p-3 text-left">Validade / lote</th>
             <th className="p-3 text-right">Ação</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-800">
-          {filteredProducts.map(p=>{const s=statsFor(p);const level=p.isCombo?'normal':p.currentStock<=0?'critical':p.currentStock<=p.minStock?'low':p.maxStock>0&&p.currentStock>p.maxStock?'excess':'normal';const rowTone=level==='critical'?'bg-rose-950/45 hover:bg-rose-950/60':level==='low'?'bg-amber-950/30 hover:bg-amber-950/45':level==='excess'?'bg-violet-950/30 hover:bg-violet-950/45':'hover:bg-neutral-800/40';return <tr key={p.id} className={rowTone}>
+          {filteredProducts.map(p=>{const s=statsFor(p);const level=p.isCombo?'normal':p.currentStock<=0?'critical':p.currentStock<=p.minStock?'low':p.maxStock>0&&p.currentStock>p.maxStock?'excess':'normal';const ex=expiryFor(p);const expDays=ex?Number(ex.days_to_expiry):null;const rowTone=expDays!==null&&expDays<0?'bg-rose-950/55 hover:bg-rose-950/70':expDays!==null&&expDays<=7?'bg-orange-950/40 hover:bg-orange-950/55':level==='critical'?'bg-rose-950/45 hover:bg-rose-950/60':level==='low'?'bg-amber-950/30 hover:bg-amber-950/45':level==='excess'?'bg-violet-950/30 hover:bg-violet-950/45':'hover:bg-neutral-800/40';return <tr key={p.id} className={rowTone}>
             <td className="p-3 text-white font-bold"><div className="flex items-center gap-2 flex-wrap"><span>{p.name}</span>{level==='critical'&&<span className="px-2 py-0.5 rounded-full border border-rose-500/50 bg-rose-500/15 text-rose-300 text-[9px] uppercase font-black">Crítico</span>}{level==='low'&&<span className="px-2 py-0.5 rounded-full border border-amber-500/50 bg-amber-500/15 text-amber-300 text-[9px] uppercase font-black">Estoque baixo</span>}{level==='excess'&&<span className="px-2 py-0.5 rounded-full border border-violet-500/50 bg-violet-500/15 text-violet-300 text-[9px] uppercase font-black">Acima da média</span>}</div><div className="text-[10px] font-normal text-neutral-500 mt-1">{p.sku||'SKU não informado'}</div></td>
             <td className="p-3 text-neutral-300">{p.unit||'—'}</td>
             <td className="p-3 text-right font-mono">{p.costPrice>0?money(p.costPrice):'—'}</td>
@@ -117,7 +118,7 @@ export const ProductionStockView:React.FC=()=>{
             <td className="p-3 text-right font-mono text-emerald-400">{s.entries}</td>
             <td className="p-3 text-right font-mono text-rose-400">{s.exits}</td>
             <td className="p-3 text-right font-mono font-black">{s.final} {p.unit}</td>
-            <td className="p-3 text-right font-mono">{s.value==null?'—':money(s.value)}</td>
+            <td className="p-3 text-right font-mono">{s.value==null?'—':money(s.value)}</td><td className="p-3">{ex?<><div className={expDays!<0?'font-black text-rose-400':expDays!<=7?'font-black text-orange-300':expDays!<=30?'font-black text-amber-300':'font-black text-emerald-400'}>{expDays!<0?'VENCIDO há '+Math.abs(expDays!)+'d':expDays===0?'VENCE HOJE':'vence em '+expDays+'d'}</div><div className="text-[10px] text-neutral-500">{new Date(ex.expiry_date+'T00:00:00').toLocaleDateString('pt-BR')} · lote {ex.lot_number||'—'} · {Number(ex.quantity_remaining)} un.</div></>:<span className="text-neutral-600">Sem validade cadastrada</span>}</td>
             <td className="p-3 text-right"><button disabled={busy} onClick={()=>void adjust(p)} className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-neutral-200 inline-flex items-center gap-2"><SlidersHorizontal size={14}/>Ajustar</button></td>
           </tr>})}
         </tbody>
