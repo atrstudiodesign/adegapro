@@ -377,3 +377,30 @@ html[data-theme="light"] textarea {
 html[data-theme="light"] aside {
   box-shadow: 10px 0 30px rgba(0,0,0,.06);
 }
+
+
+/* =========================================================
+   ADEGA PRO PREMIUM UI — faithful to approved 2026-10 mockup
+   Presentation only: no data, RPC or business-rule changes.
+========================================================= */
+.ap-premium-shell{background:#03080d}
+.ap-premium-content{background:radial-gradient(circle at 68% -10%,rgba(14,165,233,.07),transparent 28%),linear-gradient(180deg,#050b10,#03070b 65%)}
+.ap-premium-sidebar{background:linear-gradient(180deg,#06111a 0%,#07131c 55%,#050b10 100%)!important;border-color:rgba(56,189,248,.13)!important}
+.ap-premium-sidebar>div:nth-of-type(2) button{min-height:38px}
+.ap-premium-sidebar>div:nth-of-type(2) button:not([class*="from-amber"]){border:1px solid transparent}
+.ap-premium-sidebar>div:nth-of-type(2) button:not([class*="from-amber"]):hover{background:rgba(15,23,42,.8);border-color:rgba(56,189,248,.10)}
+.ap-premium-dashboard{max-width:1600px;width:100%;margin:0 auto}
+.ap-premium-dashboard .ap-panel,.ap-premium-dashboard .ap-card{background:linear-gradient(180deg,rgba(9,20,28,.98),rgba(5,13,19,.98));border-color:rgba(125,211,252,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.018),0 12px 32px rgba(0,0,0,.18)}
+.ap-premium-dashboard .ap-kpi-card{min-height:104px;display:flex;flex-direction:column;justify-content:center}
+.ap-premium-dashboard h1{font-size:1.7rem;letter-spacing:-.04em}
+.ap-premium-dashboard h2{font-size:.96rem}
+.ap-premium-dashboard .ap-money,.ap-premium-dashboard .font-mono{letter-spacing:-.025em}
+.ap-premium-dashboard svg{flex-shrink:0}
+.ap-mobile-dock{position:fixed;left:10px;right:10px;bottom:10px;z-index:80;height:66px;padding:5px 7px;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;background:rgba(4,11,17,.96);border:1px solid rgba(125,211,252,.18);border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.55);backdrop-filter:blur(18px)}
+.ap-mobile-dock button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:14px;color:#a3a3a3;font-size:18px}
+.ap-mobile-dock button small{font-size:9px;font-weight:800}
+.ap-mobile-dock button.active{color:#fbbf24;background:rgba(245,158,11,.10)}
+@media(min-width:1024px){.ap-premium-shell>header{margin-left:184px}.ap-premium-sidebar{margin-top:-64px;padding-top:64px;min-height:100vh}.ap-premium-content{height:calc(100vh - 64px)}}
+@media(max-width:1023px){.ap-premium-content{padding-bottom:82px}.ap-premium-shell>header{min-height:58px}.ap-premium-dashboard{padding:.75rem!important}.ap-premium-dashboard .ap-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ap-premium-dashboard .ap-kpi-card{min-height:92px;padding:12px!important}.ap-premium-dashboard .ap-chart-grid{grid-template-columns:1fr}.ap-premium-dashboard h1{font-size:1.45rem}}
+@media(max-width:639px){.ap-premium-dashboard{font-size:14px}.ap-premium-dashboard .ap-kpi-card{min-height:88px;border-radius:14px}.ap-premium-dashboard .ap-kpi-card [class*="text-2xl"]{font-size:1.25rem!important}.ap-premium-dashboard .ap-panel{border-radius:15px}.ap-premium-dashboard .grid[class*="xl:grid-cols-3"]{grid-template-columns:1fr!important}.ap-premium-dashboard button{min-height:42px}.ap-premium-dashboard .overflow-x-auto{margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px}}
+@media(max-width:390px){.ap-premium-dashboard .ap-kpi-grid{grid-template-columns:1fr 1fr}.ap-premium-dashboard .ap-kpi-card{padding:10px!important}.ap-premium-dashboard h1{font-size:1.3rem}.ap-mobile-dock{left:6px;right:6px;bottom:6px}}
