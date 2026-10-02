@@ -1034,7 +1034,7 @@ async function getCashSessions(): Promise<CashSession[]> {
 
 async function getCashMovements(sessionId?: string): Promise<CashMovement[]> {
   const ctx = await getContext();
-  let query = supabase.from('cash_movements').select('*').eq('store_id', ctx.storeId).order('created_at', { ascending: false });
+  let query = supabase.from('cash_movements').select('*').eq('tenant_id', ctx.tenantId).eq('store_id', ctx.storeId).order('created_at', { ascending: false });
   if (sessionId) query = query.eq('cash_session_id', sessionId);
   const { data, error } = await query.limit(200);
   if (error) throw error;
