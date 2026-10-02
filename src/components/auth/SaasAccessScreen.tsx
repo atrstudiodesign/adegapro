@@ -484,6 +484,44 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             </div>
           </section>
 
+          <section id="novidades" className="border-y border-white/5 bg-neutral-900/30">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <div className="text-center max-w-3xl mx-auto"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Novidades & updates</div><h2 className="text-3xl sm:text-4xl font-black mt-2">O sistema evolui junto com a operação.</h2><p className="text-sm text-neutral-400 mt-3">Atualizações recentes priorizam rastreabilidade, estoque, caixa, RH, segurança multi-loja e produtividade no PDV.</p></div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-8">
+                {[
+                  ['Caixa por turno','Histórico de sessões com operador, vendas, recebimentos, sangrias, suprimentos e conferência do fechamento.'],
+                  ['Estoque inteligente','Validade por lote, FEFO, giro, itens estacionados, estoque mínimo e sugestão de reposição por loja.'],
+                  ['Operação multi-loja','Estoque, caixa, vendas e financeiro separados por unidade, com visão administrativa identificando a origem.'],
+                  ['RH operacional','Entrada por PIN, fechamento de turno, faltas, agenda, alertas e registros internos da equipe.'],
+                  ['Vendas auditáveis','Correção administrativa de pagamento, desconto e cancelamento com sincronização dos registros relacionados.'],
+                  ['Atualizações contínuas','Avisos de versão aparecem no sistema logado e registram as principais melhorias liberadas.']
+                ].map(([title,desc])=><div key={title} className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800"><div className="font-black text-white">{title}</div><p className="text-xs text-neutral-400 mt-2 leading-relaxed">{desc}</p></div>)}
+              </div>
+            </div>
+          </section>
+
+          <section id="faq" className="border-b border-white/5">
+            <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <div className="text-center"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Perguntas frequentes</div><h2 className="text-3xl sm:text-4xl font-black mt-2">FAQ Adega Pro</h2></div>
+              <div className="mt-8 space-y-2">
+                {[
+                  ['O estoque de duas lojas se mistura?','Não. O saldo operacional é separado por loja. A administração pode consultar unidades autorizadas, mas venda ou inventário de uma unidade não altera o saldo da outra.'],
+                  ['O administrador consegue conferir caixas fechados?','Sim. Caixas & Sessões mantém o histórico por operador e turno. O gestor pode abrir uma sessão para conferir vendas, faturamento, meios de pagamento, sangrias, suprimentos e diferença do fechamento.'],
+                  ['O vendedor vê todos os dados administrativos?','Não necessariamente. O acesso depende do perfil e das permissões atribuídas. Administradores e gerentes têm recursos de gestão que não precisam ser expostos ao operador de caixa.'],
+                  ['Como funciona a baixa de estoque?','A venda confirmada baixa o estoque da loja ativa. O saldo permanece persistido após o fechamento do turno e é carregado novamente no próximo turno.'],
+                  ['Posso usar PIX e cartão?','O sistema registra os meios de pagamento disponíveis. Integrações automáticas com adquirentes ou provedores dependem de configuração e homologação específicas.'],
+                  ['O que acontece ao fechar o caixa?','O operador informa o valor contado. O sistema mantém totais do turno, valor esperado, sangrias, suprimentos e diferença para conferência posterior.'],
+                  ['Existe controle de validade?','Sim. O estoque possui recursos de validade por lote, alertas e apoio à saída FEFO para priorizar itens que vencem primeiro.'],
+                  ['Há backup?','Clientes em produção possuem ferramenta de exportação e validação de backup. Restaurações não devem sobrescrever a produção automaticamente sem conferência.'],
+                  ['Como funcionam atualizações?','Novas versões podem exibir um aviso não bloqueante após o login com as principais mudanças. Recursos podem ser liberados conforme plano, configuração e estágio de homologação.'],
+                  ['Onde encontro ajuda para usar o sistema?','Após entrar, acesse Suporte ATR Studio. A seção Como usar o Adega Pro apresenta o fluxo básico de venda, caixa, estoque, clientes, gestão e segurança.'],
+                  ['Os dados ficam separados entre empresas?','O sistema usa contexto de tenant, loja, autenticação e políticas de acesso para restringir os dados ao escopo autorizado.'],
+                  ['Posso cadastrar mais de uma loja?','Sim, conforme o ambiente e plano habilitados. Cada unidade mantém sua operação separada e o administrador autorizado pode alternar entre elas.']
+                ].map(([q,a])=><details key={q} className="group rounded-2xl bg-neutral-900 border border-neutral-800 p-4"><summary className="cursor-pointer list-none font-black text-sm flex justify-between gap-3">{q}<span className="text-amber-400">+</span></summary><p className="text-xs text-neutral-400 leading-relaxed mt-3 pr-6">{a}</p></details>)}
+              </div>
+            </div>
+          </section>
+
           <section id="planos" className="border-t border-white/5 bg-gradient-to-b from-neutral-950 to-black">
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
               <div className="text-center"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Planos</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Comece com uma operação profissional.</h2></div>
