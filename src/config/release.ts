@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-01-payment-correction-v5.12',
-  version: '5.12',
+  releaseId: '2026-10-01-mini-pdv-sync-v5.13',
+  version: '5.13',
   dateLabel: '01/10/2026 · outubro · 23:14 BRT',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Mini PDV: carregamento de produtos, estoque, vendas, clientes e caixa ficou resiliente a falhas isoladas de sincronização, preservando os dados já disponíveis para o vendedor.',
     'Vendas & cupons: nova tela de alteração permite corrigir a forma de pagamento registrada (Dinheiro, PIX, Débito, Crédito, Voucher ou Fiado) com sincronização do caixa.',
     'Vendas & cupons: ações administrativas para visualizar cupom, alterar desconto e cancelar venda com estorno sincronizado de estoque, caixa e financeiro.',
     'Indicações: clientes ativos agora podem indicar novos clientes pelo Adega Pro, acompanhar status, pontos e cashback com sincronização direta ao ATR Control.',
