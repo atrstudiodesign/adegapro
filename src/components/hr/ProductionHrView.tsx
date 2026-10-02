@@ -28,10 +28,12 @@ export const ProductionHrView:React.FC=()=>{
   const[selectedPayroll,setSelectedPayroll]=useState<any>(null);
   const[store,setStore]=useState<any>(null);
   const[attendance,setAttendance]=useState<any[]>([]);
+  const[operators,setOperators]=useState<any[]>([]);
+  const[absence,setAbsence]=useState({operator_id:'',event_at:new Date().toISOString().slice(0,16),notes:''});
 
   const load=async()=>{
     setBusy(true);setError('');
-    try{const [snapshot,currentStore,attendanceRows]=await Promise.all([productionDb.getHrSnapshot(),productionDb.getStore(),productionDb.getHrAttendance()]);setData(snapshot);setStore(currentStore);setAttendance(attendanceRows);}
+    try{const [snapshot,currentStore,attendanceRows,operatorRows]=await Promise.all([productionDb.getHrSnapshot(),productionDb.getStore(),productionDb.getHrAttendance(),productionDb.getStoreOperators()]);setData(snapshot);setStore(currentStore);setAttendance(attendanceRows);setOperators(operatorRows);}
     catch(e:any){setError(e?.message||'Não foi possível carregar o RH interno.');}
     finally{setBusy(false);}
   };
@@ -49,6 +51,8 @@ export const ProductionHrView:React.FC=()=>{
   const liveDiscounts=Number(String(payroll.discounts||0).replace(',','.'))||0;
   const liveGross=liveBase+liveOvertime;
   const liveNet=liveGross-liveAdvances-liveDiscounts;
+
+  const saveAbsence=async()=>{setError('');setFeedback('');if(!absence.operator_id){setError('Selecione o usuário ausente.');return;}if(!absence.notes.trim()){setError('Informe a observação/motivo da falta.');return;}setBusy(true);try{await productionDb.registerHrAbsence(absence.operator_id,new Date(absence.event_at).toISOString(),absence.notes.trim());setAbsence({operator_id:'',event_at:new Date().toISOString().slice(0,16),notes:''});setFeedback('Falta registrada no RH com data, hora e observação.');await load();}catch(e:any){setError(e?.message||'Não foi possível registrar a falta.');}finally{setBusy(false);}};
 
   const saveEmployee=async()=>{
     setBusy(true);setError('');setFeedback('');
@@ -214,7 +218,7 @@ export const ProductionHrView:React.FC=()=>{
       ] as [Tab,string,any][]).map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`shrink-0 h-10 px-4 rounded-xl border flex items-center gap-2 text-xs font-black ${tab===id?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-900 text-neutral-300 border-neutral-800'}`}><I size={14}/>{label}</button>)}
     </div>
 
-    {tab==='ATTENDANCE'&&<section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden"><div className="p-4 border-b border-neutral-800"><h2 className="font-black">Registro de turnos & presença</h2><p className="text-[10px] text-neutral-500 mt-1">Entradas validadas por PIN ficam registradas automaticamente com usuário, data e hora. Faltas e observações podem ser registradas no RH.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-xs"><thead className="bg-neutral-950/70 text-neutral-500 uppercase"><tr><th className="p-3 text-left">Data / hora</th><th className="p-3 text-left">Usuário</th><th className="p-3 text-left">Registro</th><th className="p-3 text-left">Observações</th></tr></thead><tbody className="divide-y divide-neutral-800">{attendance.map((r:any)=><tr key={r.id}><td className="p-3 text-neutral-400">{new Date(r.event_at).toLocaleString('pt-BR')}</td><td className="p-3 font-black">{r.operator_name}</td><td className="p-3"><StatusBadge tone={r.event_type==='FALTA'?'danger':r.event_type==='ENTRADA_PIN'?'success':'neutral'}>{r.event_type==='ENTRADA_PIN'?'ENTRADA PIN':r.event_type==='SAIDA_TURNO'?'SAÍDA TURNO':'FALTA'}</StatusBadge></td><td className="p-3 text-neutral-400">{r.notes||'—'}</td></tr>)}</tbody></table></div></section>}
+    {tab==='ATTENDANCE'&&<section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden"><div className="p-4 border-b border-neutral-800"><h2 className="font-black">Registro de turnos & presença</h2><div className="grid md:grid-cols-[1fr_1fr_2fr_auto] gap-2 mt-4"><select value={absence.operator_id} onChange={e=>setAbsence({...absence,operator_id:e.target.value})} className="input"><option value="">Usuário ausente</option>{operators.map((o:any)=><option key={o.id} value={o.id}>{o.name} · {o.role}</option>)}</select><input type="datetime-local" value={absence.event_at} onChange={e=>setAbsence({...absence,event_at:e.target.value})} className="input"/><input placeholder="Observação/motivo obrigatório" value={absence.notes} onChange={e=>setAbsence({...absence,notes:e.target.value})} className="input"/><button disabled={busy} onClick={()=>void saveAbsence()} className="h-10 px-4 rounded-xl bg-rose-600 text-white text-xs font-black">Registrar falta</button></div><p className="text-[10px] text-neutral-500 mt-1">Entradas validadas por PIN ficam registradas automaticamente com usuário, data e hora. Faltas e observações podem ser registradas no RH.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-xs"><thead className="bg-neutral-950/70 text-neutral-500 uppercase"><tr><th className="p-3 text-left">Data / hora</th><th className="p-3 text-left">Usuário</th><th className="p-3 text-left">Registro</th><th className="p-3 text-left">Observações</th></tr></thead><tbody className="divide-y divide-neutral-800">{attendance.map((r:any)=><tr key={r.id}><td className="p-3 text-neutral-400">{new Date(r.event_at).toLocaleString('pt-BR')}</td><td className="p-3 font-black">{r.operator_name}</td><td className="p-3"><StatusBadge tone={r.event_type==='FALTA'?'danger':r.event_type==='ENTRADA_PIN'?'success':'neutral'}>{r.event_type==='ENTRADA_PIN'?'ENTRADA PIN':r.event_type==='SAIDA_TURNO'?'SAÍDA TURNO':'FALTA'}</StatusBadge></td><td className="p-3 text-neutral-400">{r.notes||'—'}</td></tr>)}</tbody></table></div></section>}
 
     {tab==='EMPLOYEES'&&<div className="grid xl:grid-cols-[.72fr_1.28fr] gap-4">
       <section className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900 space-y-3">
