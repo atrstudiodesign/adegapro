@@ -11,24 +11,26 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
   const[sessions,setSessions]=useState<any[]>([]);
   const[expiry,setExpiry]=useState<any[]>([]);
   const[analytics,setAnalytics]=useState<any>({});
+  const[shiftSummary,setShiftSummary]=useState<any>({day_revenue:0,day_count:0,shifts:[]});
   const[busy,setBusy]=useState(true);
   const[error,setError]=useState('');
 
   const load=async()=>{
     setBusy(true);setError('');
     try{
-      const[p,c,s,e,a]=await Promise.all([
+      const[p,c,s,e,a,sh]=await Promise.all([
         productionDb.getProducts(),
         productionDb.getCustomers(),
         productionDb.getCashSessions(),
         productionDb.getExpiryAlerts(30),
-        productionDb.getDashboardAnalytics()
+        productionDb.getDashboardAnalytics(),
+        productionDb.getStoreShiftSummary()
       ]);
-      setProducts(p);setCustomers(c);setSessions(s);setExpiry(e);setAnalytics(a||{});
+      setProducts(p);setCustomers(c);setSessions(s);setExpiry(e);setAnalytics(a||{});setShiftSummary(sh||{day_revenue:0,day_count:0,shifts:[]});
     }catch(err:any){setError(err?.message||'Falha ao carregar dashboard.');}
     finally{setBusy(false);}
   };
-  useEffect(()=>{void load();},[]);
+  useEffect(()=>{void load();const id=window.setInterval(()=>void load(),30000);return()=>window.clearInterval(id);},[]);
 
   const low=useMemo(()=>products.filter(p=>!p.isCombo&&p.currentStock<=p.minStock),[products]);
   const openCash=sessions.filter(s=>s.status==='ABERTO').length;
@@ -50,7 +52,7 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
 
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
       <MetricCard label="Vendas hoje" value={busy?'—':today.count||0} icon={ShoppingCart} onClick={()=>onNavigate('sales')}/>
-      <MetricCard label="Faturamento" value={busy?'—':money(today.revenue)} icon={TrendingUp} tone="emerald" onClick={()=>onNavigate('sales')}/>
+      <MetricCard label="Faturamento" value={busy?'—':money(shiftSummary.day_revenue??today.revenue)} icon={TrendingUp} tone="emerald" onClick={()=>onNavigate('sales')}/>
       <MetricCard label="Ticket médio" value={busy?'—':money(today.ticket)} icon={ReceiptText} tone="sky" onClick={()=>onNavigate('reports')}/>
       <MetricCard label="Clientes" value={busy?'—':customers.length} icon={Users} onClick={()=>onNavigate('customers')}/>
       <MetricCard label="Estoque baixo" value={busy?'—':low.length} icon={Boxes} tone={low.length?'rose':'emerald'} onClick={()=>onNavigate('stock')}/>
@@ -60,6 +62,8 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
       <MetricCard label="A receber" value={busy?'—':money(receivables.pending)} icon={CreditCard} tone="violet" onClick={()=>onNavigate('finance')}/>
       <MetricCard label="Produtos" value={busy?'—':products.length} icon={Boxes} tone="amber" onClick={()=>onNavigate('products')}/>
     </div>
+
+    <section className="ap-panel p-4"><div className="flex items-center justify-between gap-3"><div><h2 className="font-black text-white">Faturamento por turno · hoje</h2><p className="text-[10px] text-neutral-500 mt-1">Atualização automática a cada 30 segundos · somente loja ativa</p></div><div className="font-mono text-lg font-black text-emerald-400">{money(shiftSummary.day_revenue)}</div></div><div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">{(shiftSummary.shifts||[]).length?(shiftSummary.shifts||[]).map((sh:any)=><div key={sh.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800"><div className="flex justify-between gap-2"><div className="text-xs font-black truncate">{sh.operator_name}</div><StatusBadge tone={sh.status==='ABERTO'?'success':'neutral'}>{sh.status}</StatusBadge></div><div className="text-[10px] text-neutral-500 mt-2">{new Date(sh.opened_at).toLocaleString('pt-BR')} → {sh.closed_at?new Date(sh.closed_at).toLocaleString('pt-BR'):'agora'}</div><div className="mt-2 flex justify-between text-xs"><span>{sh.sales_count} venda(s)</span><strong className="text-amber-400">{money(sh.revenue)}</strong></div></div>):<div className="text-xs text-neutral-500">Nenhum turno registrado hoje nesta loja.</div>}</div></section>
 
     <div className="grid xl:grid-cols-[1.25fr_.75fr] gap-4">
       <section className="ap-panel p-4 sm:p-5">
