@@ -767,6 +767,7 @@ async function getSales(limit = 200) {
   return data || [];
 }
 
+async function updateSalePaymentMethod(saleId:string,method:'DINHEIRO'|'PIX'|'DEBITO'|'CREDITO'|'VOUCHER'|'FIADO'){const {data,error}=await supabase.rpc('update_sale_payment_method_secure',{p_sale_id:saleId,p_method:method});if(error)throw error;return data;}
 async function cancelSale(saleId:string,reason:string){const {data,error}=await supabase.rpc('cancel_sale_secure',{p_sale_id:saleId,p_reason:reason});if(error)throw error;return data;}
 async function updateSaleDiscount(saleId:string,discount:number){const {data,error}=await supabase.rpc('update_sale_discount_secure',{p_sale_id:saleId,p_discount:discount});if(error)throw error;return data;}
 
@@ -1188,6 +1189,7 @@ export const productionDb = {
   getMultiStoreOverview,
   getSales,
   getSaleDetails,
+  updateSalePaymentMethod,
   cancelSale,
   updateSaleDiscount,
   getStockMovements,
