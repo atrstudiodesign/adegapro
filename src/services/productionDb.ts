@@ -766,7 +766,16 @@ async function getSales(limit = 200) {
     .order('created_at', { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return data || [];
+  const rows=data||[];
+  const operatorIds=[...new Set(rows.map((r:any)=>r.operator_ref).filter(Boolean))];
+  const sessionIds=[...new Set(rows.map((r:any)=>r.id).filter(Boolean))];
+  const [{data:ops,error:opErr},{data:sessions,error:sessionErr}]=await Promise.all([
+    operatorIds.length?supabase.from('operators').select('id,name').in('id',operatorIds):Promise.resolve({data:[],error:null} as any),
+    sessionIds.length?supabase.from('cash_sessions').select('id,cash_register_id,operator_ref,opened_at,closed_at,status').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).order('opened_at',{ascending:false}).limit(100):Promise.resolve({data:[],error:null} as any)
+  ]);
+  if(opErr)throw opErr;if(sessionErr)throw sessionErr;
+  const opMap=new Map((ops||[]).map((o:any)=>[o.id,o.name]));
+  return rows.map((r:any)=>{const shift=(sessions||[]).find((cs:any)=>cs.operator_ref===r.operator_ref&&new Date(r.created_at)>=new Date(cs.opened_at)&&(!cs.closed_at||new Date(r.created_at)<=new Date(cs.closed_at)));return {...r,operator_name:opMap.get(r.operator_ref)||'Operador',shift_opened_at:shift?.opened_at||null,shift_closed_at:shift?.closed_at||null,shift_status:shift?.status||null};});
 }
 
 async function updateSalePaymentMethod(saleId:string,method:'DINHEIRO'|'PIX'|'DEBITO'|'CREDITO'|'VOUCHER'|'FIADO'){const {data,error}=await supabase.rpc('update_sale_payment_method_secure',{p_sale_id:saleId,p_method:method});if(error)throw error;return data;}
