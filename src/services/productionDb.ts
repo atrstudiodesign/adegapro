@@ -709,6 +709,8 @@ async function getAccountsReceivable(limit = 200) {
   return data || [];
 }
 
+async function getStoreShiftSummary(){const ctx=await getContext();const {data,error}=await supabase.rpc('get_store_shift_summary',{p_store_id:ctx.storeId});if(error)throw error;return data||{day_revenue:0,day_count:0,shifts:[]};}
+
 async function getDashboardAnalytics() {
   const ctx = await getContext();
   const { data, error } = await supabase.rpc('get_store_dashboard_analytics', { p_store_id: ctx.storeId });
@@ -1187,6 +1189,7 @@ export const productionDb = {
   getExpiryAlerts,
   getAccountsPayable,
   getAccountsReceivable,
+  getStoreShiftSummary,
   getDashboardAnalytics,
   getMultiStoreOverview,
   getSales,
