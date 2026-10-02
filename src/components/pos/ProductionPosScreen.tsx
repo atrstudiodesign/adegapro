@@ -96,14 +96,24 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const change=method==='DINHEIRO'?Math.max(0,tenderedNumber-total):0;
 
   const add=(p:Product)=>{
-    if(!p.isCombo&&p.currentStock<=0){setError('Produto sem estoque.');return;}
+    if(!p.isCombo&&p.currentStock<=0){setError(`${p.name}: produto sem estoque.`);return;}
+    const inCart=cart.find(x=>x.product.id===p.id)?.quantity||0;
+    if(!p.isCombo&&inCart>=p.currentStock){setError(`${p.name}: estoque disponível ${p.currentStock} un.`);return;}
     setCart(prev=>{
       const hit=prev.find(x=>x.product.id===p.id);
       return hit?prev.map(x=>x.product.id===p.id?{...x,quantity:x.quantity+1}:x):[...prev,{product:p,quantity:1}];
     });
     setError('');
   };
-  const qty=(id:string,d:number)=>setCart(prev=>prev.map(x=>x.product.id===id?{...x,quantity:Math.max(0,x.quantity+d)}:x).filter(x=>x.quantity>0));
+  const qty=(id:string,d:number)=>{
+    const line=cart.find(x=>x.product.id===id);
+    if(line&&d>0&&!line.product.isCombo&&line.quantity>=line.product.currentStock){
+      setError(`${line.product.name}: estoque disponível ${line.product.currentStock} un.`);
+      return;
+    }
+    setCart(prev=>prev.map(x=>x.product.id===id?{...x,quantity:Math.max(0,x.quantity+d)}:x).filter(x=>x.quantity>0));
+    setError('');
+  };
 
   const openCash=async()=>{
     const reg=registers.find(r=>r.id===selectedRegisterId)||registers.find(r=>r.status==='FECHADO')||registers[0];
@@ -146,7 +156,15 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
       setMessage('Venda finalizada com sucesso.');
       setCart([]);setCustomerId('');setCustomerQuery('');setDiscount(0);setTendered('');
       await load();
-    }catch(e:any){setError(e?.message||'Venda não concluída.');}
+    }catch(e:any){
+      const raw=String(e?.message||'Venda não concluída.');
+      const stockMatch=raw.match(/insufficient stock for component ([0-9a-f-]{36})/i);
+      if(stockMatch){
+        await load();
+        const p=products.find(x=>x.id===stockMatch[1]);
+        setError(p?`${p.name}: estoque insuficiente. Disponível no último saldo: ${p.currentStock} un. Atualize o carrinho e tente novamente.`:'Estoque insuficiente para concluir a venda. Os saldos foram atualizados.');
+      }else setError(raw);
+    }
     finally{setBusy(false);}
   };
 
@@ -187,7 +205,9 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
   const addQuickProduct=(product:Product,quantity:number)=>{
     if(quantity<=0)return;
-    if(!product.isCombo&&product.currentStock<=0){setError('Produto sem estoque.');return;}
+    const inCart=cart.find(x=>x.product.id===product.id)?.quantity||0;
+    if(!product.isCombo&&product.currentStock<=0){setError(`${product.name}: produto sem estoque.`);return;}
+    if(!product.isCombo&&inCart+quantity>product.currentStock){setError(`${product.name}: solicitado ${inCart+quantity}, disponível ${product.currentStock} un.`);return;}
     setCart(prev=>{
       const hit=prev.find(x=>x.product.id===product.id);
       return hit
