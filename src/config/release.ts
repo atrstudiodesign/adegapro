@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-02-operations-v5.16',
-  version: '5.16',
-  dateLabel: '02/10/2026 · outubro · 21:00 BRT',
+  releaseId: '2026-10-02-release-metadata-v5.17',
+  version: '5.17',
+  dateLabel: '02/10/2026 · 02:43 BRT',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Release: corrige o metadado do rodapé para registrar a data e hora reais desta publicação.',
     'Estoque: validade por lote, FEFO, alertas de vencimento, ranking de giro, estoque estacionado e sugestão de reposição.',
     'Dashboard: reposição sugerida, maior saída, estoque estacionado e alertas de validade da loja ativa.',
     'RH: entrada por PIN, saída automática no fechamento do turno e registro administrativo de faltas com data, hora e observação.',
