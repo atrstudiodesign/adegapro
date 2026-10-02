@@ -818,12 +818,15 @@ async function getFinancialTransactions(limit = 300) {
     .limit(limit);
   if (error) throw error;
   const rows=data||[];
-  const operatorIds=[...new Set(rows.map((r:any)=>r.operator_ref||r.created_by).filter(Boolean))];
-  if(!operatorIds.length)return rows.map((r:any)=>({...r,operator_name:'Sistema'}));
-  const {data:ops,error:opErr}=await supabase.from('operators').select('id,name').in('id',operatorIds);
+  const saleIds=[...new Set(rows.filter((r:any)=>r.source==='VENDA'&&r.reference_id).map((r:any)=>r.reference_id))];
+  const {data:sales,error:saleErr}=saleIds.length?await supabase.from('sales').select('id,operator_ref').in('id',saleIds):{data:[],error:null} as any;
+  if(saleErr)throw saleErr;
+  const saleOperatorMap=new Map((sales||[]).map((x:any)=>[x.id,x.operator_ref]));
+  const operatorIds=[...new Set(rows.map((r:any)=>saleOperatorMap.get(r.reference_id)||r.operator_ref).filter(Boolean))];
+  const {data:ops,error:opErr}=operatorIds.length?await supabase.from('operators').select('id,name').in('id',operatorIds):{data:[],error:null} as any;
   if(opErr)throw opErr;
   const opMap=new Map((ops||[]).map((o:any)=>[o.id,o.name]));
-  return rows.map((r:any)=>({...r,operator_name:opMap.get(r.operator_ref||r.created_by)||'Sistema'}));
+  return rows.map((r:any)=>{const operatorId=saleOperatorMap.get(r.reference_id)||r.operator_ref;return {...r,operator_name:opMap.get(operatorId)||'Sistema'};});
 }
 
 async function getAuditLogs(limit = 300) {
