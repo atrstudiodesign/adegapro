@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-02-cash-history-help-v5.18',
-  version: '5.18',
-  dateLabel: '02/10/2026 · 14:00 BRT',
-  title: 'Histórico de caixa e ajuda ampliados',
+  releaseId: '2026-10-02-pdv-regression-gates-v5.20',
+  version: '5.20',
+  dateLabel: '02/10/2026 · 19:37 BRT',
+  title: 'Gates de regressão PDV, caixa e estoque',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Qualidade: adicionados gates de regressão para PDV, caixa e estoque antes de novas publicações.',
     'Caixas & Sessões: histórico clicável por turno com mini-dashboard do operador, vendas, faturamento, pagamentos, sangrias, suprimentos e diferença de fechamento.',
     'Ajuda: nova seção Como usar o Adega Pro disponível aos usuários logados pela Central de Suporte.',
     'Landing page: novas áreas de Novidades & Updates e FAQ robusto sobre operação, multi-loja, estoque, caixa, segurança e suporte.',
