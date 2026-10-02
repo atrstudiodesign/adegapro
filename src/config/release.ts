@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-01-client-referral-v5.10',
-  version: '5.10',
-  dateLabel: '01/10/2026 · outubro · 17:44 BRT',
+  releaseId: '2026-10-01-sales-actions-v5.11',
+  version: '5.11',
+  dateLabel: '01/10/2026 · outubro · 23:14 BRT',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Vendas & cupons: ações administrativas para visualizar cupom, alterar desconto e cancelar venda com estorno sincronizado de estoque, caixa e financeiro.',
     'Indicações: clientes ativos agora podem indicar novos clientes pelo Adega Pro, acompanhar status, pontos e cashback com sincronização direta ao ATR Control.',
     'PDV: pagamento em Cartão agora abre a escolha entre Débito e Crédito antes da finalização da venda.',
     'PIX manual por loja: QR Code configurado em Integrações e confirmação Pendente, Cancelado ou Pago antes de finalizar a venda.',
