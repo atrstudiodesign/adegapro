@@ -1059,6 +1059,8 @@ async function registerCashMovement(sessionId: string, type: 'SANGRIA'|'SUPRIMEN
   return data as string;
 }
 
+async function reverseCashMovement(movementId:string,reason:string){const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('reverse_cash_movement_secure',{p_movement_id:movementId,p_operator_token:token,p_reason:reason});if(error)throw error;return data as string;}
+
 async function closeCashSession(sessionId: string, countedCash: number, notes?: string) {
   const token = getOperatorToken();
   if (!token) throw new Error('Sessão do operador não encontrada.');
@@ -1218,6 +1220,7 @@ export const productionDb = {
   getCashMovements,
   openCashSession,
   registerCashMovement,
+  reverseCashMovement,
   closeCashSession,
   getHrSnapshot,
   saveHrEmployee,
