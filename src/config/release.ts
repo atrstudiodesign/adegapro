@@ -1,10 +1,12 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-02-cash-history-help-v5.18',
-  version: '5.18',
-  dateLabel: '02/10/2026 · 14:00 BRT',
-  title: 'Histórico de caixa e ajuda ampliados',
+  releaseId: '2026-10-02-legal-hash-pdv-v5.19',
+  version: '5.19',
+  dateLabel: '02/10/2026 · 18:25 BRT',
+  title: 'Integridade legal e PDV reforçados',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Legal r8: hashes de conteúdo substituídos por SHA-256 reais e auditáveis no registro dos documentos ativos.',
+    'PDV: correções publicadas para total de pagamento com desconto e bloqueio de combos órfãos na finalização.',
     'Caixas & Sessões: histórico clicável por turno com mini-dashboard do operador, vendas, faturamento, pagamentos, sangrias, suprimentos e diferença de fechamento.',
     'Ajuda: nova seção Como usar o Adega Pro disponível aos usuários logados pela Central de Suporte.',
     'Landing page: novas áreas de Novidades & Updates e FAQ robusto sobre operação, multi-loja, estoque, caixa, segurança e suporte.',
