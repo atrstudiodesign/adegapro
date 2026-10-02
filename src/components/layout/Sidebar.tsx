@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[1px]"
         />
       )}
-      <aside className={`ap-premium-sidebar fixed inset-y-0 left-0 z-50 w-[86vw] max-w-72 lg:static lg:translate-x-0 lg:w-[184px] lg:shrink-0 bg-[#071019] border-r border-cyan-500/10 flex flex-col overflow-y-auto select-none shadow-2xl transition-transform duration-200 ease-out ${
+      <aside className={`ap-premium-sidebar fixed inset-y-0 left-0 z-50 w-[86vw] max-w-72 bg-[#071019] border-r border-cyan-500/10 flex flex-col overflow-y-auto select-none shadow-2xl transition-transform duration-200 ease-out ${
         mobileOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
       {/* Role Profile Badge Indicator */}
