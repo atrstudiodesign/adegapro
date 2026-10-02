@@ -1170,6 +1170,9 @@ async function getStoreOperators(){const ctx=await getContext();const {data,erro
 
 async function getHrAttendance(){const ctx=await getContext();const {data,error}=await supabase.from('hr_shift_attendance').select('*').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).order('event_at',{ascending:false}).limit(300);if(error)throw error;return data||[];}
 
+async function getHrCashWithdrawals(){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('get_hr_cash_withdrawals',{p_store_id:ctx.storeId,p_operator_token:token});if(error)throw error;return data||[];}
+async function resolveHrCashWithdrawal(id:string,status:'APLICADO_FOLHA'|'NAO_DESCONTAR'|'CANCELADO',payrollEntryId?:string,notes?:string){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {error}=await supabase.rpc('resolve_hr_cash_withdrawal',{p_store_id:ctx.storeId,p_operator_token:token,p_id:id,p_status:status,p_payroll_entry_id:payrollEntryId||null,p_notes:notes||null});if(error)throw error;}
+
 async function registerHrAttendance(operatorId:string,eventType:'ENTRADA_PIN'|'SAIDA_TURNO'|'FALTA',notes?:string,accessOrigin:'NA_LOJA'|'EXTERNO'|'NAO_INFORMADO'='NAO_INFORMADO'){const ctx=await getContext();const {data,error}=await supabase.rpc('record_operator_attendance_v2',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:eventType,p_notes:notes||null,p_access_origin:accessOrigin});if(error)throw error;return data;}
 
 async function adminUpdateHrAttendance(attendanceId:string,action:'ALTERAR'|'CANCELAR',payload:{event_at?:string;notes?:string;access_origin?:'NA_LOJA'|'EXTERNO'|'NAO_INFORMADO';reason:string}){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {error}=await supabase.rpc('admin_update_hr_attendance',{p_store_id:ctx.storeId,p_operator_token:token,p_attendance_id:attendanceId,p_action:action,p_event_at:payload.event_at||null,p_notes:payload.notes??null,p_access_origin:payload.access_origin||null,p_reason:payload.reason});if(error)throw error;}
@@ -1328,6 +1331,8 @@ export const productionDb = {
   getHrSnapshot,
   getHrAttendance,
   getStoreOperators,
+  getHrCashWithdrawals,
+  resolveHrCashWithdrawal,
   registerHrAttendance,
   adminUpdateHrAttendance,registerHrAbsence,
   saveHrEmployee,
