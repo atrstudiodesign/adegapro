@@ -1079,6 +1079,9 @@ async function getCashMovements(sessionId?: string): Promise<CashMovement[]> {
   }));
 }
 
+async function addCashSessionAdminNote(sessionId:string,note:string,alert=false){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('add_cash_session_admin_note',{p_store_id:ctx.storeId,p_operator_token:token,p_session_id:sessionId,p_note:note,p_alert:alert});if(error)throw error;return data;}
+async function adminAmendCashSession(sessionId:string,action:'ALTERAR'|'CANCELAR',notes:string,reason:string){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {error}=await supabase.rpc('admin_amend_cash_session',{p_store_id:ctx.storeId,p_operator_token:token,p_session_id:sessionId,p_action:action,p_notes:notes||'',p_reason:reason});if(error)throw error;}
+
 async function getCashSessionDetails(sessionId:string) {
   const ctx=await getContext();
   const {data:session,error:sessionError}=await supabase
@@ -1323,6 +1326,8 @@ export const productionDb = {
   getCurrentCashSession,
   getCashSessions,
   getCashMovements,
+  addCashSessionAdminNote,
+  adminAmendCashSession,
   getCashSessionDetails,
   openCashSession,
   registerCashMovement,
