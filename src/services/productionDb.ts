@@ -1021,7 +1021,7 @@ async function getCashSessions(): Promise<CashSession[]> {
   const ctx = await getContext();
   const { data, error } = await supabase
     .from('cash_sessions')
-    .select('*')
+    .select('*, operators:operator_ref(id,name)')
     .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .order('opened_at', { ascending: false })
@@ -1108,6 +1108,8 @@ async function getHrSnapshot(){
   if(error) throw error;
   return data||{employees:[],payroll:[],policies:[],metrics:{}};
 }
+
+async function registerHrAbsence(operatorId:string,eventAt:string,notes:string){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('register_hr_absence_secure',{p_store_id:ctx.storeId,p_operator_token:token,p_absent_operator_id:operatorId,p_event_at:eventAt,p_notes:notes});if(error)throw error;return data as string;}
 
 async function saveHrEmployee(payload:Record<string,unknown>){
   const ctx=await getContext();
@@ -1250,7 +1252,7 @@ export const productionDb = {
   closeCashSession,
   getHrSnapshot,
   getHrAttendance,
-  registerHrAttendance,
+  registerHrAttendance,registerHrAbsence,
   saveHrEmployee,
   saveHrPayrollEntry,
   saveHrPolicy,
