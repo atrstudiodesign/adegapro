@@ -10,6 +10,7 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
   const[customers,setCustomers]=useState<any[]>([]);
   const[sessions,setSessions]=useState<any[]>([]);
   const[expiry,setExpiry]=useState<any[]>([]);
+  const[stockMoves,setStockMoves]=useState<any[]>([]);
   const[analytics,setAnalytics]=useState<any>({});
   const[shiftSummary,setShiftSummary]=useState<any>({day_revenue:0,day_count:0,shifts:[]});
   const[busy,setBusy]=useState(true);
@@ -18,15 +19,16 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
   const load=async()=>{
     setBusy(true);setError('');
     try{
-      const[p,c,s,e,a,sh]=await Promise.all([
+      const[p,c,s,e,a,sh,sm]=await Promise.all([
         productionDb.getProducts(),
         productionDb.getCustomers(),
         productionDb.getCashSessions(),
         productionDb.getExpiryAlerts(30),
         productionDb.getDashboardAnalytics(),
-        productionDb.getStoreShiftSummary()
+        productionDb.getStoreShiftSummary(),
+        productionDb.getStockMovements()
       ]);
-      setProducts(p);setCustomers(c);setSessions(s);setExpiry(e);setAnalytics(a||{});setShiftSummary(sh||{day_revenue:0,day_count:0,shifts:[]});
+      setProducts(p);setCustomers(c);setSessions(s);setExpiry(e);setAnalytics(a||{});setShiftSummary(sh||{day_revenue:0,day_count:0,shifts:[]});setStockMoves(sm||[]);
     }catch(err:any){setError(err?.message||'Falha ao carregar dashboard.');}
     finally{setBusy(false);}
   };
@@ -41,6 +43,10 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
   const topProducts=Array.isArray(analytics?.top_products)?analytics.top_products:[];
   const topCategories=Array.isArray(analytics?.top_categories)?analytics.top_categories:[];
   const maxRevenue=Math.max(1,...last7.map((x:any)=>Number(x.revenue||0)));
+  const inventoryInsights=useMemo(()=>products.filter((p:any)=>!p.isCombo).map((p:any)=>{const pm=stockMoves.filter((m:any)=>m.product_id===p.id);const exits30=pm.filter((m:any)=>Date.now()-new Date(m.created_at).getTime()<=30*86400000&&Number(m.next_stock||0)<Number(m.previous_stock||0)).reduce((n:number,m:any)=>n+Math.abs(Number(m.next_stock||0)-Number(m.previous_stock||0)),0);const lastExit=pm.filter((m:any)=>Number(m.next_stock||0)<Number(m.previous_stock||0)).sort((a:any,b:any)=>String(b.created_at).localeCompare(String(a.created_at)))[0];const stagnantDays=lastExit?Math.floor((Date.now()-new Date(lastExit.created_at).getTime())/86400000):999;const suggested=Math.max(0,Math.ceil(Math.max(Number(p.minStock||0),exits30)-Number(p.currentStock||0)));return{p,exits30,stagnantDays,suggested};}),[products,stockMoves]);
+  const topExit=[...inventoryInsights].filter(x=>x.exits30>0).sort((a,b)=>b.exits30-a.exits30).slice(0,5);
+  const stagnantItems=inventoryInsights.filter(x=>x.p.currentStock>0&&x.stagnantDays>=30).sort((a,b)=>b.stagnantDays-a.stagnantDays).slice(0,5);
+  const restockItems=inventoryInsights.filter(x=>x.suggested>0).sort((a,b)=>b.suggested-a.suggested).slice(0,8);
   const payables=analytics?.payables||{};
   const receivables=analytics?.receivables||{};
 
@@ -94,6 +100,12 @@ export const ProductionDashboardView:React.FC<{onNavigate:(tab:string)=>void}> =
         <button onClick={()=>onNavigate('purchases')} className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex justify-between gap-3 text-left"><span><span className="block text-xs font-bold">Validades</span><span className="text-[10px] text-neutral-500">{expiry.length} lote(s) em até 30 dias</span></span><StatusBadge tone={expiry.length?'warning':'success'}>{expiry.length?'Revisar':'OK'}</StatusBadge></button>
         <button onClick={()=>onNavigate('finance')} className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex justify-between gap-3 text-left"><span><span className="block text-xs font-bold">Contas vencidas</span><span className="text-[10px] text-neutral-500">Pagar {money(payables.overdue)} · Receber {money(receivables.overdue)}</span></span><StatusBadge tone={Number(payables.overdue||0)+Number(receivables.overdue||0)>0?'danger':'success'}>Financeiro</StatusBadge></button>
       </section>
+    </div>
+
+    <div className="grid xl:grid-cols-3 gap-4">
+      <section className="ap-panel p-4"><div className="flex justify-between"><div><h2 className="font-black text-white">Reposição sugerida</h2><p className="text-[10px] text-neutral-500">Giro 30d + mínimo + saldo</p></div><button onClick={()=>onNavigate('stock')} className="text-[10px] font-black text-amber-400">INVENTÁRIO</button></div><div className="mt-3 space-y-2">{restockItems.length?restockItems.map(x=><div key={x.p.id} className="flex justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><span className="truncate">{x.p.name}<small className="block text-neutral-500">saldo {x.p.currentStock} · saída {x.exits30}</small></span><strong className="text-emerald-400 shrink-0">Comprar {x.suggested}</strong></div>):<div className="text-xs text-neutral-500">Nenhuma reposição sugerida.</div>}</div></section>
+      <section className="ap-panel p-4"><h2 className="font-black text-white">Maior saída · 30 dias</h2><p className="text-[10px] text-neutral-500">Ranking rápido de giro</p><div className="mt-3 space-y-2">{topExit.length?topExit.map((x,i)=><div key={x.p.id} className="flex justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><span><b className="text-amber-400 mr-2">#{i+1}</b>{x.p.name}</span><strong>{x.exits30} {x.p.unit}</strong></div>):<div className="text-xs text-neutral-500">Sem saídas no período.</div>}</div></section>
+      <section className="ap-panel p-4"><h2 className="font-black text-white">Estoque estacionado</h2><p className="text-[10px] text-neutral-500">Com saldo e sem saída ≥30 dias</p><div className="mt-3 space-y-2">{stagnantItems.length?stagnantItems.map(x=><div key={x.p.id} className="flex justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><span className="truncate">{x.p.name} · saldo {x.p.currentStock}</span><strong className="text-rose-300 shrink-0">{x.stagnantDays>=999?'sem saída':x.stagnantDays+'d'}</strong></div>):<div className="text-xs text-neutral-500">Nenhum item estacionado.</div>}</div></section>
     </div>
 
     <section className="ap-panel p-4">
