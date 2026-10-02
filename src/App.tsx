@@ -297,7 +297,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col font-sans text-neutral-100 antialiased selection:bg-amber-500 selection:text-neutral-950 relative">
+    <div className="ap-premium-shell min-h-screen bg-neutral-950 flex flex-col font-sans text-neutral-100 antialiased selection:bg-amber-500 selection:text-neutral-950 relative">
       {appMode === 'DEMO' && (
         <div className="bg-violet-600 text-white text-[11px] font-black tracking-[0.18em] uppercase text-center py-1.5 border-b border-violet-400/30">
           Modo Demonstração · Dados fictícios e isolados · Não altera o banco real
@@ -333,7 +333,7 @@ export default function App() {
           featureAccess={featureAccess}
         />
 
-        <main className="app-content flex-1 min-w-0 flex flex-col overflow-hidden bg-neutral-950">
+        <main className="app-content ap-premium-content flex-1 min-w-0 flex flex-col overflow-hidden bg-neutral-950">
           {currentTab === 'dashboard' && (
             appMode === 'PRODUCTION' ? (
               <ProductionDashboardView onNavigate={tab => setCurrentTab(tab)} />
@@ -452,6 +452,15 @@ export default function App() {
           )}
         </main>
       </div>
+      <nav className="ap-mobile-dock lg:hidden" aria-label="Navegação principal mobile">
+        {[
+          ['dashboard','⌂','Início'],
+          ['pos','🛒','PDV'],
+          ['cash','▣','Caixa'],
+          ['stock','◇','Estoque'],
+          ['__menu','☰','Menu']
+        ].map(([id,icon,label])=><button key={id} onClick={()=>id==='__menu'?setMobileNavOpen(true):setCurrentTab(id)} className={currentTab===id?'active':''}><span>{icon}</span><small>{label}</small></button>)}
+      </nav>
     </div>
   );
 }
