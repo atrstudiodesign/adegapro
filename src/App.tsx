@@ -321,7 +321,7 @@ export default function App() {
       />
 
       {/* Main Workspace: Sidebar + Dynamic Module View */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-0 overflow-visible">
         {/* Hide sidebar when in full-focus POS mode on smaller screens or allow instant collapse */}
         <Sidebar
           currentTab={currentTab}
@@ -333,7 +333,7 @@ export default function App() {
           featureAccess={featureAccess}
         />
 
-        <main className="app-content ap-premium-content flex-1 min-w-0 flex flex-col overflow-hidden bg-neutral-950">
+        <main className="app-content ap-premium-content flex-1 min-w-0 min-h-0 flex flex-col overflow-y-auto overflow-x-hidden bg-neutral-950">
           {currentTab === 'dashboard' && (
             appMode === 'PRODUCTION' ? (
               <ProductionDashboardView onNavigate={tab => setCurrentTab(tab)} />
