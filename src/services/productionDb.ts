@@ -396,6 +396,26 @@ async function getProducts(): Promise<Product[]> {
 
   const stock = new Map((balances || []).map((b:any) => [b.product_id, Number(b.quantity || 0)]));
   const rows = products || [];
+
+  // A product flagged as combo is sellable as a combo only when the canonical
+  // combos table has an active/non-expired configuration for this tenant.
+  // This prevents legacy/imported orphan combo products from reaching finalize_sale.
+  const comboProductIds = rows.filter((p:any) => p.is_combo).map((p:any) => p.id);
+  const configuredComboProducts = new Set<string>();
+  if (comboProductIds.length) {
+    const { data: configuredCombos, error: comboError } = await supabase
+      .from('combos')
+      .select('product_id,active,valid_until')
+      .eq('tenant_id', ctx.tenantId)
+      .in('product_id', comboProductIds);
+    if (comboError) throw comboError;
+    const now = Date.now();
+    (configuredCombos || []).forEach((c:any) => {
+      const valid = c.active && (!c.valid_until || new Date(c.valid_until).getTime() >= now);
+      if (valid) configuredComboProducts.add(c.product_id);
+    });
+  }
+
   const paths = rows.filter((p:any) => p.image_path && !p.image_url).map((p:any) => p.image_path);
   const signedByPath = new Map<string,string>();
 
@@ -411,11 +431,18 @@ async function getProducts(): Promise<Product[]> {
     }
   }
 
-  return rows.map((p:any) => ({
-    ...mapProduct(p, stock.get(p.id) || 0),
-    imageUrl: p.image_url || (p.image_path ? signedByPath.get(p.image_path) : undefined),
-    imageSourceUrl: p.image_url || undefined
-  }));
+  return rows.map((p:any) => {
+    const mapped = mapProduct(p, stock.get(p.id) || 0);
+    return {
+      ...mapped,
+      // Keep the persisted flag untouched in Supabase, but never advertise an
+      // orphan/expired combo as sellable through the combo transaction path.
+      isCombo: Boolean(p.is_combo && configuredComboProducts.has(p.id)),
+      comboConfigurationMissing: Boolean(p.is_combo && !configuredComboProducts.has(p.id)),
+      imageUrl: p.image_url || (p.image_path ? signedByPath.get(p.image_path) : undefined),
+      imageSourceUrl: p.image_url || undefined
+    };
+  });
 }
 
 async function saveProduct(product: Partial<Product> & { name: string; salePrice: number }): Promise<Product> {
