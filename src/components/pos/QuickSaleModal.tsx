@@ -190,7 +190,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
     setMatchedProduct(null);
 
     if (!continuousMode) {
-      onClose();
+      requestClose();
     } else {
       setTimeout(() => {
         inputRef.current?.focus();
