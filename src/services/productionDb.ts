@@ -976,7 +976,7 @@ function getOperatorProfile() {
   return raw ? JSON.parse(raw) : null;
 }
 
-async function verifyOperatorPin(operatorId: string, pin: string) {
+async function verifyOperatorPin(operatorId: string, pin: string, accessOrigin:'NA_LOJA'|'EXTERNO'='NA_LOJA') {
   const ctx = await getContext();
   const { data, error } = await supabase.rpc('verify_operator_pin', {
     p_store_id: ctx.storeId,
@@ -985,7 +985,7 @@ async function verifyOperatorPin(operatorId: string, pin: string) {
   });
   if (error) throw error;
   if (data?.ok && data?.operator_session_token) {
-    try { await supabase.rpc('record_operator_attendance',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:'ENTRADA_PIN',p_notes:'Entrada registrada por validação de PIN'}); } catch {}
+    try { await supabase.rpc('record_operator_attendance_v2',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:'ENTRADA_PIN',p_notes:'Entrada registrada por validação de PIN',p_access_origin:accessOrigin}); } catch {}
     sessionStorage.setItem(OPERATOR_TOKEN_KEY, data.operator_session_token);
     sessionStorage.setItem(OPERATOR_PROFILE_KEY, JSON.stringify(data.operator));
   }
@@ -1170,7 +1170,9 @@ async function getStoreOperators(){const ctx=await getContext();const {data,erro
 
 async function getHrAttendance(){const ctx=await getContext();const {data,error}=await supabase.from('hr_shift_attendance').select('*').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).order('event_at',{ascending:false}).limit(300);if(error)throw error;return data||[];}
 
-async function registerHrAttendance(operatorId:string,eventType:'ENTRADA_PIN'|'SAIDA_TURNO'|'FALTA',notes?:string){const ctx=await getContext();const {data,error}=await supabase.rpc('record_operator_attendance',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:eventType,p_notes:notes||null});if(error)throw error;return data;}
+async function registerHrAttendance(operatorId:string,eventType:'ENTRADA_PIN'|'SAIDA_TURNO'|'FALTA',notes?:string,accessOrigin:'NA_LOJA'|'EXTERNO'|'NAO_INFORMADO'='NAO_INFORMADO'){const ctx=await getContext();const {data,error}=await supabase.rpc('record_operator_attendance_v2',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:eventType,p_notes:notes||null,p_access_origin:accessOrigin});if(error)throw error;return data;}
+
+async function adminUpdateHrAttendance(attendanceId:string,action:'ALTERAR'|'CANCELAR',payload:{event_at?:string;notes?:string;access_origin?:'NA_LOJA'|'EXTERNO'|'NAO_INFORMADO';reason:string}){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {error}=await supabase.rpc('admin_update_hr_attendance',{p_store_id:ctx.storeId,p_operator_token:token,p_attendance_id:attendanceId,p_action:action,p_event_at:payload.event_at||null,p_notes:payload.notes??null,p_access_origin:payload.access_origin||null,p_reason:payload.reason});if(error)throw error;}
 
 async function getHrSnapshot(){
   const ctx=await getContext();
@@ -1326,7 +1328,8 @@ export const productionDb = {
   getHrSnapshot,
   getHrAttendance,
   getStoreOperators,
-  registerHrAttendance,registerHrAbsence,
+  registerHrAttendance,
+  adminUpdateHrAttendance,registerHrAbsence,
   saveHrEmployee,
   saveHrPayrollEntry,
   saveHrPolicy,
