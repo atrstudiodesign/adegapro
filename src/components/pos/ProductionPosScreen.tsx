@@ -134,8 +134,22 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     if(cart.length===0||total<=0)return;
     if(method==='PIX'&&pixStatus!=='PAID'){setError('Confirme o PIX como PAGO antes de finalizar.');return;}
     if(method==='FIADO'&&!customerId){setError('Selecione um cliente para venda fiada.');return;}
+    const normalizedDiscount=Math.round(discount*100)/100;
+    const normalizedSubtotal=Math.round(subtotal*100)/100;
+    if(normalizedDiscount<0||normalizedDiscount>normalizedSubtotal){setError('Desconto inválido. O desconto não pode superar o subtotal.');return;}
     const amount=method==='DINHEIRO'?tenderedNumber:total;
     if(!Number.isFinite(amount)||amount<total){setError('Valor recebido insuficiente.');return;}
+
+    // The database calculates the sale total from item-level discounts.
+    // Allocate the cart discount across lines so UI total, payment and RPC total are identical.
+    let remainingDiscountCents=Math.round(normalizedDiscount*100);
+    const saleItems=cart.map(l=>{
+      const lineGrossCents=Math.round(l.product.salePrice*l.quantity*100);
+      const lineDiscountCents=Math.min(remainingDiscountCents,lineGrossCents);
+      remainingDiscountCents-=lineDiscountCents;
+      return {product_id:l.product.id,quantity:l.quantity,discount:lineDiscountCents/100};
+    });
+    if(remainingDiscountCents!==0){setError('Não foi possível distribuir o desconto entre os itens. Revise a venda.');return;}
 
     setBusy(true);setError('');setMessage('');
     try{
@@ -143,7 +157,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         cash_session_id:currentSession.id,
         customer_id:customerId||null,
         idempotency_key:crypto.randomUUID(),
-        items:cart.map(l=>({product_id:l.product.id,quantity:l.quantity,discount:0})),
+        items:saleItems,
         payments:[{method,amount,change_amount:change,provider:'MANUAL'}],
         surcharge:0
       });
