@@ -15,7 +15,10 @@ import {
   Sparkles,
   ShoppingBag,
   Volume2,
-  VolumeX
+  VolumeX,
+  Maximize2,
+  Minimize2,
+  AlertTriangle
 } from 'lucide-react';
 
 interface QuickSaleModalProps {
@@ -40,11 +43,19 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
   const [codeInput, setCodeInput] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [continuousMode, setContinuousMode] = useState(true);
+  const [fullScreen, setFullScreen] = useState(false);
+  const [exitWarning, setExitWarning] = useState(false);
   const [matchedProduct, setMatchedProduct] = useState<Product | null>(null);
   const [recentScans, setRecentScans] = useState<Array<{ product: Product; qty: number; timestamp: string }>>([]);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const hasActiveSale = currentCartCount > 0;
+  const requestClose = () => {
+    if (hasActiveSale) { setExitWarning(true); inputRef.current?.focus(); return; }
+    setExitWarning(false); setFullScreen(false); onClose();
+  };
 
   // Auto-focus on open
   useEffect(() => {
@@ -53,6 +64,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
       setQuantity(1);
       setMatchedProduct(null);
       setFeedback(null);
+      setExitWarning(false);
       setTimeout(() => {
         inputRef.current?.focus();
       }, 50);
@@ -199,7 +211,8 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
         handleExecuteAdd(false);
       }
     } else if (e.key === 'Escape') {
-      onClose();
+      e.preventDefault();
+      requestClose();
     }
   };
 
@@ -208,7 +221,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150">
       <div
-        className="bg-neutral-900 border border-amber-500/30 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col text-neutral-100"
+        className={`bg-neutral-900 border border-amber-500/30 overflow-hidden shadow-2xl flex flex-col text-neutral-100 transition-all ${fullScreen?'fixed inset-0 w-screen h-dvh rounded-none max-w-none':'w-full max-w-2xl rounded-3xl'}`}
         onKeyDown={handleKeyDown}
       >
         {/* Header with Luxury Brand Accent */}
@@ -263,8 +276,10 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
               <span className="text-[11px] font-semibold text-neutral-300">Manter aberto após bipar</span>
             </label>
 
+            <button type="button" onClick={()=>setFullScreen(v=>!v)} className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800" title={fullScreen?'Restaurar janela':'Tela cheia'}>{fullScreen?<Minimize2 size={20}/>:<Maximize2 size={20}/>}</button>
+
             <button
-              onClick={onClose}
+              onClick={requestClose}
               className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
               title="Fechar (ESC)"
             >
@@ -274,7 +289,9 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+        <div className={`p-6 space-y-5 overflow-y-auto ${fullScreen?'flex-1 max-h-none':'max-h-[75vh]'}`}>
+          {exitWarning&&<div className="p-4 rounded-2xl border border-amber-500/60 bg-amber-950/40 text-amber-200 flex items-start gap-3"><AlertTriangle size={19} className="shrink-0 mt-0.5"/><div><div className="font-black text-sm">Venda em andamento</div><div className="text-xs mt-1">Existem {currentCartCount} item(ns) no carrinho. Finalize ou cancele/limpe a venda no PDV antes de sair do Mini PDV.</div></div></div>}
+
           {/* Main Barcode & Code Input Field */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
@@ -518,7 +535,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs transition-colors cursor-pointer"
             >
               Concluir &amp; Fechar (ESC)
