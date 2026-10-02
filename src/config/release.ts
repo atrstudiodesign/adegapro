@@ -1,10 +1,14 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-02-mini-pdv-fullscreen-v5.15',
-  version: '5.15',
-  dateLabel: '02/10/2026 · outubro · Mini PDV fullscreen',
+  releaseId: '2026-10-02-operations-v5.16',
+  version: '5.16',
+  dateLabel: '02/10/2026 · outubro · 21:00 BRT',
   title: 'Adega Pro atualizado',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Estoque: validade por lote, FEFO, alertas de vencimento, ranking de giro, estoque estacionado e sugestão de reposição.',
+    'Dashboard: reposição sugerida, maior saída, estoque estacionado e alertas de validade da loja ativa.',
+    'RH: entrada por PIN, saída automática no fechamento do turno e registro administrativo de faltas com data, hora e observação.',
+    'Compras: lista imprimível de reposição para apoiar a próxima compra sem gerar pedido automático.',
     'Mini PDV: novo modo de tela cheia com restauração rápida; ESC/fechar ficam protegidos quando existe venda em andamento e orientam finalizar ou cancelar antes de sair.',
     'Operação 24h: Mini PDV e PDV completo permanecem sincronizados por loja; PIN aceita teclado físico; dashboard mostra faturamento do dia e por turno; caixa ganhou estorno auditável de sangria/suprimento.',
     'Mini PDV: carregamento de produtos, estoque, vendas, clientes e caixa ficou resiliente a falhas isoladas de sincronização, preservando os dados já disponíveis para o vendedor.',
