@@ -28,10 +28,27 @@ export const ProductionCashView: React.FC<Props> = ({ currentUser, currentSessio
   const run=async(fn:()=>Promise<void>)=>{ setBusy(true);setError('');setFeedback('');try{await fn();await onSessionUpdated();await load();}catch(e:any){setError(e?.message||'Operação não concluída.');}finally{setBusy(false);} };
 
   const open=()=>void run(async()=>{
-    const reg=registers.find(r=>r.status==='FECHADO'); if(!reg) throw new Error('Nenhum caixa fechado disponível.');
-    const raw=await adegaPrompt({title:'Abrir caixa',message:reg.number,label:'Saldo inicial (R$)',defaultValue:'100',inputMode:'decimal',confirmLabel:'Abrir caixa'}); if(raw===null)return;
+    // Never trust the cached cash_registers.status alone: another operator may have opened
+    // the register moments ago. Cross-check live sessions already loaded for this store.
+    const occupiedIds=new Set(sessions.filter(s=>s.status==='ABERTO').map(s=>s.cashRegisterId));
+    const freeRegisters=registers.filter(r=>r.status==='FECHADO'&&!occupiedIds.has(r.id));
+    if(!freeRegisters.length){
+      const occupied=sessions.filter(s=>s.status==='ABERTO').map(s=>`${s.cashRegisterNumber} · ${s.operatorName||'Operador'}`).join(' | ');
+      throw new Error(occupied?`Todos os caixas estão em uso: ${occupied}. Revise o turno antes de abrir outro caixa.`:'Nenhum caixa fechado disponível.');
+    }
+    const reg=freeRegisters[0];
+    const raw=await adegaPrompt({title:'Abrir caixa',message:reg.number+' · disponível',label:'Saldo inicial (R$)',defaultValue:'100',inputMode:'decimal',confirmLabel:'Abrir caixa'}); if(raw===null)return;
     const amount=Number(raw.replace(',','.')); if(!Number.isFinite(amount)||amount<0) throw new Error('Saldo inicial inválido.');
-    await productionDb.openCashSession(reg.id,currentUser.id,amount); setFeedback('Caixa aberto no servidor.');
+    try{
+      await productionDb.openCashSession(reg.id,currentUser.id,amount);
+    }catch(e:any){
+      if(String(e?.message||'').toLowerCase().includes('cash register already open')){
+        await load();
+        throw new Error('Este caixa acabou de ser aberto por outro operador. A lista foi atualizada; escolha um caixa disponível.');
+      }
+      throw e;
+    }
+    setFeedback('Caixa aberto no servidor.');
   });
 
   const movement=(type:'SANGRIA'|'SUPRIMENTO')=>void run(async()=>{
