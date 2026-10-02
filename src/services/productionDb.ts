@@ -984,7 +984,7 @@ async function getCurrentCashSession(): Promise<CashSession | undefined> {
   if (!operator?.id) return undefined;
   const { data, error } = await supabase
     .from('cash_sessions')
-    .select('*')
+    .select('*, operators:operator_ref(id,name)')
     .eq('tenant_id', ctx.tenantId)
     .eq('store_id', ctx.storeId)
     .eq('operator_ref', operator.id)
@@ -1010,7 +1010,7 @@ async function getCashSessions(): Promise<CashSession[]> {
   if (error) throw error;
   const registers = await getCashRegisters();
   const regMap = new Map(registers.map(r => [r.id, r]));
-  return (data || []).map((row:any) => mapCashSession(row, regMap.get(row.cash_register_id), undefined));
+  return (data || []).map((row:any) => mapCashSession(row, regMap.get(row.cash_register_id), row.operators));
 }
 
 async function getCashMovements(sessionId?: string): Promise<CashMovement[]> {
