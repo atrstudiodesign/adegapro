@@ -1,5 +1,5 @@
 import React,{useRef,useState} from 'react';
-import { AlertTriangle, CheckCircle2, DatabaseBackup, Download, ExternalLink, FileJson, Headphones, MessageCircle, Send, Upload } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, DatabaseBackup, Download, ExternalLink, FileJson, Headphones, MessageCircle, Send, Upload, BookOpen, ShoppingCart, Wallet, Boxes, Users, BarChart3, ShieldCheck } from 'lucide-react';
 import { PageHeader,StatusBadge } from '../ui/ProUi';
 import type { AppMode } from '../../services/appMode';
 import { productionDb } from '../../services/productionDb';
@@ -22,6 +22,21 @@ export const SupportView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
     {appMode==='DEMO'&&<div className="p-4 rounded-2xl border border-violet-500/30 bg-violet-500/10 text-violet-100 text-xs"><b>Modo demonstração:</b> os recursos de backup, download e importação estão visíveis apenas para apresentar a funcionalidade. Nenhum arquivo é gerado, baixado, restaurado ou importado neste modo. Para utilizar os recursos reais, assine o ADEGA PRO ou contrate um plano personalizado.</div>}
     {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
     {(feedback||sent)&&<div className="p-3 rounded-xl border border-emerald-800 bg-emerald-950/40 text-emerald-300 text-xs flex items-start gap-2"><CheckCircle2 size={15} className="mt-0.5 shrink-0"/>{feedback||(appMode==='PRODUCTION'?'Chamado registrado.':'Solicitação simulada.')}</div>}
+
+    <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
+      <div className="flex items-center gap-2"><BookOpen size={19} className="text-amber-400"/><h2 className="font-black text-white">Como usar o Adega Pro</h2></div>
+      <p className="text-xs text-neutral-400 mt-2">Guia rápido disponível em todo acesso logado pela área de Suporte. O administrador pode usar esta sequência também no treinamento da equipe.</p>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+        {[
+          [ShoppingCart,'1. Abrir e vender','Desbloqueie seu operador por PIN, abra o caixa, confira o saldo inicial e use o PDV para registrar cada venda.'],
+          [Wallet,'2. Controlar o turno','Sangria e suprimento devem ser registrados no caixa. Ao terminar, conte a gaveta e feche a sessão para gerar o histórico do turno.'],
+          [Boxes,'3. Estoque correto','Cadastre produtos, estoque mínimo e validade. Vendas baixam o saldo da loja ativa; inventário e movimentações ajudam na conferência.'],
+          [Users,'4. Clientes e fiado','Cadastre o cliente, consulte histórico e use fiado somente com limite e situação liberados.'],
+          [BarChart3,'5. Conferência do gestor','Dashboard, relatórios, financeiro e Caixas & Sessões mostram o resultado da unidade. Toque em um caixa antigo para abrir o mini-dashboard do vendedor.'],
+          [ShieldCheck,'6. Segurança multi-loja','Antes de operar, confira a loja ativa. Estoque, caixa, vendas e financeiro são separados por unidade e por permissões de acesso.']
+        ].map(([I,title,desc]:any)=><div key={title} className="p-4 rounded-xl bg-neutral-950 border border-neutral-800"><I size={17} className="text-amber-400"/><div className="text-xs font-black text-white mt-2">{title}</div><p className="text-[11px] text-neutral-500 mt-1 leading-relaxed">{desc}</p></div>)}
+      </div>
+    </section>
 
     <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
       <div className="flex items-center gap-2"><DatabaseBackup size={19} className="text-amber-400"/><h2 className="font-black text-white">Backup geral do sistema</h2></div>
