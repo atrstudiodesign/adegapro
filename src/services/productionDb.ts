@@ -1096,6 +1096,8 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
 }
 
 
+async function getStoreOperators(){const ctx=await getContext();const {data,error}=await supabase.from('operators').select('id,name,role,active').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).eq('active',true).order('name');if(error)throw error;return data||[];}
+
 async function getHrAttendance(){const ctx=await getContext();const {data,error}=await supabase.from('hr_shift_attendance').select('*').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).order('event_at',{ascending:false}).limit(300);if(error)throw error;return data||[];}
 
 async function registerHrAttendance(operatorId:string,eventType:'ENTRADA_PIN'|'SAIDA_TURNO'|'FALTA',notes?:string){const ctx=await getContext();const {data,error}=await supabase.rpc('record_operator_attendance',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:eventType,p_notes:notes||null});if(error)throw error;return data;}
@@ -1252,6 +1254,7 @@ export const productionDb = {
   closeCashSession,
   getHrSnapshot,
   getHrAttendance,
+  getStoreOperators,
   registerHrAttendance,registerHrAbsence,
   saveHrEmployee,
   saveHrPayrollEntry,
