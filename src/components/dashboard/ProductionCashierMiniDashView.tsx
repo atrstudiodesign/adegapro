@@ -15,8 +15,22 @@ export const ProductionCashierMiniDashView:React.FC<{onNavigate:(tab:string)=>vo
   const load=async()=>{
     setBusy(true);setError('');
     try{
-      const[s,p,c]=await Promise.all([productionDb.getSales(100),productionDb.getProducts(),productionDb.getCustomers()]);
-      setSales(s);setProducts(p);setCustomers(c);setSession(await productionDb.getCurrentCashSession());
+      const results=await Promise.allSettled([
+        productionDb.getSales(100),
+        productionDb.getProducts(),
+        productionDb.getCustomers(),
+        productionDb.getCurrentCashSession()
+      ]);
+      const[s,p,c,cs]=results;
+      if(s.status==='fulfilled')setSales(s.value);
+      if(p.status==='fulfilled')setProducts(p.value);
+      if(c.status==='fulfilled')setCustomers(c.value);
+      if(cs.status==='fulfilled')setSession(cs.value);
+      const failures=results.filter((r):r is PromiseRejectedResult=>r.status==='rejected');
+      if(failures.length){
+        const messages=failures.map(r=>r.reason?.message).filter(Boolean);
+        setError(messages[0]||'Alguns dados do Mini PDV não puderam ser sincronizados. Atualize para tentar novamente.');
+      }
     }catch(e:any){setError(e?.message||'Falha ao carregar mini PDV.');}
     finally{setBusy(false);}
   };
