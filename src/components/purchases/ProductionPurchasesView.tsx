@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import { ShoppingBag, Plus, RefreshCw, AlertTriangle, CalendarClock, Eye, X, Save, Trash2, PackageCheck } from 'lucide-react';
+import { ShoppingBag, Plus, RefreshCw, AlertTriangle, CalendarClock, Eye, X, Save, Trash2, PackageCheck, Printer } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import type { Product, Supplier } from '../../types';
 import { EmptyState, MetricCard, PageHeader, StatusBadge } from '../ui/ProUi';
@@ -18,6 +18,7 @@ export const ProductionPurchasesView:React.FC=()=>{
  const[feedback,setFeedback]=useState('');
  const[open,setOpen]=useState(false);
  const[details,setDetails]=useState<any>(null);
+ const[restockOpen,setRestockOpen]=useState(false);
 
  const[supplierId,setSupplierId]=useState('');
  const[invoice,setInvoice]=useState('');
@@ -83,9 +84,12 @@ export const ProductionPurchasesView:React.FC=()=>{
 
  const showDetails=async(id:string)=>{setBusy(true);setError('');try{setDetails(await productionDb.getPurchaseDetails(id));}catch(e:any){setError(e?.message||'Falha ao abrir detalhes.');}finally{setBusy(false);}};
 
+ const restock=useMemo(()=>products.filter(p=>!p.isCombo).map(p=>{const suggested=Math.max(0,Math.ceil(Number(p.minStock||0)-Number(p.currentStock||0)));return{p,suggested};}).filter(x=>x.suggested>0).sort((a,b)=>b.suggested-a.suggested),[products]);
+ const printRestock=()=>{setRestockOpen(true);window.setTimeout(()=>window.print(),80);};
+
  const monthTotal=rows.filter(r=>String(r.created_at||'').slice(0,7)===new Date().toISOString().slice(0,7)).reduce((s,r)=>s+Number(r.total||0),0);
  return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5 text-white">
-   <PageHeader eyebrow="Suprimentos" title="Compras & entradas de mercadorias" description="Recebimento, nota, lotes, validade, custo, troca de preço, estoque e contas a pagar." actions={<><button disabled={busy} onClick={()=>void load()} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs text-neutral-300 flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button><button disabled={busy||products.length===0} onClick={start} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><Plus size={14}/>Nova entrada</button></>}/>
+   <PageHeader eyebrow="Suprimentos" title="Compras & entradas de mercadorias" description="Recebimento, nota, lotes, validade, custo, troca de preço, estoque e contas a pagar." actions={<><button disabled={busy||!restock.length} onClick={printRestock} className="px-3 py-2 rounded-xl border border-emerald-700 text-xs text-emerald-300 flex items-center gap-2"><Printer size={14}/>Lista de reposição</button><button disabled={busy} onClick={()=>void load()} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs text-neutral-300 flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button><button disabled={busy||products.length===0} onClick={start} className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2"><Plus size={14}/>Nova entrada</button></>}/>
 
    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3"><MetricCard label="Entradas" value={rows.length} icon={ShoppingBag}/><MetricCard label="Compras no mês" value={'R$ '+monthTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})} icon={PackageCheck} tone="emerald"/><MetricCard label="Alertas de validade" value={alerts.length} icon={CalendarClock} tone={alerts.length?'rose':'emerald'}/><MetricCard label="Produtos cadastrados" value={products.length} icon={PackageCheck}/></div>
 
@@ -134,5 +138,6 @@ export const ProductionPurchasesView:React.FC=()=>{
    </div></div>}
 
    {details&&<div className="fixed inset-0 z-50 bg-black/85 grid place-items-center p-3"><div className="w-full max-w-3xl max-h-[92dvh] overflow-y-auto rounded-2xl bg-neutral-900 border border-neutral-800 p-5"><div className="flex justify-between gap-3"><div><h2 className="font-black">Detalhes da entrada</h2><p className="text-xs text-neutral-500">Nota {details.purchase?.invoice_number||'—'} · {details.supplier?.trade_name||'Fornecedor não informado'}</p></div><button onClick={()=>setDetails(null)}><X size={18}/></button></div><div className="mt-4 space-y-2">{(details.items||[]).map((i:any)=><div key={i.id} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><div className="flex justify-between gap-3"><strong>{i.product_name}</strong><span>R$ {Number(i.total_cost||0).toFixed(2)}</span></div><div className="text-neutral-500 mt-1">{Number(i.quantity)} × R$ {Number(i.unit_cost||0).toFixed(2)} · lote {i.lot_number||'—'} · validade {i.expiry_date?new Date(i.expiry_date+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</div><div className="text-neutral-500 mt-1">Custo anterior R$ {Number(i.previous_cost||0).toFixed(2)} → R$ {Number(i.unit_cost||0).toFixed(2)} · venda anterior R$ {Number(i.previous_sale_price||0).toFixed(2)}{i.new_sale_price!=null?` → R$ ${Number(i.new_sale_price).toFixed(2)}`:''}</div></div>)}</div></div></div>}
+   {restockOpen&&<div className="fixed inset-0 z-[70] bg-black/90 grid place-items-center p-3 print:static print:bg-white print:text-black"><div className="w-full max-w-4xl max-h-[94dvh] overflow-y-auto rounded-2xl bg-white text-black p-6 print:max-w-none print:max-h-none"><div className="flex justify-between print:hidden"><h2 className="font-black">Lista de reposição</h2><button onClick={()=>setRestockOpen(false)}><X size={18}/></button></div><h1 className="text-xl font-black mt-3">ADEGA PRO · REPOSIÇÃO DE ESTOQUE</h1><p className="text-xs mt-1">Gerada em {new Date().toLocaleString('pt-BR')} · sugestão baseada no estoque mínimo da loja ativa.</p><table className="w-full text-xs mt-5 border-collapse"><thead><tr><th className="border p-2 text-left">Produto</th><th className="border p-2">Saldo</th><th className="border p-2">Mínimo</th><th className="border p-2">Comprar</th><th className="border p-2 text-left">Fornecedor / observação</th></tr></thead><tbody>{restock.map(x=><tr key={x.p.id}><td className="border p-2">{x.p.name}</td><td className="border p-2 text-center">{x.p.currentStock}</td><td className="border p-2 text-center">{x.p.minStock}</td><td className="border p-2 text-center font-black">{x.suggested}</td><td className="border p-2"></td></tr>)}</tbody></table><div className="mt-5 flex gap-2 print:hidden"><button onClick={()=>window.print()} className="px-4 py-2 rounded-xl bg-neutral-900 text-white font-black text-xs">Imprimir / salvar PDF</button><button onClick={()=>setRestockOpen(false)} className="px-4 py-2 rounded-xl border text-xs">Fechar</button></div></div></div>}
  </div>;
 };
