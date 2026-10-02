@@ -6,7 +6,7 @@ import {
 import { productionDb } from '../../services/productionDb';
 import { MetricCard,PageHeader,StatusBadge } from '../ui/ProUi';
 
-type Tab='EMPLOYEES'|'PAYROLL'|'AGENDA'|'ATTENDANCE'|'POLICIES';
+type Tab='EMPLOYEES'|'PAYROLL'|'AGENDA'|'ATTENDANCE'|'WITHDRAWALS'|'POLICIES';
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
 const date=(v:any)=>v?new Date(String(v)+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 
@@ -31,10 +31,11 @@ export const ProductionHrView:React.FC=()=>{
   const[operators,setOperators]=useState<any[]>([]);
   const[absence,setAbsence]=useState({operator_id:'',event_at:new Date().toISOString().slice(0,16),notes:''});
   const[attendanceFilter,setAttendanceFilter]=useState('');
+  const[withdrawals,setWithdrawals]=useState<any[]>([]);
 
   const load=async()=>{
     setBusy(true);setError('');
-    try{const [snapshot,currentStore,attendanceRows,operatorRows]=await Promise.all([productionDb.getHrSnapshot(),productionDb.getStore(),productionDb.getHrAttendance(),productionDb.getStoreOperators()]);setData(snapshot);setStore(currentStore);setAttendance(attendanceRows);setOperators(operatorRows);}
+    try{const [snapshot,currentStore,attendanceRows,operatorRows,withdrawalRows]=await Promise.all([productionDb.getHrSnapshot(),productionDb.getStore(),productionDb.getHrAttendance(),productionDb.getStoreOperators(),productionDb.getHrCashWithdrawals()]);setData(snapshot);setStore(currentStore);setAttendance(attendanceRows);setOperators(operatorRows);setWithdrawals(withdrawalRows);}
     catch(e:any){setError(e?.message||'Não foi possível carregar o RH interno.');}
     finally{setBusy(false);}
   };
@@ -344,6 +345,8 @@ export const ProductionHrView:React.FC=()=>{
         </div>
       </section>
     </div>}
+
+    {tab==='WITHDRAWALS'&&<section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden"><div className="p-4 border-b border-neutral-800"><h2 className="font-black">Retiradas de caixa</h2><p className="text-[10px] text-neutral-500 mt-1">Toda sangria feita por operador gera uma pendência aqui. O desconto no holerite só ocorre após confirmação administrativa.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[1000px] text-xs"><thead className="bg-neutral-950/70 text-neutral-500 uppercase"><tr><th className="p-3 text-left">Data</th><th className="p-3 text-left">Operador</th><th className="p-3 text-left">Valor</th><th className="p-3 text-left">Motivo</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Ações RH</th></tr></thead><tbody className="divide-y divide-neutral-800">{withdrawals.map((r:any)=>{const op=operators.find((o:any)=>o.id===r.operator_id);const employee=employees.find((e:any)=>e.id===r.employee_id);const pendingPayroll=payrollRows.filter((p:any)=>p.employee_id===r.employee_id&&p.status==='PENDENTE');return <tr key={r.id}><td className="p-3 text-neutral-400">{new Date(r.created_at).toLocaleString('pt-BR')}</td><td className="p-3 font-black">{op?.name||'Operador'}{employee?<div className="text-[9px] text-neutral-500">RH: {employee.full_name}</div>:<div className="text-[9px] text-amber-400">Sem vínculo com funcionário</div>}</td><td className="p-3 font-black text-rose-300">{money(r.amount)}</td><td className="p-3 text-neutral-400">{r.reason}</td><td className="p-3"><StatusBadge tone={r.status==='PENDENTE'?'warning':r.status==='APLICADO_FOLHA'?'success':'neutral'}>{r.status}</StatusBadge></td><td className="p-3">{r.status==='PENDENTE'?<div className="flex flex-wrap gap-1">{pendingPayroll.map((p:any)=><button key={p.id} disabled={busy} onClick={async()=>{if(!confirm('Aplicar '+money(r.amount)+' como adiantamento/desconto neste holerite?'))return;setBusy(true);try{await productionDb.resolveHrCashWithdrawal(r.id,'APLICADO_FOLHA',p.id,'Confirmado no RH');setFeedback('Retirada aplicada ao holerite.');await load();}catch(e:any){setError(e?.message||'Falha ao aplicar.');}finally{setBusy(false);}}} className="h-8 px-2 rounded-lg border border-emerald-800 text-emerald-300">Aplicar na folha {date(p.period_end)}</button>)}<button disabled={busy} onClick={async()=>{const n=prompt('Justificativa para não descontar:')?.trim();if(!n)return;setBusy(true);try{await productionDb.resolveHrCashWithdrawal(r.id,'NAO_DESCONTAR',undefined,n);await load();}catch(e:any){setError(e?.message||'Falha ao resolver.');}finally{setBusy(false);}}} className="h-8 px-2 rounded-lg border border-neutral-700">Não descontar</button></div>:<span className="text-neutral-500">{r.resolution_notes||'Resolvido'}</span>}</td></tr>})}{withdrawals.length===0&&<tr><td colSpan={6} className="p-6 text-center text-neutral-500">Nenhuma retirada de caixa registrada.</td></tr>}</tbody></table></div></section>}
 
     {tab==='POLICIES'&&<div className="grid xl:grid-cols-[.72fr_1.28fr] gap-4">
       <section className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900 space-y-3"><h2 className="font-black">Nova regra interna</h2><Field label="Título"><Input value={policy.title} onChange={v=>setPolicy({...policy,title:v})}/></Field><Field label="Regra / descrição"><textarea className="input min-h-36" value={policy.description} onChange={e=>setPolicy({...policy,description:e.target.value})}/></Field><label className="flex items-center gap-2 text-xs text-neutral-300"><input type="checkbox" checked={!!policy.active} onChange={e=>setPolicy({...policy,active:e.target.checked})}/> Regra ativa</label><button disabled={busy||!policy.title.trim()||!policy.description.trim()} onClick={()=>void savePolicy()} className="w-full h-10 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black">Salvar regra</button></section>
