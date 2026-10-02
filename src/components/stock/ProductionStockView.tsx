@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Boxes, RefreshCw, SlidersHorizontal, AlertTriangle, TrendingUp } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import type { Product, Store } from '../../types';
@@ -66,6 +66,11 @@ export const ProductionStockView:React.FC=()=>{
    };
  };
 
+ const inventoryRanking=useMemo(()=>products.filter(p=>!p.isCombo).map(p=>{const pm=moves.filter((m:any)=>m.product_id===p.id);const exits30=pm.filter((m:any)=>{const d=Date.now()-new Date(m.created_at).getTime();const delta=Number(m.next_stock||0)-Number(m.previous_stock||0);return d<=30*86400000&&delta<0;}).reduce((n:number,m:any)=>n+Math.abs(Number(m.next_stock||0)-Number(m.previous_stock||0)),0);const lastExit=pm.filter((m:any)=>Number(m.next_stock||0)<Number(m.previous_stock||0)).sort((a:any,b:any)=>String(b.created_at).localeCompare(String(a.created_at)))[0];const daysWithoutExit=lastExit?Math.floor((Date.now()-new Date(lastExit.created_at).getTime())/86400000):999;const suggested=Math.max(0,Math.ceil(Math.max(Number(p.minStock||0),exits30)-Number(p.currentStock||0)));return{p,exits30,daysWithoutExit,suggested};}).sort((a,b)=>b.exits30-a.exits30),[products,moves]);
+ const fastMoving=inventoryRanking.filter(x=>x.exits30>0).slice(0,10);
+ const slowMoving=[...inventoryRanking].filter(x=>x.exits30>0).sort((a,b)=>a.exits30-b.exits30).slice(0,10);
+ const stagnant=inventoryRanking.filter(x=>x.p.currentStock>0&&x.daysWithoutExit>=30).sort((a,b)=>b.daysWithoutExit-a.daysWithoutExit);
+ const replenishment=inventoryRanking.filter(x=>x.suggested>0).sort((a,b)=>b.suggested-a.suggested);
  const critical=products.filter(p=>!p.isCombo&&p.currentStock<=0).length;
  const low=products.filter(p=>!p.isCombo&&p.currentStock>0&&p.currentStock<=p.minStock).length;
  const excess=products.filter(p=>!p.isCombo&&p.maxStock>0&&p.currentStock>p.maxStock).length;
@@ -125,6 +130,13 @@ export const ProductionStockView:React.FC=()=>{
       </table>
     </div>
   </section>}
+
+  <div className="grid xl:grid-cols-2 gap-4">
+   <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h2 className="font-black text-white">Ranking de saída · 30 dias</h2><p className="text-[10px] text-neutral-500 mt-1">Produtos com maior giro para orientar reposição.</p><div className="mt-3 space-y-2">{fastMoving.length?fastMoving.map((x,i)=><div key={x.p.id} className="flex justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><span><b className="text-amber-400 mr-2">#{i+1}</b>{x.p.name}</span><strong>{x.exits30} {x.p.unit}</strong></div>):<div className="text-xs text-neutral-500">Sem saídas nos últimos 30 dias.</div>}</div></section>
+   <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h2 className="font-black text-white">Menor saída / baixo giro</h2><p className="text-[10px] text-neutral-500 mt-1">Itens com movimento reduzido no período.</p><div className="mt-3 space-y-2">{slowMoving.length?slowMoving.map(x=><div key={x.p.id} className="flex justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><span>{x.p.name}</span><strong className="text-neutral-400">{x.exits30} {x.p.unit}</strong></div>):<div className="text-xs text-neutral-500">Sem histórico suficiente.</div>}</div></section>
+   <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h2 className="font-black text-white">Estoque estacionado</h2><p className="text-[10px] text-neutral-500 mt-1">Saldo disponível sem saída há 30 dias ou mais.</p><div className="mt-3 space-y-2">{stagnant.slice(0,12).map(x=><div key={x.p.id} className="flex justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><span>{x.p.name} · saldo {x.p.currentStock}</span><strong className="text-rose-300">{x.daysWithoutExit>=999?'sem saída registrada':x.daysWithoutExit+' dias'}</strong></div>)}</div></section>
+   <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h2 className="font-black text-white">Sugestão de compra / reposição</h2><p className="text-[10px] text-neutral-500 mt-1">Base: giro dos últimos 30 dias, estoque mínimo e saldo atual. É uma sugestão operacional, não gera compra automática.</p><div className="mt-3 space-y-2">{replenishment.slice(0,15).map(x=><div key={x.p.id} className="flex justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs"><span>{x.p.name}<span className="block text-[9px] text-neutral-500">saldo {x.p.currentStock} · saída 30d {x.exits30} · mínimo {x.p.minStock}</span></span><strong className="text-emerald-400">Comprar {x.suggested}</strong></div>)}</div></section>
+  </div>
 
   <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
     <h2 className="font-bold text-white mb-3">Últimas movimentações</h2>
