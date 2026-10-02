@@ -42,6 +42,7 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
+  const [accessOrigin,setAccessOrigin]=useState<'NA_LOJA'|'EXTERNO'>('NA_LOJA');
   const pinRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
     setChecking(true);
     setError('');
     try {
-      const result = await productionDb.verifyOperatorPin(selected.id, pin);
+      const result = await productionDb.verifyOperatorPin(selected.id, pin, accessOrigin);
       if (!result?.ok) {
         if (result?.code === 'LOCKED') {
           const min = Math.max(1, Math.ceil(Number(result.retry_after_seconds || 60) / 60));
@@ -175,6 +176,8 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
                 </select>
               </div>
             </label>
+
+            <div className="mt-4"><span className="text-xs font-bold text-neutral-300">Local do acesso</span><div className="grid grid-cols-2 gap-2 mt-1.5"><button type="button" onClick={()=>setAccessOrigin('NA_LOJA')} className={`h-10 rounded-xl border text-xs font-black ${accessOrigin==='NA_LOJA'?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-950 text-neutral-300 border-neutral-700'}`}>Na loja</button><button type="button" onClick={()=>setAccessOrigin('EXTERNO')} className={`h-10 rounded-xl border text-xs font-black ${accessOrigin==='EXTERNO'?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-950 text-neutral-300 border-neutral-700'}`}>Externo</button></div><p className="text-[10px] text-neutral-500 mt-1">Identifica a origem declarada do acesso no registro de presença.</p></div>
 
             <label className="block mt-4">
               <span className="text-xs font-bold text-neutral-300">PIN do operador</span>
