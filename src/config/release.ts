@@ -1,10 +1,12 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-02-cash-history-help-v5.18',
-  version: '5.18',
-  dateLabel: '02/10/2026 · 14:00 BRT',
-  title: 'Histórico de caixa e ajuda ampliados',
+  releaseId: '2026-10-02-loyalty-referral-policy-v5.19',
+  version: '5.19',
+  dateLabel: '02/10/2026 · 16:35 BRT',
+  title: 'Política pública de fidelidade e indicações',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Landing page: nova Política de Fidelidade e Indicações, separada do programa de vendedores, com Plano Mensal de R$ 149 e Fidelização + Personalização de R$ 990 em até 3x ou R$ 800 à vista.',
+    'Fidelização: quatro meses sem mensalidade; a partir do 5º mês, mensalidade de R$ 149 e uma indicação válida convertida no mês reduz a mensalidade seguinte para R$ 75, sem acumular cota.',
     'Caixas & Sessões: histórico clicável por turno com mini-dashboard do operador, vendas, faturamento, pagamentos, sangrias, suprimentos e diferença de fechamento.',
     'Ajuda: nova seção Como usar o Adega Pro disponível aos usuários logados pela Central de Suporte.',
     'Landing page: novas áreas de Novidades & Updates e FAQ robusto sobre operação, multi-loja, estoque, caixa, segurança e suporte.',
