@@ -1,10 +1,13 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-02-release-metadata-v5.17',
-  version: '5.17',
-  dateLabel: '02/10/2026 · 02:43 BRT',
-  title: 'Adega Pro atualizado',
+  releaseId: '2026-10-02-cash-history-help-v5.18',
+  version: '5.18',
+  dateLabel: '02/10/2026 · 14:00 BRT',
+  title: 'Histórico de caixa e ajuda ampliados',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Caixas & Sessões: histórico clicável por turno com mini-dashboard do operador, vendas, faturamento, pagamentos, sangrias, suprimentos e diferença de fechamento.',
+    'Ajuda: nova seção Como usar o Adega Pro disponível aos usuários logados pela Central de Suporte.',
+    'Landing page: novas áreas de Novidades & Updates e FAQ robusto sobre operação, multi-loja, estoque, caixa, segurança e suporte.',
     'Release: corrige o metadado do rodapé para registrar a data e hora reais desta publicação.',
     'Estoque: validade por lote, FEFO, alertas de vencimento, ranking de giro, estoque estacionado e sugestão de reposição.',
     'Dashboard: reposição sugerida, maior saída, estoque estacionado e alertas de validade da loja ativa.',

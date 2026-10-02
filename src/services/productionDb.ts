@@ -1052,6 +1052,49 @@ async function getCashMovements(sessionId?: string): Promise<CashMovement[]> {
   }));
 }
 
+async function getCashSessionDetails(sessionId:string) {
+  const ctx=await getContext();
+  const {data:session,error:sessionError}=await supabase
+    .from('cash_sessions')
+    .select('*, operators:operator_ref(id,name,role), cash_registers:cash_register_id(id,number,name)')
+    .eq('id',sessionId).eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).single();
+  if(sessionError) throw sessionError;
+
+  const [{data:sales,error:salesError},{data:movements,error:movementsError}]=await Promise.all([
+    supabase.from('sales')
+      .select('id,sale_number,total,status,operator_ref,created_at,sale_payments(method,amount,change_amount,status)')
+      .eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).eq('cash_session_id',sessionId)
+      .order('created_at',{ascending:false}),
+    supabase.from('cash_movements')
+      .select('id,movement_type,amount,reason,operator_ref,created_at')
+      .eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).eq('cash_session_id',sessionId)
+      .order('created_at',{ascending:false})
+  ]);
+  if(salesError) throw salesError;
+  if(movementsError) throw movementsError;
+
+  const paid=(sales||[]).filter((sale:any)=>sale.status==='PAGA');
+  const paymentTotals:Record<string,number>={};
+  paid.forEach((sale:any)=>(sale.sale_payments||[]).filter((p:any)=>p.status==='CONFIRMADO').forEach((p:any)=>{
+    paymentTotals[p.method]=(paymentTotals[p.method]||0)+Number(p.amount||0)-Number(p.change_amount||0);
+  }));
+  const total=paid.reduce((sum:number,sale:any)=>sum+Number(sale.total||0),0);
+  return {
+    session:mapCashSession(session,session.cash_registers,session.operators),
+    operator:session.operators||null,
+    sales:paid,
+    movements:movements||[],
+    metrics:{
+      salesCount:paid.length,
+      total,
+      averageTicket:paid.length?total/paid.length:0,
+      paymentTotals,
+      sangrias:(movements||[]).filter((m:any)=>m.movement_type==='SANGRIA').reduce((a:number,m:any)=>a+Number(m.amount||0),0),
+      suprimentos:(movements||[]).filter((m:any)=>m.movement_type==='SUPRIMENTO').reduce((a:number,m:any)=>a+Number(m.amount||0),0)
+    }
+  };
+}
+
 async function openCashSession(registerId: string, _operatorId: string | null, initialBalance: number) {
   const ctx = await getContext();
   const token = getOperatorToken();
@@ -1248,6 +1291,7 @@ export const productionDb = {
   getCurrentCashSession,
   getCashSessions,
   getCashMovements,
+  getCashSessionDetails,
   openCashSession,
   registerCashMovement,
   reverseCashMovement,
