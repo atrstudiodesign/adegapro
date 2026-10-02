@@ -105,8 +105,8 @@ export const ProductionStockView:React.FC=()=>{
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-800">
-          {products.map(p=>{const s=statsFor(p);return <tr key={p.id} className="hover:bg-neutral-800/40">
-            <td className="p-3 text-white font-bold">{p.name}<div className="text-[10px] font-normal text-neutral-500 mt-1">{p.sku||'SKU não informado'}</div></td>
+          {products.map(p=>{const s=statsFor(p);const level=p.isCombo?'normal':p.currentStock<=0?'critical':p.currentStock<=p.minStock?'low':p.maxStock>0&&p.currentStock>p.maxStock?'excess':'normal';const rowTone=level==='critical'?'bg-rose-950/45 hover:bg-rose-950/60':level==='low'?'bg-amber-950/30 hover:bg-amber-950/45':level==='excess'?'bg-violet-950/30 hover:bg-violet-950/45':'hover:bg-neutral-800/40';return <tr key={p.id} className={rowTone}>
+            <td className="p-3 text-white font-bold"><div className="flex items-center gap-2 flex-wrap"><span>{p.name}</span>{level==='critical'&&<span className="px-2 py-0.5 rounded-full border border-rose-500/50 bg-rose-500/15 text-rose-300 text-[9px] uppercase font-black">Crítico</span>}{level==='low'&&<span className="px-2 py-0.5 rounded-full border border-amber-500/50 bg-amber-500/15 text-amber-300 text-[9px] uppercase font-black">Estoque baixo</span>}{level==='excess'&&<span className="px-2 py-0.5 rounded-full border border-violet-500/50 bg-violet-500/15 text-violet-300 text-[9px] uppercase font-black">Acima da média</span>}</div><div className="text-[10px] font-normal text-neutral-500 mt-1">{p.sku||'SKU não informado'}</div></td>
             <td className="p-3 text-neutral-300">{p.unit||'—'}</td>
             <td className="p-3 text-right font-mono">{p.costPrice>0?money(p.costPrice):'—'}</td>
             <td className="p-3 text-right font-mono">{p.salePrice>0?money(p.salePrice):'—'}</td>
