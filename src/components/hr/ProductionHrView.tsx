@@ -6,7 +6,7 @@ import {
 import { productionDb } from '../../services/productionDb';
 import { MetricCard,PageHeader,StatusBadge } from '../ui/ProUi';
 
-type Tab='EMPLOYEES'|'PAYROLL'|'AGENDA'|'POLICIES';
+type Tab='EMPLOYEES'|'PAYROLL'|'AGENDA'|'ATTENDANCE'|'POLICIES';
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
 const date=(v:any)=>v?new Date(String(v)+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 
@@ -27,10 +27,11 @@ export const ProductionHrView:React.FC=()=>{
   const[agenda,setAgenda]=useState<any>(emptyAgenda);
   const[selectedPayroll,setSelectedPayroll]=useState<any>(null);
   const[store,setStore]=useState<any>(null);
+  const[attendance,setAttendance]=useState<any[]>([]);
 
   const load=async()=>{
     setBusy(true);setError('');
-    try{const [snapshot,currentStore]=await Promise.all([productionDb.getHrSnapshot(),productionDb.getStore()]);setData(snapshot);setStore(currentStore);}
+    try{const [snapshot,currentStore,attendanceRows]=await Promise.all([productionDb.getHrSnapshot(),productionDb.getStore(),productionDb.getHrAttendance()]);setData(snapshot);setStore(currentStore);setAttendance(attendanceRows);}
     catch(e:any){setError(e?.message||'Não foi possível carregar o RH interno.');}
     finally{setBusy(false);}
   };
@@ -208,9 +209,12 @@ export const ProductionHrView:React.FC=()=>{
         ['EMPLOYEES','Contratações & Funcionários',Users],
         ['PAYROLL','Pagamentos & Holerites',FileText],
         ['AGENDA','Agenda & Alertas',BellRing],
+        ['ATTENDANCE','Turnos & Presença',Clock3],
         ['POLICIES','Regras Internas',ShieldCheck]
       ] as [Tab,string,any][]).map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`shrink-0 h-10 px-4 rounded-xl border flex items-center gap-2 text-xs font-black ${tab===id?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-900 text-neutral-300 border-neutral-800'}`}><I size={14}/>{label}</button>)}
     </div>
+
+    {tab==='ATTENDANCE'&&<section className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden"><div className="p-4 border-b border-neutral-800"><h2 className="font-black">Registro de turnos & presença</h2><p className="text-[10px] text-neutral-500 mt-1">Entradas validadas por PIN ficam registradas automaticamente com usuário, data e hora. Faltas e observações podem ser registradas no RH.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-xs"><thead className="bg-neutral-950/70 text-neutral-500 uppercase"><tr><th className="p-3 text-left">Data / hora</th><th className="p-3 text-left">Usuário</th><th className="p-3 text-left">Registro</th><th className="p-3 text-left">Observações</th></tr></thead><tbody className="divide-y divide-neutral-800">{attendance.map((r:any)=><tr key={r.id}><td className="p-3 text-neutral-400">{new Date(r.event_at).toLocaleString('pt-BR')}</td><td className="p-3 font-black">{r.operator_name}</td><td className="p-3"><StatusBadge tone={r.event_type==='FALTA'?'danger':r.event_type==='ENTRADA_PIN'?'success':'neutral'}>{r.event_type==='ENTRADA_PIN'?'ENTRADA PIN':r.event_type==='SAIDA_TURNO'?'SAÍDA TURNO':'FALTA'}</StatusBadge></td><td className="p-3 text-neutral-400">{r.notes||'—'}</td></tr>)}</tbody></table></div></section>}
 
     {tab==='EMPLOYEES'&&<div className="grid xl:grid-cols-[.72fr_1.28fr] gap-4">
       <section className="p-4 rounded-2xl border border-neutral-800 bg-neutral-900 space-y-3">
