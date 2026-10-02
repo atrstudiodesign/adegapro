@@ -817,7 +817,13 @@ async function getFinancialTransactions(limit = 300) {
     .order('created_at', { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return data || [];
+  const rows=data||[];
+  const operatorIds=[...new Set(rows.map((r:any)=>r.operator_ref||r.created_by).filter(Boolean))];
+  if(!operatorIds.length)return rows.map((r:any)=>({...r,operator_name:'Sistema'}));
+  const {data:ops,error:opErr}=await supabase.from('operators').select('id,name').in('id',operatorIds);
+  if(opErr)throw opErr;
+  const opMap=new Map((ops||[]).map((o:any)=>[o.id,o.name]));
+  return rows.map((r:any)=>({...r,operator_name:opMap.get(r.operator_ref||r.created_by)||'Sistema'}));
 }
 
 async function getAuditLogs(limit = 300) {
