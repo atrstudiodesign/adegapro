@@ -1,7 +1,7 @@
 export const APP_RELEASE = {
   releaseId: '2026-10-02-loyalty-referral-policy-v5.19',
   version: '5.19',
-  dateLabel: '02/10/2026 · 16:35 BRT',
+  dateLabel: '02/10/2026 · 16:41 BRT',
   title: 'Política pública de fidelidade e indicações',
   subtitle: 'Novidades desta versão',
   notes: [
