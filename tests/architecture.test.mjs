@@ -39,4 +39,46 @@ describe("production architecture guards", () => {
     expect(app).not.toContain('CONTEÚDO PROTEGIDO');
     expect(app).not.toContain('opacity-[0.025]');
   });
+
+  test("POS persists cart discount into finalize_sale item discounts", async () => {
+    const pos = await readFile("src/components/pos/ProductionPosScreen.tsx", "utf8");
+    expect(pos).toContain("remainingDiscountCents");
+    expect(pos).toContain("items:saleItems");
+    expect(pos).not.toContain("items:cart.map(l=>({product_id:l.product.id,quantity:l.quantity,discount:0}))");
+  });
+
+  test("POS blocks cart quantity above available stock", async () => {
+    const pos = await readFile("src/components/pos/ProductionPosScreen.tsx", "utf8");
+    expect(pos).toContain("inCart>=p.currentStock");
+    expect(pos).toContain("inCart+quantity>product.currentStock");
+  });
+
+  test("product loader prevents orphan combos from entering combo transaction path", async () => {
+    const repo = await readFile("src/services/productionDb.ts", "utf8");
+    expect(repo).toContain("configuredComboProducts");
+    expect(repo).toContain("comboConfigurationMissing");
+    expect(repo).toContain(".from('combos')");
+  });
+
+  test("sale finalization remains server-side and idempotent", async () => {
+    const pos = await readFile("src/components/pos/ProductionPosScreen.tsx", "utf8");
+    const repo = await readFile("src/services/productionDb.ts", "utf8");
+    expect(pos).toContain("idempotency_key:crypto.randomUUID()");
+    expect(repo).toContain("supabase.rpc('finalize_sale'");
+    expect(repo).toContain("operator_session_token");
+  });
+
+  test("cash open and close remain secure RPC operations", async () => {
+    const repo = await readFile("src/services/productionDb.ts", "utf8");
+    expect(repo).toContain("open_cash_session_secure");
+    expect(repo).toContain("close_cash_session_secure");
+  });
+
+  test("CI gates every pull request with typecheck tests and build", async () => {
+    const ci = await readFile(".github/workflows/ci.yml", "utf8");
+    expect(ci).toContain("pull_request:");
+    expect(ci).toContain("bun run lint");
+    expect(ci).toContain("bun test");
+    expect(ci).toContain("bun run build");
+  });
 });
