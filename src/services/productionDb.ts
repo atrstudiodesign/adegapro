@@ -958,6 +958,7 @@ async function verifyOperatorPin(operatorId: string, pin: string) {
   });
   if (error) throw error;
   if (data?.ok && data?.operator_session_token) {
+    try { await supabase.rpc('record_operator_attendance',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:'ENTRADA_PIN',p_notes:'Entrada registrada por validação de PIN'}); } catch {}
     sessionStorage.setItem(OPERATOR_TOKEN_KEY, data.operator_session_token);
     sessionStorage.setItem(OPERATOR_PROFILE_KEY, JSON.stringify(data.operator));
   }
@@ -1094,6 +1095,10 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
   return data;
 }
 
+
+async function getHrAttendance(){const ctx=await getContext();const {data,error}=await supabase.from('hr_shift_attendance').select('*').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).order('event_at',{ascending:false}).limit(300);if(error)throw error;return data||[];}
+
+async function registerHrAttendance(operatorId:string,eventType:'ENTRADA_PIN'|'SAIDA_TURNO'|'FALTA',notes?:string){const ctx=await getContext();const {data,error}=await supabase.rpc('record_operator_attendance',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:eventType,p_notes:notes||null});if(error)throw error;return data;}
 
 async function getHrSnapshot(){
   const ctx=await getContext();
@@ -1244,6 +1249,8 @@ export const productionDb = {
   reverseCashMovement,
   closeCashSession,
   getHrSnapshot,
+  getHrAttendance,
+  registerHrAttendance,
   saveHrEmployee,
   saveHrPayrollEntry,
   saveHrPolicy,
