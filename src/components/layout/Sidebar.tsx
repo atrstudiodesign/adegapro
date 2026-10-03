@@ -24,7 +24,8 @@ import {
   Headphones,
   Store as StoreIcon,
   Scale,
-  BriefcaseBusiness
+  BriefcaseBusiness,
+  Megaphone
 } from 'lucide-react';
 import { User } from '../../types';
 import { APP_VERSION_LABEL } from '../../config/release';
@@ -95,6 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       group: 'RELACIONAMENTO & COMPRAS',
       items: [
         { id: 'customers', label: 'Clientes & Fiados', icon: Users, permission: null },
+        { id: 'marketing', label: 'Marketing para Adegas', icon: Megaphone, permission: null },
         { id: 'suppliers', label: 'Fornecedores', icon: Truck, permission: 'products.view' },
         { id: 'purchases', label: 'Compras & NF Entrada', icon: ShoppingBag, permission: 'products.edit' }
       ]

@@ -57,6 +57,7 @@ import { PlatformAdminAccessScreen } from './components/admin/PlatformAdminAcces
 import { ReleaseUpdateModal } from './components/common/ReleaseUpdateModal';
 import { PartnerPortalScreen } from './components/partner/PartnerPortalScreen';
 import { ProductionHrView } from './components/hr/ProductionHrView';
+import { ProductionMarketingView } from './components/marketing/ProductionMarketingView';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -436,6 +437,7 @@ export default function App() {
               </div>
             )
           )}
+          {currentTab === 'marketing' && appMode === 'PRODUCTION' && <ProductionMarketingView />}
           {currentTab === 'reports' && (appMode === 'PRODUCTION' ? <ProductionReportsView /> : <ReportsView />)}
           {currentTab === 'audit' && (appMode === 'PRODUCTION' ? <ProductionAuditView /> : <AuditView />)}
           {currentTab === 'integrations' && (appMode === 'PRODUCTION' ? <ProductionIntegrationsView /> : <IntegrationsView />)}
