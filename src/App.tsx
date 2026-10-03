@@ -57,6 +57,7 @@ import { PlatformAdminAccessScreen } from './components/admin/PlatformAdminAcces
 import { ReleaseUpdateModal } from './components/common/ReleaseUpdateModal';
 import { PartnerPortalScreen } from './components/partner/PartnerPortalScreen';
 import { ProductionHrView } from './components/hr/ProductionHrView';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -461,6 +462,7 @@ export default function App() {
           ['__menu','☰','Menu']
         ].map(([id,icon,label])=><button key={id} onClick={()=>id==='__menu'?setMobileNavOpen(true):setCurrentTab(id)} className={currentTab===id?'active':''}><span>{icon}</span><small>{label}</small></button>)}
       </nav>
+      <Analytics />
     </div>
   );
 }
