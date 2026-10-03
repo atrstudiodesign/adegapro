@@ -1091,6 +1091,13 @@ async function auditCashSession(sessionId:string){
   return data as any;
 }
 
+async function registerHrOperatorVoucher(operatorId:string,cashSessionId:string|null,amount:number,reason:string){
+  const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('register_hr_operator_voucher',{p_store_id:ctx.storeId,p_operator_token:token,p_target_operator_id:operatorId,p_cash_session_id:cashSessionId,p_amount:amount,p_reason:reason});
+  if(error)throw error;return data as string;
+}
+async function getHrOperatorVouchers(){const ctx=await getContext();const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('get_hr_operator_vouchers',{p_store_id:ctx.storeId,p_operator_token:token});if(error)throw error;return data||[];}
+
 async function getCashSessionDetails(sessionId:string) {
   const ctx=await getContext();
   const {data:session,error:sessionError}=await supabase
@@ -1338,6 +1345,8 @@ export const productionDb = {
   addCashSessionAdminNote,
   adminAmendCashSession,
   getCashSessionDetails,
+  registerHrOperatorVoucher,
+  getHrOperatorVouchers,
   auditCashSession,
   openCashSession,
   registerCashMovement,
