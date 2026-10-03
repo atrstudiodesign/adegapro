@@ -400,7 +400,13 @@ html[data-theme="light"] aside {
 .ap-mobile-dock button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:14px;color:#a3a3a3;font-size:18px}
 .ap-mobile-dock button small{font-size:9px;font-weight:800}
 .ap-mobile-dock button.active{color:#fbbf24;background:rgba(245,158,11,.10)}
-@media(min-width:1024px){.ap-premium-shell>header{margin-left:184px}.ap-premium-sidebar{margin-top:-64px;padding-top:64px;min-height:100vh}.ap-premium-content{height:calc(100vh - 64px)}}
+@media(min-width:1024px){.ap-premium-shell>header{margin-left:0}.ap-premium-sidebar{margin-top:0;padding-top:0;min-height:100dvh}.ap-premium-content{height:auto;min-height:0}}
 @media(max-width:1023px){.ap-premium-content{padding-bottom:82px}.ap-premium-shell>header{min-height:58px}.ap-premium-dashboard{padding:.75rem!important}.ap-premium-dashboard .ap-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ap-premium-dashboard .ap-kpi-card{min-height:92px;padding:12px!important}.ap-premium-dashboard .ap-chart-grid{grid-template-columns:1fr}.ap-premium-dashboard h1{font-size:1.45rem}}
 @media(max-width:639px){.ap-premium-dashboard{font-size:14px}.ap-premium-dashboard .ap-kpi-card{min-height:88px;border-radius:14px}.ap-premium-dashboard .ap-kpi-card [class*="text-2xl"]{font-size:1.25rem!important}.ap-premium-dashboard .ap-panel{border-radius:15px}.ap-premium-dashboard .grid[class*="xl:grid-cols-3"]{grid-template-columns:1fr!important}.ap-premium-dashboard button{min-height:42px}.ap-premium-dashboard .overflow-x-auto{margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px}}
 @media(max-width:390px){.ap-premium-dashboard .ap-kpi-grid{grid-template-columns:1fr 1fr}.ap-premium-dashboard .ap-kpi-card{padding:10px!important}.ap-premium-dashboard h1{font-size:1.3rem}.ap-mobile-dock{left:6px;right:6px;bottom:6px}}
+
+/* Shell overflow hardening: drawer navigation must never reserve workspace space. */
+.ap-premium-shell{min-height:100dvh;height:100dvh;overflow:hidden}
+.ap-premium-content{min-height:0;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain}
+.ap-premium-sidebar{position:fixed!important;inset-block:0!important;left:0!important}
+@media(min-width:1024px){.ap-premium-sidebar.-translate-x-full{transform:translateX(-100%)!important}.ap-premium-sidebar.translate-x-0{transform:translateX(0)!important}}
