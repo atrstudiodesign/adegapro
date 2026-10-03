@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import {
   ArrowRight, BarChart3, Boxes, CheckCircle2, Eye, EyeOff, LockKeyhole,
   Mail, Phone, ShieldCheck, ShoppingCart, Sparkles, Store, UserRound, WalletCards, PlayCircle,
@@ -39,18 +40,6 @@ const emptyRegister: RegisterForm = {
 };
 
 export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAuthenticated, initialView = 'LANDING' }) => {
-  // Vercel Web Analytics is loaded only on the public acquisition funnel.
-  // Operational/authenticated client screens never mount this component.
-  useEffect(() => {
-    if (document.getElementById('adega-public-analytics')) return;
-    const script = document.createElement('script');
-    script.id = 'adega-public-analytics';
-    script.defer = true;
-    script.src = '/_vercel/insights/script.js';
-    script.dataset.sdkn = '@vercel/analytics';
-    document.head.appendChild(script);
-    return () => script.remove();
-  }, []);
   const [landingCms, setLandingCms] = useState<any>(null);
   useEffect(() => { void platformDb.getLandingPageContent().then(setLandingCms).catch(() => setLandingCms(null)); }, []);
   const heroImage = landingCms?.hero?.image_url || '/adega-pro-hero.webp';
@@ -244,6 +233,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
 
   return (
     <div className="min-h-dvh bg-neutral-950 text-white relative overflow-x-hidden">
+      <Analytics />
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(120,53,15,0.16),transparent_30%)]"/>
       <header className="relative z-20 border-b border-white/5 bg-black/65 backdrop-blur-xl sticky top-0">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between gap-4">
