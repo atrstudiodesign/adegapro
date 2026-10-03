@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-03-cashback-monthly-quota-v5.20',
-  version: '5.20',
-  dateLabel: '03/10/2026 · 10:05 BRT',
-  title: 'Cashback mensal auditável e consistente',
+  releaseId: '2026-10-03-inventory-shift-link-v5.21',
+  version: '5.21',
+  dateLabel: '03/10/2026 · 10:30 BRT',
+  title: 'Inventário vinculado ao turno',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Inventário: novas contagens físicas ficam vinculadas automaticamente ao caixa/turno aberto do operador; inventários anteriores permanecem compatíveis e nenhum saldo existente é alterado.',
     'Cashback: estorno, cancelamento ou chargeback devolve pontos e saldo, mas não reabre a cota de indicação do mesmo mês-calendário; regra alinhada ao índice único e ao ledger idempotente.',
     'Landing page: nova Política de Fidelidade e Indicações, separada do programa de vendedores, com Plano Mensal de R$ 149 e Fidelização + Personalização de R$ 990 em até 3x ou R$ 800 à vista.',
     'Fidelização: quatro meses sem mensalidade; a partir do 5º mês, mensalidade de R$ 149 e uma indicação válida convertida no mês reduz a mensalidade seguinte para R$ 75, sem acumular cota.',
