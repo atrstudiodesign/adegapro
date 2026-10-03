@@ -29,6 +29,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/politica-fidelidade-indicacoes",
+      "destination": "/index.html"
+    },
+    {
       "source": "/atr-control",
       "destination": "/index.html"
     },
