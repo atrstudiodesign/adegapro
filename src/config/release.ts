@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-02-cash-history-help-v5.18',
-  version: '5.18',
-  dateLabel: '02/10/2026 · 14:00 BRT',
-  title: 'Histórico de caixa e ajuda ampliados',
+  releaseId: '2026-10-02-platform-hardening-v5.20',
+  version: '5.20',
+  dateLabel: '02/10/2026 · 23:44 BRT',
+  title: 'Estabilidade operacional e controles administrativos',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Release: sincroniza o rodapé com a main publicada e registra as correções recentes de navegação responsiva, vínculo operador/RH e Vale Operador isolado do caixa.',
     'Caixas & Sessões: histórico clicável por turno com mini-dashboard do operador, vendas, faturamento, pagamentos, sangrias, suprimentos e diferença de fechamento.',
     'Ajuda: nova seção Como usar o Adega Pro disponível aos usuários logados pela Central de Suporte.',
     'Landing page: novas áreas de Novidades & Updates e FAQ robusto sobre operação, multi-loja, estoque, caixa, segurança e suporte.',
