@@ -39,6 +39,18 @@ const emptyRegister: RegisterForm = {
 };
 
 export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAuthenticated, initialView = 'LANDING' }) => {
+  // Vercel Web Analytics is loaded only on the public acquisition funnel.
+  // Operational/authenticated client screens never mount this component.
+  useEffect(() => {
+    if (document.getElementById('adega-public-analytics')) return;
+    const script = document.createElement('script');
+    script.id = 'adega-public-analytics';
+    script.defer = true;
+    script.src = '/_vercel/insights/script.js';
+    script.dataset.sdkn = '@vercel/analytics';
+    document.head.appendChild(script);
+    return () => script.remove();
+  }, []);
   const [landingCms, setLandingCms] = useState<any>(null);
   useEffect(() => { void platformDb.getLandingPageContent().then(setLandingCms).catch(() => setLandingCms(null)); }, []);
   const heroImage = landingCms?.hero?.image_url || '/adega-pro-hero.webp';
