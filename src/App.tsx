@@ -48,6 +48,7 @@ import { CommercialAccessGate } from './components/auth/CommercialAccessGate';
 import { SaasAccessScreen } from './components/auth/SaasAccessScreen';
 import { AppMode, getAppMode, setAppMode } from './services/appMode';
 import { supabase } from './services/supabase';
+import { Analytics } from '@vercel/analytics/react';
 import { LegalConsentGate } from './components/legal/LegalConsentGate';
 import { LegalCenter } from './components/legal/LegalCenter';
 import { LegalDocKey } from './legal/legalDocuments';
@@ -461,6 +462,7 @@ export default function App() {
           ['__menu','☰','Menu']
         ].map(([id,icon,label])=><button key={id} onClick={()=>id==='__menu'?setMobileNavOpen(true):setCurrentTab(id)} className={currentTab===id?'active':''}><span>{icon}</span><small>{label}</small></button>)}
       </nav>
+      <Analytics />
     </div>
   );
 }
