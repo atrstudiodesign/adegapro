@@ -10,7 +10,7 @@ type Tab='EMPLOYEES'|'PAYROLL'|'AGENDA'|'ATTENDANCE'|'WITHDRAWALS'|'POLICIES';
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
 const date=(v:any)=>v?new Date(String(v)+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 
-const emptyEmployee={id:'',full_name:'',cpf:'',admission_date:'',role_title:'',employment_model:'OUTRO',payment_frequency:'MENSAL',base_amount:'',phone:'',address:'',active:true,notes:''};
+const emptyEmployee={id:'',operator_id:'',full_name:'',cpf:'',admission_date:'',role_title:'',employment_model:'OUTRO',payment_frequency:'MENSAL',base_amount:'',phone:'',address:'',active:true,notes:''};
 const emptyPayroll={id:'',employee_id:'',period_start:'',period_end:'',payment_frequency:'MENSAL',base_amount:'',advances:'',overtime_amount:'',discounts:'',status:'PENDENTE',notes:''};
 const emptyPolicy={id:'',title:'',description:'',active:true};
 const emptyAgenda={id:'',employee_id:'',title:'',description:'',event_type:'LEMBRETE',priority:'NORMAL',due_at:'',alert_at:'',status:'PENDENTE'};
@@ -234,6 +234,7 @@ export const ProductionHrView:React.FC=()=>{
         <div><h2 className="font-black">{employee.id?'Editar funcionário':'Nova contratação / funcionário'}</h2><p className="text-[10px] text-neutral-500 mt-1">Registre a modalidade real informada pela empresa sem presumir vínculo trabalhista.</p></div>
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="Nome completo"><Input value={employee.full_name} onChange={v=>setEmployee({...employee,full_name:v})}/></Field>
+          <Field label="Usuário/operador vinculado"><select className="input" value={employee.operator_id||''} onChange={e=>setEmployee({...employee,operator_id:e.target.value})}><option value="">Sem vínculo</option>{operators.filter((o:any)=>o.active!==false).map((o:any)=><option key={o.id} value={o.id}>{o.name} · {o.role}</option>)}</select></Field>
           <Field label="CPF"><Input value={employee.cpf} onChange={v=>setEmployee({...employee,cpf:v})}/></Field>
           <Field label="Data de admissão / início"><Input type="date" value={employee.admission_date} onChange={v=>setEmployee({...employee,admission_date:v})}/></Field>
           <Field label="Função / cargo"><Input value={employee.role_title} onChange={v=>setEmployee({...employee,role_title:v})}/></Field>
@@ -256,7 +257,7 @@ export const ProductionHrView:React.FC=()=>{
         <div className="divide-y divide-neutral-800">
           {employees.map((e:any)=><button key={e.id} onClick={()=>setEmployee({...e,base_amount:String(e.base_amount??'')})} className="w-full p-4 text-left hover:bg-neutral-800/40">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-              <div><div className="font-black">{e.full_name}</div><div className="text-[10px] text-neutral-500 mt-1">{e.role_title||'Função não informada'} · {e.employment_model}</div><div className="text-[10px] text-neutral-500 mt-1">Admissão/início: {date(e.admission_date)} · CPF: {e.cpf||'—'}</div></div>
+              <div><div className="font-black">{e.full_name}</div><div className="text-[10px] text-neutral-500 mt-1">{e.role_title||'Função não informada'} · {e.employment_model}</div><div className="text-[10px] text-neutral-500 mt-1">Operador: {operators.find((o:any)=>o.id===e.operator_id)?.name||'não vinculado'}</div><div className="text-[10px] text-neutral-500 mt-1">Admissão/início: {date(e.admission_date)} · CPF: {e.cpf||'—'}</div></div>
               <div className="sm:text-right"><StatusBadge tone={e.active?'success':'danger'}>{e.active?'ATIVO':'INATIVO'}</StatusBadge><div className="text-sm font-black text-amber-400 mt-2">{money(e.base_amount)} <span className="text-[9px] text-neutral-500">{e.payment_frequency}</span></div></div>
             </div>
           </button>)}
