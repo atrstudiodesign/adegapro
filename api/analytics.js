@@ -9,8 +9,22 @@ async function query(path, params, token) {
   return response.json();
 }
 
+async function requirePlatformAdmin(req) {
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) return false;
+  const supabaseUrl = process.env.SUPABASE_URL || 'https://fwjsxknbdkxzkoxvuncp.supabase.co';
+  const anonKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || 'sb_publishable_D2_QLrItrkQ2Ksx7aiU8gg_yXqguL4C';
+  const response = await fetch(supabaseUrl + '/rest/v1/rpc/is_platform_admin', {
+    method: 'POST',
+    headers: { apikey: anonKey, Authorization: auth, 'Content-Type': 'application/json' },
+    body: '{}'
+  });
+  return response.ok && (await response.json()) === true;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'method_not_allowed' });
+  if (!(await requirePlatformAdmin(req))) return res.status(403).json({ error: 'forbidden' });
   const token = process.env.VERCEL_API_TOKEN || process.env.VERCEL_OIDC_TOKEN;
   if (!token) return res.status(503).json({ error: 'analytics_token_missing' });
 
