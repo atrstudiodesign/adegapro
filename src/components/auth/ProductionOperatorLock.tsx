@@ -42,7 +42,7 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
-  const [accessOrigin,setAccessOrigin]=useState<'NA_LOJA'|'EXTERNO'>('NA_LOJA');
+  const [accessOrigin, setAccessOrigin] = useState<'NA_LOJA' | 'EXTERNO' | null>(null);
   const pinRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -89,6 +89,10 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
 
   const submit = async () => {
     if (!selected || pin.length < 4) return;
+    if (!accessOrigin) {
+      setError('Selecione obrigatoriamente o local do ponto: Na loja ou Externo.');
+      return;
+    }
     setChecking(true);
     setError('');
     try {
@@ -171,13 +175,13 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
               <span className="text-xs font-bold text-neutral-300">Operador</span>
               <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-950 px-3">
                 <UserRound size={16} className="text-neutral-500"/>
-                <select value={selectedId} onChange={e => { setSelectedId(e.target.value); setPin(''); }} className="w-full bg-transparent py-3 text-sm outline-none">
+                <select value={selectedId} onChange={e => { setSelectedId(e.target.value); setPin(''); setAccessOrigin(null); }} className="w-full bg-transparent py-3 text-sm outline-none">
                   {operators.map(op => <option key={op.id} value={op.id}>{op.name} · {op.role}</option>)}
                 </select>
               </div>
             </label>
 
-            <div className="mt-4"><span className="text-xs font-bold text-neutral-300">Local do acesso</span><div className="grid grid-cols-2 gap-2 mt-1.5"><button type="button" onClick={()=>setAccessOrigin('NA_LOJA')} className={`h-10 rounded-xl border text-xs font-black ${accessOrigin==='NA_LOJA'?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-950 text-neutral-300 border-neutral-700'}`}>Na loja</button><button type="button" onClick={()=>setAccessOrigin('EXTERNO')} className={`h-10 rounded-xl border text-xs font-black ${accessOrigin==='EXTERNO'?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-950 text-neutral-300 border-neutral-700'}`}>Externo</button></div><p className="text-[10px] text-neutral-500 mt-1">Identifica a origem declarada do acesso no registro de presença.</p></div>
+            <div className="mt-4"><span className="text-xs font-bold text-neutral-300">Local do acesso</span><div className="grid grid-cols-2 gap-2 mt-1.5"><button type="button" onClick={()=>setAccessOrigin('NA_LOJA')} className={`h-10 rounded-xl border text-xs font-black ${accessOrigin==='NA_LOJA'?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-950 text-neutral-300 border-neutral-700'}`}>Na loja</button><button type="button" onClick={()=>setAccessOrigin('EXTERNO')} className={`h-10 rounded-xl border text-xs font-black ${accessOrigin==='EXTERNO'?'bg-amber-400 text-neutral-950 border-amber-300':'bg-neutral-950 text-neutral-300 border-neutral-700'}`}>Externo</button></div><p className="text-[10px] text-neutral-500 mt-1">Obrigatório para registrar o ponto. Selecione onde o operador está antes de informar o PIN.</p></div>
 
             <label className="block mt-4">
               <span className="text-xs font-bold text-neutral-300">PIN do operador</span>
@@ -197,7 +201,7 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
                   disabled={checking}
                   onChange={event => updatePin(event.target.value)}
                   onKeyDown={event => {
-                    if (event.key === 'Enter' && selected && pin.length >= 4 && !checking) {
+                    if (event.key === 'Enter' && selected && accessOrigin && pin.length >= 4 && !checking) {
                       event.preventDefault();
                       void submit();
                     }
@@ -226,8 +230,8 @@ export const ProductionOperatorLock: React.FC<ProductionOperatorLockProps> = ({ 
               <button type="button" onClick={() => key('DEL')} className="h-12 rounded-xl bg-neutral-950 border border-neutral-800 grid place-items-center text-neutral-400"><Delete size={18}/></button>
             </div>
 
-            <button type="button" onClick={() => void submit()} disabled={!selected || pin.length < 4 || checking} className="mt-4 w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-500 text-neutral-950 font-black">
-              {checking ? 'Validando no servidor...' : 'Desbloquear ambiente'}
+            <button type="button" onClick={() => void submit()} disabled={!selected || !accessOrigin || pin.length < 4 || checking} className="mt-4 w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-500 text-neutral-950 font-black">
+              {checking ? 'Registrando ponto...' : 'Registrar ponto e entrar'}
             </button>
 
             <div className="mt-4 flex items-start gap-2 text-[11px] text-neutral-500">
