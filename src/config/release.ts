@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-03-inventory-shift-link-v5.21',
-  version: '5.21',
-  dateLabel: '03/10/2026 · 10:30 BRT',
-  title: 'Inventário vinculado ao turno',
+  releaseId: '2026-10-03-legal-r8-sha256-v5.22',
+  version: '5.22',
+  dateLabel: '03/10/2026 · 11:05 BRT',
+  title: 'Integridade criptográfica dos documentos r8',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Jurídico: os seis documentos obrigatórios r8 agora possuem SHA-256 reproduzível calculado sobre payload canônico; teste automático impede divergência silenciosa entre texto publicado e hash registrado.',
     'Inventário: novas contagens físicas ficam vinculadas automaticamente ao caixa/turno aberto do operador; inventários anteriores permanecem compatíveis e nenhum saldo existente é alterado.',
     'Cashback: estorno, cancelamento ou chargeback devolve pontos e saldo, mas não reabre a cota de indicação do mesmo mês-calendário; regra alinhada ao índice único e ao ledger idempotente.',
     'Landing page: nova Política de Fidelidade e Indicações, separada do programa de vendedores, com Plano Mensal de R$ 149 e Fidelização + Personalização de R$ 990 em até 3x ou R$ 800 à vista.',
