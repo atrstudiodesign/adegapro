@@ -27,11 +27,11 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({ appMode = 'DEMO' }
   const create = async () => {
     const tradeName = (await adegaPrompt({ title: 'Novo fornecedor', label: 'Nome fantasia', confirmLabel: 'Continuar' }))?.trim();
     if (!tradeName) return;
-    const cnpj = (await adegaPrompt({ title: 'Novo fornecedor', label: 'CNPJ (opcional)', confirmLabel: 'Salvar fornecedor' }))?.trim() || '';
+    const corporateName=(await adegaPrompt({title:'Novo fornecedor',label:'Razão social (opcional)',confirmLabel:'Continuar'}))?.trim()||''; const cnpj=(await adegaPrompt({title:'Novo fornecedor',label:'CNPJ (opcional)',confirmLabel:'Continuar'}))?.trim()||''; const phone=(await adegaPrompt({title:'Novo fornecedor',label:'Telefone / WhatsApp (opcional)',confirmLabel:'Continuar'}))?.trim()||''; const email=(await adegaPrompt({title:'Novo fornecedor',label:'E-mail (opcional)',confirmLabel:'Continuar'}))?.trim()||''; const address=(await adegaPrompt({title:'Novo fornecedor',label:'Endereço (opcional)',confirmLabel:'Salvar fornecedor'}))?.trim()||'';
     try {
       setBusy(true);
-      if (appMode === 'PRODUCTION') await productionDb.saveSupplier({ tradeName, cnpj });
-      else db.saveSupplier({ tradeName, cnpj });
+      if (appMode === 'PRODUCTION') await productionDb.saveSupplier({ tradeName, corporateName, cnpj, phone, email, address });
+      else db.saveSupplier({ tradeName, corporateName, cnpj, phone, email, address });
       await load();
     } catch (err:any) { setError(err?.message || 'Não foi possível salvar o fornecedor.'); setBusy(false); }
   };
