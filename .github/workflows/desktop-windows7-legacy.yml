@@ -1,0 +1,73 @@
+name: ADEGA PRO Legacy Windows 7
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - legacy/windows-7
+    paths:
+      - "legacy-electron/**"
+      - "electron-builder-win7.yml"
+      - ".github/workflows/desktop-windows7-legacy.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adega-pro-legacy-win7-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Gerar instaladores Windows 7
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar toolchain legado isolado
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .legacy-build | Out-Null
+          npm init -y --prefix .legacy-build
+          npm install --prefix .legacy-build --save-exact electron@22.3.27 electron-builder@24.13.3
+
+      - name: Confirmar versão do Electron
+        shell: pwsh
+        run: |
+          $electronVersion = node -p "require('./.legacy-build/node_modules/electron/package.json').version"
+          if ($electronVersion -ne "22.3.27") {
+            throw "Electron inesperado: $electronVersion"
+          }
+          Write-Host "Electron $electronVersion — última linha com suporte oficial a Windows 7/8/8.1."
+
+      - name: Gerar NSIS x64 e x86
+        shell: pwsh
+        run: |
+          .\.legacy-build\node_modules\.bin\electron-builder.cmd --config electron-builder-win7.yml --win nsis --x64 --ia32
+
+      - name: Validar artefatos
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem "dist-win7\*.exe"
+          if (-not $files) { throw "Nenhum instalador foi gerado." }
+          $files | ForEach-Object {
+            Write-Host "$($_.Name) — $([math]::Round($_.Length / 1MB, 2)) MB"
+          }
+
+      - name: Publicar instaladores
+        uses: actions/upload-artifact@v4
+        with:
+          name: ADEGA-PRO-Legacy-Windows7
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist-win7/*.exe
+            dist-win7/latest*.yml
