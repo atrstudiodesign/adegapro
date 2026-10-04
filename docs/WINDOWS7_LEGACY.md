@@ -29,3 +29,22 @@ Como o shell carrega a aplicação de produção, atualizações do ADEGA PRO On
 ## Limitação
 
 Windows 7 e Electron 22 estão fora de suporte de segurança dos fabricantes. Esta edição deve ser tratada como compatibilidade temporária, não como plataforma principal.
+
+
+## Homologação operacional
+
+A edição Legacy é um shell **online**. Em produção, vendas, abertura/fechamento de caixa,
+sangrias, estoque, financeiro e usuários continuam sendo processados pelas mesmas RPCs e
+tabelas do ADEGA PRO Online.
+
+Critério de homologação:
+
+- conexão ativa com a internet;
+- login da conta principal seguido do PIN do operador;
+- venda finalizada por `finalize_sale`;
+- caixa aberto/fechado pelas RPCs seguras de produção;
+- nenhuma base de dados de produção adicional dentro do executável Legacy;
+- bundle web compilado para Chromium 108.
+
+O modo offline local existente no projeto pertence ao ambiente Demo/local e **não deve ser
+tratado como sincronização offline homologada da produção**.
