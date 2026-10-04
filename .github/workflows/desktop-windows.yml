@@ -51,6 +51,38 @@ jobs:
         with:
           args: --bundles nsis,msi
 
+      - name: Validar metadados do executável
+        shell: pwsh
+        run: |
+          $expectedVersion = "1.1.4"
+          $binary = Get-Item "src-tauri/target/release/adega-pro.exe"
+          $info = $binary.VersionInfo
+
+          if ($info.FileDescription -ne "ADEGA PRO") {
+            throw "FileDescription inválido: $($info.FileDescription)"
+          }
+          if ($info.ProductName -ne "ADEGA PRO") {
+            throw "ProductName inválido: $($info.ProductName)"
+          }
+          if ($info.CompanyName -ne "ATR Studio Design") {
+            throw "CompanyName inválido: $($info.CompanyName)"
+          }
+          if (-not $info.FileVersion.StartsWith($expectedVersion)) {
+            throw "FileVersion inválido: $($info.FileVersion)"
+          }
+          if (-not $info.ProductVersion.StartsWith($expectedVersion)) {
+            throw "ProductVersion inválido: $($info.ProductVersion)"
+          }
+
+          @"
+          FileDescription=$($info.FileDescription)
+          ProductName=$($info.ProductName)
+          CompanyName=$($info.CompanyName)
+          FileVersion=$($info.FileVersion)
+          ProductVersion=$($info.ProductVersion)
+          LegalCopyright=$($info.LegalCopyright)
+          "@ | Set-Content "src-tauri/target/release/version-info.txt"
+
       - name: Publicar instaladores como artefato
         uses: actions/upload-artifact@v4
         with:
@@ -60,3 +92,4 @@ jobs:
           path: |
             src-tauri/target/release/bundle/nsis/*.exe
             src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/version-info.txt

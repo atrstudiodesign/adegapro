@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080808" />
+    <meta
+      name="description"
+      content="ADEGA PRO 1.1.4 — sistema para adegas com PDV, estoque, compras, clientes, financeiro e relatórios."
+    />
+    <title>ADEGA PRO — Iniciando</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, Montserrat, "Segoe UI", Arial, sans-serif;
+        background: #080808;
+        color: #f8fafc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        user-select: none;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 115%, rgba(245, 158, 11, 0.2), transparent 44%),
+          radial-gradient(circle at 92% 10%, rgba(185, 28, 28, 0.12), transparent 34%),
+          linear-gradient(145deg, #050505 0%, #0c0b09 55%, #080808 100%);
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        content: "";
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, black, transparent 86%);
+      }
+
+      .shell {
+        position: relative;
+        width: calc(100% - 44px);
+        height: calc(100% - 44px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 1px solid rgba(245, 158, 11, 0.34);
+        border-radius: 26px;
+        background: linear-gradient(145deg, rgba(19, 19, 19, 0.98), rgba(7, 7, 7, 0.98));
+        box-shadow:
+          0 28px 80px rgba(0, 0, 0, 0.58),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .shell::after {
+        position: absolute;
+        inset: -45% 25% auto;
+        height: 260px;
+        content: "";
+        border-radius: 999px;
+        background: rgba(245, 158, 11, 0.16);
+        filter: blur(70px);
+      }
+
+      .brand {
+        position: relative;
+        z-index: 1;
+        width: min(470px, 76%);
+        height: auto;
+        filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.45));
+        animation: enter 520ms ease-out both;
+      }
+
+      .eyebrow {
+        position: relative;
+        z-index: 1;
+        margin-top: 16px;
+        color: #fbbf24;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+
+      .status {
+        position: relative;
+        z-index: 1;
+        margin: 14px 0 0;
+        color: #d4d4d8;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .progress {
+        position: relative;
+        z-index: 1;
+        width: min(390px, 66%);
+        height: 4px;
+        margin-top: 24px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .progress::after {
+        display: block;
+        width: 45%;
+        height: 100%;
+        content: "";
+        border-radius: inherit;
+        background: linear-gradient(90deg, #b91c1c, #f59e0b, #fde68a);
+        box-shadow: 0 0 16px rgba(245, 158, 11, 0.65);
+        animation: loading 1.25s ease-in-out infinite;
+      }
+
+      .footer {
+        position: absolute;
+        z-index: 1;
+        right: 22px;
+        bottom: 18px;
+        left: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #71717a;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .version {
+        color: #d4d4d8;
+      }
+
+      @keyframes loading {
+        0% {
+          transform: translateX(-115%);
+        }
+        100% {
+          transform: translateX(245%);
+        }
+      }
+
+      @keyframes enter {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.985);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .brand,
+        .progress::after {
+          animation: none;
+        }
+
+        .progress::after {
+          width: 72%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" aria-label="ADEGA PRO iniciando">
+      <img class="brand" src="/adega-pro-brand.svg" alt="ADEGA PRO — Sistema para Adegas" />
+      <div class="eyebrow">Sistema para adegas</div>
+      <p class="status">Preparando PDV, estoque e financeiro...</p>
+      <div class="progress" role="progressbar" aria-label="Carregando o ADEGA PRO"></div>
+      <footer class="footer">
+        <span>ATR Studio Design</span>
+        <span class="version">Versão 1.1.4</span>
+      </footer>
+    </main>
+  </body>
+</html>

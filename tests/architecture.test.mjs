@@ -14,6 +14,39 @@ describe("production architecture guards", () => {
     expect(main).toContain('#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]');
   });
 
+  test("Windows splashscreen stays visible until the main webview finishes loading", async () => {
+    const config = JSON.parse(await readFile("src-tauri/tauri.conf.json", "utf8"));
+    const backend = await readFile("src-tauri/src/lib.rs", "utf8");
+    const splash = await readFile("public/splashscreen.html", "utf8");
+    const mainWindow = config.app.windows.find(window => window.label === "main");
+    const splashWindow = config.app.windows.find(window => window.label === "splashscreen");
+
+    expect(mainWindow.visible).toBe(false);
+    expect(splashWindow.url).toBe("splashscreen.html");
+    expect(splashWindow.decorations).toBe(false);
+    expect(backend).toContain("PageLoadEvent::Finished");
+    expect(backend).toContain('get_webview_window("splashscreen")');
+    expect(backend).toContain('get_webview_window("main")');
+    expect(splash).toContain("/adega-pro-brand.svg");
+    expect(splash).toContain("Versão 1.1.4");
+  });
+
+  test("Windows package metadata and installed version remain synchronized", async () => {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    const config = JSON.parse(await readFile("src-tauri/tauri.conf.json", "utf8"));
+    const cargo = await readFile("src-tauri/Cargo.toml", "utf8");
+    const workflow = await readFile(".github/workflows/desktop-windows.yml", "utf8");
+
+    expect(packageJson.version).toBe("1.1.4");
+    expect(config.version).toBe(packageJson.version);
+    expect(cargo).toContain('version = "1.1.4"');
+    expect(config.bundle.shortDescription).toContain("1.1.4");
+    expect(config.bundle.longDescription).toContain("1.1.4");
+    expect(workflow).toContain('$expectedVersion = "1.1.4"');
+    expect(workflow).toContain("FileDescription");
+    expect(workflow).toContain("ProductVersion");
+  });
+
   test("pre-auth rate limit does not call the public RPC directly", async () => {
     const auth = await readFile("src/components/auth/SaasAccessScreen.tsx", "utf8");
     expect(auth).toContain("supabase.functions.invoke('auth-rate-limit'");

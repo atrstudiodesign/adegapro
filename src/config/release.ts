@@ -1,10 +1,12 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-04-windows-gui-only-v5.26',
-  version: '5.26',
-  dateLabel: '04/10/2026 · 10:45 BRT',
-  title: 'Inicialização limpa no Windows',
+  releaseId: '2026-10-04-windows-splash-metadata-v5.27',
+  version: '5.27',
+  dateLabel: '04/10/2026 · 11:32 BRT',
+  title: 'Abertura profissional no Windows',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Desktop 1.1.4: nova tela de abertura com a marca oficial do ADEGA PRO enquanto a interface principal é preparada.',
+    'Arquivo Windows: versão, produto, fabricante, descrição e copyright passam a ser validados automaticamente no build.',
     'Desktop 1.1.3: inicia somente com a interface gráfica do ADEGA PRO, sem abrir a janela CMD em segundo plano.',
     'Desktop 1.1.2: sincroniza a versão Windows com as correções publicadas no sistema online.',
     'Acesso: o link de recuperação agora abre uma tela segura para definir e confirmar a nova senha antes de entrar no sistema.',
