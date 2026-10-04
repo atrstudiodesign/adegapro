@@ -1,0 +1,40 @@
+appId: br.com.atrstudio.adegapro.legacy.win7
+productName: ADEGA PRO Legacy
+electronVersion: 22.3.27
+copyright: Copyright © 2026 ATR Studio Design
+
+directories:
+  output: dist-win7
+
+files:
+  - legacy-electron/**
+  - src-tauri/icons/icon.png
+
+extraMetadata:
+  name: adega-pro-legacy-win7
+  version: 1.1.5
+  main: legacy-electron/main.cjs
+  description: ADEGA PRO Legacy para Windows 7 conectado ao ADEGA PRO Online
+  author: ATR Studio Design
+
+asar: true
+
+win:
+  executableName: adega-pro-legacy
+  icon: src-tauri/icons/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+  artifactName: ADEGA-PRO-Legacy-Windows7-${version}-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: ADEGA PRO
+  uninstallDisplayName: ADEGA PRO Legacy
