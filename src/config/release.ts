@@ -1,10 +1,12 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-04-windows-splash-metadata-v5.27',
-  version: '5.27',
-  dateLabel: '04/10/2026 · 11:32 BRT',
-  title: 'Abertura profissional no Windows',
+  releaseId: '2026-10-04-windows-account-gate-v5.28',
+  version: '5.28',
+  dateLabel: '04/10/2026 · 12:11 BRT',
+  title: 'Acesso correto no Windows',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Desktop 1.1.5: após a abertura com a marca oficial, o aplicativo inicia em Login/Cadastro da empresa; o PIN aparece somente depois da autenticação principal.',
+    'Abertura Windows: a tela oficial do ADEGA PRO permanece visível por tempo mínimo para evitar que o aplicativo pareça abrir diretamente no bloqueio do operador.',
     'Desktop 1.1.4: nova tela de abertura com a marca oficial do ADEGA PRO enquanto a interface principal é preparada.',
     'Arquivo Windows: versão, produto, fabricante, descrição e copyright passam a ser validados automaticamente no build.',
     'Desktop 1.1.3: inicia somente com a interface gráfica do ADEGA PRO, sem abrir a janela CMD em segundo plano.',

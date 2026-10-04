@@ -1,6 +1,7 @@
 use tauri::{
     webview::PageLoadEvent, Manager, WebviewUrl, WebviewWindowBuilder,
 };
+use std::{thread, time::Duration};
 
 #[tauri::command]
 async fn open_module_window(app: tauri::AppHandle, module: String) -> Result<(), String> {
@@ -54,15 +55,20 @@ pub fn run() {
                 return;
             }
 
-            let app = webview.app_handle();
-            if let Some(splashscreen) = app.get_webview_window("splashscreen") {
-                let _ = splashscreen.close();
+            let app = webview.app_handle().clone();
+            thread::spawn(move || {
+                // Keep the branded opening visible long enough to be perceived,
+                // while the React account gate completes its first render.
+                thread::sleep(Duration::from_millis(1200));
+                if let Some(splashscreen) = app.get_webview_window("splashscreen") {
+                    let _ = splashscreen.close();
 
-                if let Some(main_window) = app.get_webview_window("main") {
-                    let _ = main_window.show();
-                    let _ = main_window.set_focus();
+                    if let Some(main_window) = app.get_webview_window("main") {
+                        let _ = main_window.show();
+                        let _ = main_window.set_focus();
+                    }
                 }
-            }
+            });
         })
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o ADEGA PRO");

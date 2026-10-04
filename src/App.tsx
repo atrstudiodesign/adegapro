@@ -58,7 +58,7 @@ import { ReleaseUpdateModal } from './components/common/ReleaseUpdateModal';
 import { PartnerPortalScreen } from './components/partner/PartnerPortalScreen';
 import { ProductionHrView } from './components/hr/ProductionHrView';
 import { CustomerDisplayView } from './components/pos/CustomerDisplayView';
-import { getDesktopModule } from './services/desktopWindows';
+import { getDesktopModule, isDesktopRuntime } from './services/desktopWindows';
 
 export default function App() {
   const desktopModule = getDesktopModule();
@@ -89,6 +89,7 @@ export default function App() {
   const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>(() =>
     window.location.pathname === '/cadastro' ? 'REGISTER' :
     window.location.pathname === '/entrar' ? 'LOGIN' :
+    isDesktopRuntime() && !desktopModule ? 'LOGIN' :
     'LANDING'
   );
   const [commercialCleared, setCommercialCleared] = useState(false);
@@ -100,9 +101,32 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
+    let bootstrapComplete = false;
+    const requireDesktopAccountLogin = isDesktopRuntime() && !desktopModule && !passwordRecovery;
 
-    supabase.auth.getSession().then(({ data }) => {
+    void supabase.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
+
+      // The Windows main window always starts at the company account gate.
+      // Operator PIN is an internal second layer and must never replace account login.
+      if (requireDesktopAccountLogin) {
+        if (data.session) {
+          const { error } = await supabase.auth.signOut({ scope: 'local' });
+          if (error) console.error('Falha ao limpar a sessão local do Windows:', error);
+        }
+        if (!mounted) return;
+        window.history.replaceState({}, '', '/entrar');
+        setSaasEntryView('LOGIN');
+        setSaasAuthenticated(false);
+        setDemoAccessGranted(false);
+        setLegalCleared(false);
+        setCommercialCleared(false);
+        setIsLocked(false);
+        bootstrapComplete = true;
+        setSaasReady(true);
+        return;
+      }
+
       const hasSession = Boolean(data.session);
       setSaasAuthenticated(hasSession);
       if (hasSession) {
@@ -112,12 +136,14 @@ export default function App() {
         setCommercialCleared(false);
         setIsLocked(true);
       }
+      bootstrapComplete = true;
       setSaasReady(true);
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
+      if (!bootstrapComplete) return;
       const hasSession = Boolean(session);
       setSaasAuthenticated(hasSession);
       if (!hasSession) { setLegalCleared(false); setCommercialCleared(false); }

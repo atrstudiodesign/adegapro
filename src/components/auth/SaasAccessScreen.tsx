@@ -98,6 +98,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       if (path === '/entrar') { setView('LOGIN'); return; }
       if (path === '/cadastro') { setView('REGISTER'); return; }
       if (path === '/politica-fidelidade-indicacoes') { setView('POLICY'); return; }
+      if (initialView === 'LOGIN' && path === '/') { setView('LOGIN'); return; }
       setView('LANDING');
       const section = ['recursos','produtos','integracoes','planos'].find(x => path === '/' + x);
       if (section) requestAnimationFrame(() => requestAnimationFrame(() =>
@@ -592,12 +593,20 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       {view === 'LOGIN' && (
         <main className="relative z-10 max-w-md mx-auto px-5 pt-12 pb-20">
           <div className="p-4 sm:p-7 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-2xl">
-            <div className="mb-6"><h1 className="text-2xl font-black">Entrar no Adega Pro</h1><p className="text-sm text-neutral-400 mt-1">Acesse a conta principal da sua empresa.</p></div>
+            <div className="mb-6 text-center">
+              <img src="/adega-pro-brand.svg" alt="ADEGA PRO — Sistema para Adegas" className="h-16 sm:h-20 w-auto max-w-full object-contain mx-auto"/>
+              <h1 className="text-2xl font-black mt-5">Acesse sua empresa</h1>
+              <p className="text-sm text-neutral-400 mt-1">Entre com a conta principal antes de liberar o PIN do operador.</p>
+              <div className="grid grid-cols-2 gap-2 mt-5 p-1 rounded-xl bg-neutral-950 border border-neutral-800">
+                <button type="button" className="py-2.5 rounded-lg bg-amber-500 text-neutral-950 text-xs font-black">Entrar</button>
+                <button type="button" onClick={()=>navigateView('REGISTER')} className="py-2.5 rounded-lg text-neutral-400 hover:text-white text-xs font-black">Criar cadastro</button>
+              </div>
+            </div>
             {message && <div className={`mb-4 p-3 rounded-xl text-xs border ${message.type==='error'?'bg-rose-950/40 border-rose-800 text-rose-300':'bg-emerald-950/40 border-emerald-800 text-emerald-300'}`}>{message.text}</div>}
             <form onSubmit={login} className="space-y-4">
               <label className="block"><span className="text-xs font-bold text-neutral-300">E-mail</span><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3"><Mail size={16} className="text-neutral-500"/><input value={email} onChange={e=>setEmail(e.target.value)} type="email" required autoComplete="email" className="w-full bg-transparent py-3 outline-none text-sm" placeholder="voce@empresa.com.br"/></div></label>
               <label className="block"><span className="text-xs font-bold text-neutral-300">Senha</span><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3"><LockKeyhole size={16} className="text-neutral-500"/><input value={password} onChange={e=>setPassword(e.target.value)} type={showPassword?'text':'password'} required autoComplete="current-password" className="w-full bg-transparent py-3 outline-none text-sm"/><button type="button" onClick={()=>setShowPassword(v=>!v)} className="text-neutral-500">{showPassword?<EyeOff size={16}/>:<Eye size={16}/>}</button></div></label>
-              <div className="flex items-center justify-between text-xs"><button type="button" onClick={recover} className="text-amber-400 hover:text-amber-300">Esqueci minha senha</button><button type="button" onClick={()=>setView('REGISTER')} className="text-neutral-400 hover:text-white">Criar conta</button></div>
+              <div className="flex items-center justify-between text-xs"><button type="button" onClick={recover} className="text-amber-400 hover:text-amber-300">Esqueci minha senha</button><button type="button" onClick={()=>navigateView('REGISTER')} className="text-neutral-400 hover:text-white">Criar conta</button></div>
               <button disabled={busy} className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black text-sm">{busy?'Entrando...':'Entrar com segurança'}</button>
             </form>
           </div>
@@ -637,7 +646,15 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       {view === 'REGISTER' && (
         <main className="relative z-10 max-w-4xl mx-auto px-5 pt-5 pb-16">
           <div className="p-5 sm:p-7 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-2xl">
-            <div className="mb-6"><h1 className="text-2xl sm:text-3xl font-black">Cadastre sua adega</h1><p className="text-sm text-neutral-400 mt-1">Crie a conta principal e separe a identidade da sua loja da marca Adega Pro.</p></div>
+            <div className="mb-6 text-center">
+              <img src="/adega-pro-brand.svg" alt="ADEGA PRO — Sistema para Adegas" className="h-16 sm:h-20 w-auto max-w-full object-contain mx-auto"/>
+              <h1 className="text-2xl sm:text-3xl font-black mt-5">Cadastre sua adega</h1>
+              <p className="text-sm text-neutral-400 mt-1">Crie a conta principal e separe a identidade da sua loja da marca Adega Pro.</p>
+              <div className="grid grid-cols-2 gap-2 mt-5 max-w-md mx-auto p-1 rounded-xl bg-neutral-950 border border-neutral-800">
+                <button type="button" onClick={()=>navigateView('LOGIN')} className="py-2.5 rounded-lg text-neutral-400 hover:text-white text-xs font-black">Entrar</button>
+                <button type="button" className="py-2.5 rounded-lg bg-amber-500 text-neutral-950 text-xs font-black">Criar cadastro</button>
+              </div>
+            </div>
             {message && <div className={`mb-4 p-3 rounded-xl text-xs border ${message.type==='error'?'bg-rose-950/40 border-rose-800 text-rose-300':'bg-emerald-950/40 border-emerald-800 text-emerald-300'}`}>{message.text}</div>}
             <form onSubmit={registerAccount} className="space-y-6">
               <section><h2 className="text-xs font-black text-amber-400 uppercase tracking-wider mb-3">Responsável pela conta</h2><div className="grid sm:grid-cols-2 gap-3">
@@ -669,7 +686,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                   ))}
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3"><button disabled={busy} className="sm:flex-1 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black">{busy?'Criando conta...':'Criar conta e cadastrar adega'}</button><button type="button" onClick={()=>setView('LOGIN')} className="px-5 py-3.5 rounded-xl border border-neutral-700 bg-neutral-950 text-sm font-bold">Já tenho conta</button></div>
+              <div className="flex flex-col sm:flex-row gap-3"><button disabled={busy} className="sm:flex-1 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black">{busy?'Criando conta...':'Criar conta e cadastrar adega'}</button><button type="button" onClick={()=>navigateView('LOGIN')} className="px-5 py-3.5 rounded-xl border border-neutral-700 bg-neutral-950 text-sm font-bold">Já tenho conta</button></div>
             </form>
           </div>
         </main>

@@ -54,7 +54,7 @@ jobs:
       - name: Validar metadados do executável
         shell: pwsh
         run: |
-          $expectedVersion = "1.1.4"
+          $expectedVersion = "1.1.5"
           $binary = Get-Item "src-tauri/target/release/adega-pro.exe"
           $info = $binary.VersionInfo
 

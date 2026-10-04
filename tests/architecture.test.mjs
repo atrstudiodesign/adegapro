@@ -27,8 +27,21 @@ describe("production architecture guards", () => {
     expect(backend).toContain("PageLoadEvent::Finished");
     expect(backend).toContain('get_webview_window("splashscreen")');
     expect(backend).toContain('get_webview_window("main")');
+    expect(backend).toContain("Duration::from_millis(1200)");
     expect(splash).toContain("/adega-pro-brand.svg");
-    expect(splash).toContain("Versão 1.1.4");
+    expect(splash).toContain("Versão 1.1.5");
+  });
+
+  test("Windows main window requires company login before operator PIN", async () => {
+    const app = await readFile("src/App.tsx", "utf8");
+    const auth = await readFile("src/components/auth/SaasAccessScreen.tsx", "utf8");
+
+    expect(app).toContain("isDesktopRuntime() && !desktopModule");
+    expect(app).toContain("supabase.auth.signOut({ scope: 'local' })");
+    expect(app).toContain("setSaasEntryView('LOGIN')");
+    expect(app.indexOf("if (!saasAuthenticated && !demoAccessGranted")).toBeLessThan(app.indexOf("if (isLocked)"));
+    expect(auth.match(/adega-pro-brand\.svg/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(auth).toContain("Entre com a conta principal antes de liberar o PIN do operador.");
   });
 
   test("Windows package metadata and installed version remain synchronized", async () => {
@@ -37,12 +50,12 @@ describe("production architecture guards", () => {
     const cargo = await readFile("src-tauri/Cargo.toml", "utf8");
     const workflow = await readFile(".github/workflows/desktop-windows.yml", "utf8");
 
-    expect(packageJson.version).toBe("1.1.4");
+    expect(packageJson.version).toBe("1.1.5");
     expect(config.version).toBe(packageJson.version);
-    expect(cargo).toContain('version = "1.1.4"');
-    expect(config.bundle.shortDescription).toContain("1.1.4");
-    expect(config.bundle.longDescription).toContain("1.1.4");
-    expect(workflow).toContain('$expectedVersion = "1.1.4"');
+    expect(cargo).toContain('version = "1.1.5"');
+    expect(config.bundle.shortDescription).toContain("1.1.5");
+    expect(config.bundle.longDescription).toContain("1.1.5");
+    expect(workflow).toContain('$expectedVersion = "1.1.5"');
     expect(workflow).toContain("FileDescription");
     expect(workflow).toContain("ProductVersion");
   });
