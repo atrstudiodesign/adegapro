@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-04-windows-account-gate-v5.28',
-  version: '5.28',
-  dateLabel: '04/10/2026 · 12:11 BRT',
-  title: 'Acesso correto no Windows',
+  releaseId: '2026-10-04-cash-reconciliation-v5.29',
+  version: '5.29',
+  dateLabel: '04/10/2026 · 17:25 BRT',
+  title: 'Conciliação correta do fechamento de caixa',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Caixa: diferença de fechamento agora compara dinheiro contado com o valor físico esperado, considerando saldo inicial, vendas em dinheiro, suprimentos, sangrias e despesas; elimina falso rombo causado pela fórmula anterior.',
     'Desktop 1.1.5: após a abertura com a marca oficial, o aplicativo inicia em Login/Cadastro da empresa; o PIN aparece somente depois da autenticação principal.',
     'Abertura Windows: a tela oficial do ADEGA PRO permanece visível por tempo mínimo para evitar que o aplicativo pareça abrir diretamente no bloqueio do operador.',
     'Desktop 1.1.4: nova tela de abertura com a marca oficial do ADEGA PRO enquanto a interface principal é preparada.',
