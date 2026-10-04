@@ -12,7 +12,13 @@ import { LEGAL_DOCS, LegalDocKey } from '../../legal/legalDocuments';
 import { LoyaltyReferralPolicyPage } from './LoyaltyReferralPolicyPage';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 
-type View = 'LANDING' | 'LOGIN' | 'REGISTER' | 'POLICY';
+type View = 'LANDING' | 'LOGIN' | 'REGISTER' | 'POLICY' | 'RESET_PASSWORD';
+
+const isPasswordRecoveryUrl = () => {
+  const queryType = new URLSearchParams(window.location.search).get('type');
+  const hashType = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type');
+  return queryType === 'recovery' || hashType === 'recovery';
+};
 
 interface SaasAccessScreenProps {
   onDemo: () => void;
@@ -45,6 +51,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   useEffect(() => { void platformDb.getLandingPageContent().then(setLandingCms).catch(() => setLandingCms(null)); }, []);
   const heroImage = landingCms?.hero?.image_url || '/adega-pro-hero.webp';
   const [view, setView] = useState<View>(() => {
+    if (initialView === 'RESET_PASSWORD' || isPasswordRecoveryUrl()) return 'RESET_PASSWORD';
     if (window.location.pathname === '/entrar') return 'LOGIN';
     if (window.location.pathname === '/cadastro') return 'REGISTER';
     if (window.location.pathname === '/politica-fidelidade-indicacoes') return 'POLICY';
@@ -52,6 +59,8 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [register, setRegister] = useState<RegisterForm>(emptyRegister);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -81,6 +90,10 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
 
   useEffect(() => {
     const syncFromPath = () => {
+      if (initialView === 'RESET_PASSWORD' || isPasswordRecoveryUrl()) {
+        setView('RESET_PASSWORD');
+        return;
+      }
       const path = window.location.pathname;
       if (path === '/entrar') { setView('LOGIN'); return; }
       if (path === '/cadastro') { setView('REGISTER'); return; }
@@ -94,7 +107,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
     syncFromPath();
     window.addEventListener('popstate', syncFromPath);
     return () => window.removeEventListener('popstate', syncFromPath);
-  }, []);
+  }, [initialView]);
 
   const checkRateLimit = async (action: 'login'|'signup'|'recovery', identifier: string) => {
     const { data, error } = await supabase.functions.invoke('auth-rate-limit', {
@@ -212,12 +225,40 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: window.location.origin
+      redirectTo: `${window.location.origin}/entrar`
     });
     setBusy(false);
     setMessage(error
       ? {type:'error', text:error.message}
       : {type:'success', text:'Enviamos o link de recuperação para seu e-mail.'});
+  };
+
+  const updatePassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setMessage(null);
+    if (newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'Use uma senha com pelo menos 8 caracteres.' });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setMessage({ type: 'error', text: 'As senhas não conferem.' });
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      window.history.replaceState({}, '', '/entrar');
+      onAuthenticated();
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error?.message || 'O link expirou ou não foi possível atualizar a senha. Solicite um novo link.'
+      });
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (legalDoc) {
@@ -558,6 +599,36 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               <label className="block"><span className="text-xs font-bold text-neutral-300">Senha</span><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3"><LockKeyhole size={16} className="text-neutral-500"/><input value={password} onChange={e=>setPassword(e.target.value)} type={showPassword?'text':'password'} required autoComplete="current-password" className="w-full bg-transparent py-3 outline-none text-sm"/><button type="button" onClick={()=>setShowPassword(v=>!v)} className="text-neutral-500">{showPassword?<EyeOff size={16}/>:<Eye size={16}/>}</button></div></label>
               <div className="flex items-center justify-between text-xs"><button type="button" onClick={recover} className="text-amber-400 hover:text-amber-300">Esqueci minha senha</button><button type="button" onClick={()=>setView('REGISTER')} className="text-neutral-400 hover:text-white">Criar conta</button></div>
               <button disabled={busy} className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black text-sm">{busy?'Entrando...':'Entrar com segurança'}</button>
+            </form>
+          </div>
+        </main>
+      )}
+
+      {view === 'RESET_PASSWORD' && (
+        <main className="relative z-10 max-w-md mx-auto px-5 pt-12 pb-20">
+          <div className="p-4 sm:p-7 rounded-3xl bg-neutral-900/95 border border-neutral-800 shadow-2xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-black">Crie uma nova senha</h1>
+              <p className="text-sm text-neutral-400 mt-1">Digite e confirme a nova senha da conta principal.</p>
+            </div>
+            {message && <div className={`mb-4 p-3 rounded-xl text-xs border ${message.type==='error'?'bg-rose-950/40 border-rose-800 text-rose-300':'bg-emerald-950/40 border-emerald-800 text-emerald-300'}`}>{message.text}</div>}
+            <form onSubmit={updatePassword} className="space-y-4">
+              <label className="block">
+                <span className="text-xs font-bold text-neutral-300">Nova senha</span>
+                <div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3">
+                  <KeyRound size={16} className="text-neutral-500"/>
+                  <input value={newPassword} onChange={event=>setNewPassword(event.target.value)} type={showPassword?'text':'password'} required minLength={8} autoComplete="new-password" className="w-full bg-transparent py-3 outline-none text-sm"/>
+                  <button type="button" onClick={()=>setShowPassword(value=>!value)} className="text-neutral-500" aria-label={showPassword?'Ocultar senha':'Mostrar senha'}>{showPassword?<EyeOff size={16}/>:<Eye size={16}/>}</button>
+                </div>
+              </label>
+              <label className="block">
+                <span className="text-xs font-bold text-neutral-300">Confirmar nova senha</span>
+                <div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3">
+                  <KeyRound size={16} className="text-neutral-500"/>
+                  <input value={confirmNewPassword} onChange={event=>setConfirmNewPassword(event.target.value)} type={showPassword?'text':'password'} required minLength={8} autoComplete="new-password" className="w-full bg-transparent py-3 outline-none text-sm"/>
+                </div>
+              </label>
+              <button disabled={busy} className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-black text-sm">{busy?'Atualizando...':'Salvar nova senha'}</button>
             </form>
           </div>
         </main>

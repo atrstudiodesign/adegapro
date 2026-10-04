@@ -15,6 +15,22 @@ describe("production architecture guards", () => {
     expect(auth).not.toContain("supabase.rpc('check_auth_rate_limit'");
   });
 
+  test("tenant password recovery requires an explicit new password", async () => {
+    const app = await readFile("src/App.tsx", "utf8");
+    const auth = await readFile("src/components/auth/SaasAccessScreen.tsx", "utf8");
+    expect(app).toContain("PASSWORD_RECOVERY");
+    expect(auth).toContain("RESET_PASSWORD");
+    expect(auth).toContain("supabase.auth.updateUser({ password: newPassword })");
+    expect(auth).toContain("redirectTo: `${window.location.origin}/entrar`");
+  });
+
+  test("production customer persistence keeps contact and address fields", async () => {
+    const repo = await readFile("src/services/productionDb.ts", "utf8");
+    expect(repo).toContain("email: customer.email?.trim() || null");
+    expect(repo).toContain("address: customer.address?.trim() || null");
+    expect(repo).not.toContain("email: null,\n    address: null");
+  });
+
   test("production repository requires an operator session token for sales", async () => {
     const repo = await readFile("src/services/productionDb.ts", "utf8");
     expect(repo).toContain("operator_session_token");

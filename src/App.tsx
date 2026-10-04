@@ -77,6 +77,11 @@ export default function App() {
   const [appMode, setCurrentAppMode] = useState<AppMode>(() => getAppMode());
   const [saasReady, setSaasReady] = useState(false);
   const [saasAuthenticated, setSaasAuthenticated] = useState(false);
+  const [passwordRecovery, setPasswordRecovery] = useState(() => {
+    const typeInQuery = new URLSearchParams(window.location.search).get('type');
+    const typeInHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type');
+    return typeInQuery === 'recovery' || typeInHash === 'recovery';
+  });
   const [demoAccessGranted, setDemoAccessGranted] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [legalCleared, setLegalCleared] = useState(false);
@@ -110,8 +115,9 @@ export default function App() {
       setSaasReady(true);
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       const hasSession = Boolean(session);
       setSaasAuthenticated(hasSession);
       if (!hasSession) { setLegalCleared(false); setCommercialCleared(false); }
@@ -229,6 +235,25 @@ export default function App() {
           <div className="text-xs text-neutral-500 mt-1">Preparando ambiente seguro...</div>
         </div>
       </div>
+    );
+  }
+
+  if (passwordRecovery) {
+    return (
+      <SaasAccessScreen
+        initialView="RESET_PASSWORD"
+        onDemo={() => undefined}
+        onAuthenticated={() => {
+          setPasswordRecovery(false);
+          setAppMode('PRODUCTION');
+          setCurrentAppMode('PRODUCTION');
+          setSaasAuthenticated(true);
+          setDemoAccessGranted(false);
+          setCommercialCleared(false);
+          setLegalCleared(false);
+          setIsLocked(true);
+        }}
+      />
     );
   }
 
