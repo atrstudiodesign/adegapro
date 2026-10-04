@@ -400,7 +400,7 @@ export const REQUIRED_LEGAL_ACCEPTANCES = ([
 
 export const LEGAL_CONTENT_HASHES: Record<Exclude<LegalDocKey, 'sales_partner_policy'>, string> = {
   terms_of_use: 'sha256:06b8f75c4ed51e9dd411396fa5f9ec2b723e7bb5095f53659a29fdf76494fd58',
-  privacy_policy: 'sha256:1c0d7b9d54ab14db5c18edee75573a66c5a2a9f72c23f71e8ed08ef39211d829',
+  privacy_policy: 'sha256:646e8e3d283567b5bb920c70e967350df32dd7d120dde3c6ead709bc4bbb50f8',
   subscription_policy: 'sha256:8b7bd3a38766c1620abc51af27fe1a3843076b5e4c79ae10568716fda2c10200',
   software_license: 'sha256:076d8f90f57a811c0035a90ed2c749a57c56ac89cc2c2f04bfd0891211e492b6',
   legal_notice: 'sha256:b770bfd9258ef1fe1f936658f113467887bc9882dca72ac447ad024aa3ecb708',
