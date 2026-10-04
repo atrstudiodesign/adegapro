@@ -155,13 +155,9 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const finalize=async()=>{
     if(!currentSession){setError('Abra o caixa antes de finalizar a venda.');return;}
     if(cart.length===0||total<=0)return;
-    if(method==='PIX'&&pixStatus!=='PAID'){setError('Confirme o PIX como PAGO antes de finalizar.');return;}
-    if(method==='FIADO'&&!customerId){setError('Selecione um cliente para venda fiada.');return;}
     const normalizedDiscount=Math.round(discount*100)/100;
     const normalizedSubtotal=Math.round(subtotal*100)/100;
     if(normalizedDiscount<0||normalizedDiscount>normalizedSubtotal){setError('Desconto inválido. O desconto não pode superar o subtotal.');return;}
-    const amount=method==='DINHEIRO'?tenderedNumber:total;
-    if(!Number.isFinite(amount)||amount<total){setError('Valor recebido insuficiente.');return;}
 
     // The database calculates the sale total from item-level discounts.
     // Allocate the cart discount across lines so UI total, payment and RPC total are identical.
@@ -181,11 +177,11 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         customer_id:customerId||null,
         idempotency_key:crypto.randomUUID(),
         items:saleItems,
-        payments:[{method,amount,change_amount:change,provider:'MANUAL'}],
+        payments:[],
         surcharge:0
       });
       setLastReceipt({
-        id,total,subtotal,discount,method,amount,change,
+        id,total,subtotal,discount,method:'FECHAMENTO',amount:total,change:0,
         createdAt:new Date().toISOString(),
         customer:selectedCustomer?.name||'Cliente Final',
         items:cart.map(l=>({name:l.product.name,quantity:l.quantity,unit:l.product.salePrice,total:l.product.salePrice*l.quantity}))
@@ -393,11 +389,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
             <div className="flex justify-between items-end pt-2"><span className="text-lg font-black">Total</span><span className="text-2xl font-black text-amber-400">{money(total)}</span></div>
           </div>
 
-          <div className="mt-3"><div className="text-xs font-black mb-2">Pagamento</div><div className="flex gap-2 overflow-x-auto">{paymentButton('DINHEIRO','Dinheiro',Banknote)}{paymentButton('PIX','PIX',QrCode)}{paymentButton('CREDITO','Cartão',CreditCard)}{paymentButton('VOUCHER','Outros',MoreHorizontal)}</div></div>
-          {method==='DINHEIRO'&&<div className="grid grid-cols-2 gap-3 mt-3">
-            <label className="text-[10px] text-neutral-400">Valor recebido<input value={tendered} onChange={e=>setTendered(e.target.value)} placeholder={total.toFixed(2)} className="mt-1 w-full h-9 rounded-lg border border-neutral-700 bg-[#11171d] px-3 text-xs font-black outline-none focus:border-amber-400"/></label>
-            <div className="text-[10px] text-neutral-400">Troco<div className="mt-1 h-9 rounded-lg flex items-center justify-end text-xs font-black">{money(change)}</div></div>
-          </div>}
+          <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-3 text-xs text-emerald-300 font-bold">A forma de recebimento será informada somente no fechamento do caixa.</div>
           <label className="block mt-3 text-[10px] text-neutral-400">Desconto<input type="number" min="0" step="0.01" value={discount||''} onChange={e=>setDiscount(Number(e.target.value)||0)} className="mt-1 w-full h-9 rounded-lg border border-neutral-700 bg-[#11171d] px-3 text-xs outline-none focus:border-amber-400"/></label>
 
           <button disabled={busy||cart.length===0||!currentSession} onClick={()=>void finalize()} className="mt-3 w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black text-sm disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center gap-2"><CheckCircle2 size={18}/>{busy?'PROCESSANDO...':'Finalizar Venda (F9)'}</button>
