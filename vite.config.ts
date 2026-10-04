@@ -103,6 +103,11 @@ export default defineConfig(() => {
         },
       }),
     ],
+    build: {
+      // Electron 22 (Windows 7 Legacy) embeds Chromium 108. Pinning the web bundle
+      // prevents future Vite defaults from emitting JavaScript newer than that runtime.
+      target: 'chrome108',
+    },
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),
