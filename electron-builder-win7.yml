@@ -1,5 +1,6 @@
 appId: br.com.atrstudio.adegapro.legacy.win7
 productName: ADEGA PRO Legacy
+electronVersion: 22.3.27
 copyright: Copyright © 2026 ATR Studio Design
 
 directories:
