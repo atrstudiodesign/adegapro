@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissões mínimas da janela principal do ADEGA PRO",
-  "windows": ["main"],
+  "description": "Permissões mínimas das janelas do ADEGA PRO",
+  "windows": ["main", "module-*"],
   "permissions": ["core:default"]
 }

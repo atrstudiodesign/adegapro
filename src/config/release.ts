@@ -1,10 +1,12 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-03-legal-r8-sha256-v5.22',
-  version: '5.22',
-  dateLabel: '03/10/2026 · 11:05 BRT',
-  title: 'Integridade criptográfica dos documentos r8',
+  releaseId: '2026-10-04-desktop-multiwindow-v5.23',
+  version: '5.23',
+  dateLabel: '04/10/2026 · 01:30 BRT',
+  title: 'ADEGA PRO Desktop com múltiplas janelas',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Desktop: Dashboard, PDV, Vendas, Caixa, Produtos, Estoque, Financeiro, Clientes e Relatórios agora podem ser abertos em janelas independentes pelo menu Janelas.',
+    'PDV: nova Tela do Cliente para segundo monitor, sincronizada em tempo real apenas com itens, quantidades e totais da venda ativa, sem dados pessoais do cliente.',
     'Jurídico: os seis documentos obrigatórios r8 agora possuem SHA-256 reproduzível calculado sobre payload canônico; teste automático impede divergência silenciosa entre texto publicado e hash registrado.',
     'Inventário: novas contagens físicas ficam vinculadas automaticamente ao caixa/turno aberto do operador; inventários anteriores permanecem compatíveis e nenhum saldo existente é alterado.',
     'Cashback: estorno, cancelamento ou chargeback devolve pontos e saldo, mas não reabre a cota de indicação do mesmo mês-calendário; regra alinhada ao índice único e ao ledger idempotente.',

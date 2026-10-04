@@ -8,6 +8,7 @@ import {
 import { productionDb } from '../../services/productionDb';
 import type { CashRegister, CashSession, Category, Customer, Product, Store, User } from '../../types';
 import { QuickSaleModal } from './QuickSaleModal';
+import { publishCustomerDisplay } from '../../services/desktopWindows';
 
 interface Props {
   currentUser: User;
@@ -94,6 +95,28 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const total=Math.max(0,subtotal-discount);
   const tenderedNumber=Number((tendered||String(total)).replace(',','.'))||0;
   const change=method==='DINHEIRO'?Math.max(0,tenderedNumber-total):0;
+
+  const customerDisplaySnapshot=useMemo(()=>({
+    storeName:store?.tradeName||store?.name||'ADEGA PRO',
+    storeLogoUrl:store?.logoUrl,
+    items:cart.map(line=>({
+      name:line.product.name,
+      quantity:line.quantity,
+      unitPrice:line.product.salePrice,
+      lineTotal:line.product.salePrice*line.quantity
+    })),
+    subtotal,
+    discount,
+    total:cart.length>0?total:Number(lastReceipt?.total||0),
+    status:(cart.length>0?'OPEN':lastReceipt?'COMPLETED':'WAITING') as 'WAITING'|'OPEN'|'COMPLETED'
+  }),[cart,discount,lastReceipt,store,subtotal,total]);
+
+  useEffect(()=>{
+    const publish=()=>publishCustomerDisplay({...customerDisplaySnapshot,updatedAt:Date.now()});
+    publish();
+    const timer=window.setInterval(publish,1_500);
+    return()=>window.clearInterval(timer);
+  },[customerDisplaySnapshot]);
 
   const add=(p:Product)=>{
     if(!p.isCombo&&p.currentStock<=0){setError(`${p.name}: produto sem estoque.`);return;}

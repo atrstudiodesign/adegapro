@@ -57,9 +57,14 @@ import { PlatformAdminAccessScreen } from './components/admin/PlatformAdminAcces
 import { ReleaseUpdateModal } from './components/common/ReleaseUpdateModal';
 import { PartnerPortalScreen } from './components/partner/PartnerPortalScreen';
 import { ProductionHrView } from './components/hr/ProductionHrView';
+import { CustomerDisplayView } from './components/pos/CustomerDisplayView';
+import { getDesktopModule } from './services/desktopWindows';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const desktopModule = getDesktopModule();
+  const [currentTab, setCurrentTab] = useState<string>(() =>
+    desktopModule && desktopModule !== 'customer-display' ? desktopModule : 'dashboard'
+  );
   const [currentUser, setCurrentUser] = useState<User>(db.getCurrentUser());
   const [currentSession, setCurrentSession] = useState<CashSession | undefined>(db.getCurrentSession());
   const [receiptHashId, setReceiptHashId] = useState<string | null>(() => {
@@ -203,6 +208,10 @@ export default function App() {
     }
   }, [currentUser.role, currentTab]);
 
+  if (desktopModule === 'customer-display') {
+    return <CustomerDisplayView />;
+  }
+
   if (platformAdminRoute) {
     return <PlatformAdminAccessScreen />;
   }
@@ -278,7 +287,7 @@ export default function App() {
             void productionDb.getCurrentCashSession()
               .then(session => setCurrentSession(session))
               .catch(() => setCurrentSession(undefined));
-            setCurrentTab('pos');
+            setCurrentTab(desktopModule || 'pos');
             setIsLocked(false);
           }}
         />

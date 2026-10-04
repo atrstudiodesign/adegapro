@@ -6,6 +6,7 @@ import { User,CashSession } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
 import { OfflineSyncControl } from '../common/OfflineSyncControl';
 import { PWAInstallButton } from '../common/PWAInstallButton';
+import { DesktopWindowsMenu } from '../common/DesktopWindowsMenu';
 import {
   ShoppingCart,Bell,Store as StoreIcon,Lock,Menu,Moon,Sun,Zap,
   Grid3X3,ChevronDown
@@ -93,6 +94,7 @@ export const Header:React.FC<HeaderProps>=({
       </div>
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <DesktopWindowsMenu currentUser={currentUser} compact/>
         <div className="relative">
         <button onClick={()=>setNotificationsOpen(v=>!v)} aria-expanded={notificationsOpen} aria-label="Abrir notificações" title={(unreadNotifications+hrPending)>0?(unreadNotifications+hrPending)+' notificação(ões)':'Sem notificações'} className="relative w-10 h-10 rounded-xl text-neutral-300 grid place-items-center hover:bg-neutral-900">
           <Bell size={18}/>
@@ -142,6 +144,7 @@ export const Header:React.FC<HeaderProps>=({
       <div className="hidden xl:flex items-center gap-2 text-xs text-neutral-400"><StoreIcon size={14} className="text-amber-400"/><span className="text-neutral-200 font-medium">{store.tradeName||store.name}</span><span className="text-neutral-600">·</span><span>{currentSession?currentSession.cashRegisterNumber+' aberto':'Caixa fechado'}</span></div>
     </div>
     <div className="flex items-center gap-2">
+      <DesktopWindowsMenu currentUser={currentUser}/>
       <button onClick={()=>onNavigate('pos')} className={navClass(false)}><ShoppingCart size={15}/><span className="hidden sm:inline">PDV Completo</span></button>
       <button onClick={openMiniPdv} className={navClass(false)}><Zap size={15}/><span className="hidden md:inline">Mini PDV Rápido</span></button>
       <button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 grid place-items-center">{theme==='dark'?<Sun size={15}/>:<Moon size={15}/>}</button>
