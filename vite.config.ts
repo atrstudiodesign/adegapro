@@ -11,40 +11,47 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.png', 'apple-touch-icon.png', 'adega-pro-icon.jpg', 'logo.svg'],
+        includeAssets: ['favicon.png', 'apple-touch-icon.png', 'adega-pro-mark.svg', 'adega-pro-brand.svg'],
         manifest: {
-          id: '/',
-          name: 'ADEGA PRO - Gestão Completa & PDV',
+          id: '/inicio',
+          name: 'ADEGA PRO — Sistema para Adegas',
           short_name: 'ADEGA PRO',
-          description: 'Sistema PDV e Gestão Comercial para Adegas e Conveniências com sincronização offline contínua.',
-          theme_color: '#0a0a0a',
-          background_color: '#0a0a0a',
+          description: 'PDV, estoque, compras, clientes, financeiro e relatórios para adegas.',
+          lang: 'pt-BR',
+          theme_color: '#080808',
+          background_color: '#080808',
           display: 'standalone',
-          start_url: '/',
+          start_url: '/inicio?source=pwa',
           scope: '/',
+          orientation: 'any',
+          categories: ['business', 'finance', 'productivity'],
           icons: [
             {
               src: '/pwa-192x192.png',
               sizes: '192x192',
               type: 'image/png',
-              purpose: 'any',
+              purpose: 'any maskable',
             },
             {
               src: '/pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'any',
+              purpose: 'any maskable',
             },
+          ],
+          shortcuts: [
             {
-              src: '/adega-pro-icon.jpg',
-              sizes: '512x512',
-              type: 'image/jpeg',
-              purpose: 'maskable',
+              name: 'Entrar no ADEGA PRO',
+              short_name: 'Entrar',
+              url: '/entrar?source=pwa',
+              icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
             },
           ],
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff,woff2}'],
+          navigateFallback: '/index.html',
+          cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -98,7 +105,7 @@ export default defineConfig(() => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname, '.'),
       },
     },
     server: {

@@ -11,7 +11,7 @@ registerSW({
     console.log('[ADEGA PRO SW] Nova versão disponível. Atualizando automaticamente...');
   },
   onOfflineReady() {
-    console.log('[ADEGA PRO SW] Aplicativo cacheado e 100% pronto para operação offline!');
+    console.log('[ADEGA PRO SW] Interface instalada e pronta. Dados conectados continuam sujeitos à sincronização.');
   },
 });
 

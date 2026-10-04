@@ -11,11 +11,16 @@ export function usePWAInstall() {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    const isDesktopRuntime = '__TAURI_INTERNALS__' in window;
+
     // Detect standalone mode (already installed)
     const isStandalone =
+      isDesktopRuntime ||
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     setIsInstalled(isStandalone);
+
+    if (isDesktopRuntime) return;
 
     // Detect iOS devices
     const userAgent = window.navigator.userAgent.toLowerCase();

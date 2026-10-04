@@ -10,6 +10,7 @@ import { platformDb } from '../../services/platformDb';
 import { LegalCenter } from '../legal/LegalCenter';
 import { LEGAL_DOCS, LegalDocKey } from '../../legal/legalDocuments';
 import { LoyaltyReferralPolicyPage } from './LoyaltyReferralPolicyPage';
+import { PWAInstallButton } from '../common/PWAInstallButton';
 
 type View = 'LANDING' | 'LOGIN' | 'REGISTER' | 'POLICY';
 
@@ -247,6 +248,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             <button type="button" onClick={() => navigateMarketing('/planos')} className="hover:text-amber-400 transition-colors">Planos</button>
           </nav>
           <div className="flex items-center gap-2">
+            <div className="hidden xl:block"><PWAInstallButton /></div>
             <button onClick={onDemo} className="hidden md:flex px-4 py-2.5 rounded-xl border border-amber-500/40 text-xs font-black text-amber-300 hover:bg-amber-500/10 items-center gap-2"><PlayCircle size={15}/>Demonstração</button>
             <button onClick={() => navigateView('LOGIN')} className="hidden sm:block px-4 py-2.5 text-xs font-bold text-neutral-300 hover:text-white">Entrar</button>
             <button onClick={() => navigateView('REGISTER')} className="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 text-neutral-950 text-xs font-black shadow-lg shadow-amber-950/30">Comece agora</button>
