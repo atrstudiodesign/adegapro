@@ -1,7 +1,7 @@
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 #[tauri::command]
-fn open_module_window(app: tauri::AppHandle, module: String) -> Result<(), String> {
+async fn open_module_window(app: tauri::AppHandle, module: String) -> Result<(), String> {
     let (title, width, height, min_width, min_height) = match module.as_str() {
         "dashboard" => ("ADEGA PRO — Dashboard", 1360.0, 860.0, 1024.0, 700.0),
         "pos" => ("ADEGA PRO — PDV", 1440.0, 900.0, 1100.0, 720.0),
@@ -27,8 +27,12 @@ fn open_module_window(app: tauri::AppHandle, module: String) -> Result<(), Strin
         return Ok(());
     }
 
-    let app_url = format!("index.html?desktopModule={module}");
-    WebviewWindowBuilder::new(&app, label, WebviewUrl::App(app_url.into()))
+    let module_script = format!(
+        "window.__ADEGA_DESKTOP_MODULE__ = {};",
+        serde_json::to_string(&module).map_err(|error| error.to_string())?
+    );
+    WebviewWindowBuilder::new(&app, label, WebviewUrl::App("index.html".into()))
+        .initialization_script(module_script)
         .title(title)
         .inner_size(width, height)
         .min_inner_size(min_width, min_height)

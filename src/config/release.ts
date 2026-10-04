@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-04-desktop-multiwindow-v5.23',
-  version: '5.23',
-  dateLabel: '04/10/2026 · 01:30 BRT',
-  title: 'ADEGA PRO Desktop com múltiplas janelas',
+  releaseId: '2026-10-04-desktop-multiwindow-hotfix-v5.24',
+  version: '5.24',
+  dateLabel: '03/10/2026 · 23:18 BRT',
+  title: 'Correção das janelas independentes no Windows',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Desktop 1.1.1: corrige a tela branca ao abrir módulos pelo menu Janelas e evita bloqueio do WebView2 no Windows.',
     'Desktop: Dashboard, PDV, Vendas, Caixa, Produtos, Estoque, Financeiro, Clientes e Relatórios agora podem ser abertos em janelas independentes pelo menu Janelas.',
     'PDV: nova Tela do Cliente para segundo monitor, sincronizada em tempo real apenas com itens, quantidades e totais da venda ativa, sem dados pessoais do cliente.',
     'Jurídico: os seis documentos obrigatórios r8 agora possuem SHA-256 reproduzível calculado sobre payload canônico; teste automático impede divergência silenciosa entre texto publicado e hash registrado.',

@@ -38,6 +38,7 @@ const CUSTOMER_DISPLAY_MAX_AGE_MS = 5_000;
 
 declare global {
   interface Window {
+    __ADEGA_DESKTOP_MODULE__?: string;
     __TAURI_INTERNALS__?: {
       invoke<T>(command: string, args?: Record<string, unknown>): Promise<T>;
     };
@@ -47,7 +48,8 @@ declare global {
 export const isDesktopRuntime = () => Boolean(window.__TAURI_INTERNALS__?.invoke);
 
 export const getDesktopModule = (): DesktopModule | null => {
-  const requested = new URLSearchParams(window.location.search).get('desktopModule');
+  const requested = window.__ADEGA_DESKTOP_MODULE__
+    || new URLSearchParams(window.location.search).get('desktopModule');
   return DESKTOP_MODULES.includes(requested as DesktopModule) ? requested as DesktopModule : null;
 };
 
