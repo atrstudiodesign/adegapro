@@ -9,6 +9,11 @@ describe("production architecture guards", () => {
     expect(app).toContain("ProductionOperatorLock");
   });
 
+  test("Windows release starts as a GUI application without a console window", async () => {
+    const main = await readFile("src-tauri/src/main.rs", "utf8");
+    expect(main).toContain('#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]');
+  });
+
   test("pre-auth rate limit does not call the public RPC directly", async () => {
     const auth = await readFile("src/components/auth/SaasAccessScreen.tsx", "utf8");
     expect(auth).toContain("supabase.functions.invoke('auth-rate-limit'");

@@ -1,10 +1,11 @@
 export const APP_RELEASE = {
-  releaseId: '2026-10-04-security-and-recovery-v5.25',
-  version: '5.25',
-  dateLabel: '04/10/2026 · 09:52 BRT',
-  title: 'Segurança, recuperação de acesso e clientes',
+  releaseId: '2026-10-04-windows-gui-only-v5.26',
+  version: '5.26',
+  dateLabel: '04/10/2026 · 10:45 BRT',
+  title: 'Inicialização limpa no Windows',
   subtitle: 'Novidades desta versão',
   notes: [
+    'Desktop 1.1.3: inicia somente com a interface gráfica do ADEGA PRO, sem abrir a janela CMD em segundo plano.',
     'Desktop 1.1.2: sincroniza a versão Windows com as correções publicadas no sistema online.',
     'Acesso: o link de recuperação agora abre uma tela segura para definir e confirmar a nova senha antes de entrar no sistema.',
     'Clientes: e-mail, endereço e observações passam a ser coletados e persistidos sem serem apagados em atualizações.',
