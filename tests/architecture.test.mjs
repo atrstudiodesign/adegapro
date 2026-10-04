@@ -148,4 +148,30 @@ describe("production architecture guards", () => {
     expect(ci).toContain("bun test");
     expect(ci).toContain("bun run build");
   });
+
+  test("Windows 7 Legacy remains an isolated online shell for the production app", async () => {
+    const legacyPackage = JSON.parse(await readFile("legacy-electron/package.json", "utf8"));
+    const legacyMain = await readFile("legacy-electron/main.cjs", "utf8");
+    const legacyPreload = await readFile("legacy-electron/preload.cjs", "utf8");
+    const vite = await readFile("vite.config.ts", "utf8");
+
+    expect(legacyPackage.build.electronVersion).toBe("22.3.27");
+    expect(legacyMain).toContain("const ONLINE_URL = 'https://adegapro.vercel.app'");
+    expect(legacyMain).toContain("contextIsolation: true");
+    expect(legacyMain).toContain("nodeIntegration: false");
+    expect(legacyMain).toContain("sandbox: true");
+    expect(legacyPreload).toContain("command !== 'open_module_window'");
+    expect(vite).toContain("target: 'chrome108'");
+  });
+
+  test("Windows 7 Legacy does not introduce a second production database", async () => {
+    const legacyMain = await readFile("legacy-electron/main.cjs", "utf8");
+    const legacyPackage = await readFile("legacy-electron/package.json", "utf8");
+
+    expect(legacyMain).not.toContain("supabase");
+    expect(legacyMain).not.toContain("sqlite");
+    expect(legacyMain).not.toContain("indexedDB");
+    expect(legacyPackage).not.toContain("@supabase/supabase-js");
+  });
+
 });
