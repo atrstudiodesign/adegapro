@@ -51,7 +51,9 @@ jobs:
       - name: Gerar NSIS x64 e x86
         shell: pwsh
         run: |
-          .\.legacy-build\node_modules\.bin\electron-builder.cmd --config electron-builder-win7.yml --win nsis --x64 --ia32
+          Push-Location legacy-electron
+          ..\.legacy-build\node_modules\.bin\electron-builder.cmd --win nsis --x64 --ia32
+          Pop-Location
 
       - name: Validar artefatos
         shell: pwsh
