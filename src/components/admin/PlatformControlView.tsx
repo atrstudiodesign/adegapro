@@ -434,7 +434,7 @@ const VisitorAnalyticsPanel:React.FC=()=>{
       if(!session?.access_token)throw new Error('Sessão administrativa expirada.');
       const response=await fetch('/api/analytics?days='+days,{headers:{Authorization:'Bearer '+session.access_token}});
       const payload=await response.json();
-      if(!response.ok)throw new Error(payload?.error==='analytics_token_missing'?'Conexão com Vercel Analytics ainda não autorizada no servidor.':payload?.message||'Não foi possível consultar os visitantes.');
+      if(!response.ok)throw new Error(payload?.message||'Não foi possível consultar os visitantes.');
       setData(payload);
     }catch(e:any){setError(e?.message||'Falha ao carregar Analytics.');}
     finally{setBusy(false);}
@@ -450,7 +450,7 @@ const VisitorAnalyticsPanel:React.FC=()=>{
   return <div className="space-y-4">
     <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h2 className="font-black">Visitantes do site ADEGA PRO</h2><p className="text-[10px] text-neutral-500 mt-1">Vercel Web Analytics · somente tráfego público do funil comercial.</p></div>
+        <div><h2 className="font-black">Visitantes do site ADEGA PRO</h2><p className="text-[10px] text-neutral-500 mt-1">{data?.source==='FIRST_PARTY'?'Analytics próprio do Adega Pro · fallback seguro ativo.':'Vercel Web Analytics · tráfego público do funil comercial.'}</p></div>
         <div className="flex items-center gap-2">
           {[7,30,90].map(n=><button key={n} onClick={()=>setDays(n)} className={`px-3 py-2 rounded-xl border text-xs font-black ${days===n?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-950 border-neutral-800 text-neutral-400'}`}>{n} dias</button>)}
           <button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs font-black">{busy?'Atualizando...':'Atualizar'}</button>
