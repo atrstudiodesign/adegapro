@@ -1109,7 +1109,7 @@ async function getCashSessionDetails(sessionId:string) {
     .eq('id',sessionId).eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).single();
   if(sessionError) throw sessionError;
 
-  const [{data:sales,error:salesError},{data:movements,error:movementsError}]=await Promise.all([
+  const [{data:sales,error:salesError},{data:movements,error:movementsError},{data:store,error:storeError}]=await Promise.all([
     supabase.from('sales')
       .select('id,sale_number,total,status,operator_ref,created_at,sale_payments(method,amount,change_amount,status)')
       .eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).eq('cash_session_id',sessionId)
@@ -1117,10 +1117,14 @@ async function getCashSessionDetails(sessionId:string) {
     supabase.from('cash_movements')
       .select('id,movement_type,amount,reason,operator_ref,created_at')
       .eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).eq('cash_session_id',sessionId)
-      .order('created_at',{ascending:false})
+      .order('created_at',{ascending:false}),
+    supabase.from('stores')
+      .select('id,trade_name,legal_name,cnpj,address,city,state')
+      .eq('id',ctx.storeId).eq('tenant_id',ctx.tenantId).single()
   ]);
   if(salesError) throw salesError;
   if(movementsError) throw movementsError;
+  if(storeError) throw storeError;
 
   const paid=(sales||[]).filter((sale:any)=>sale.status==='PAGA');
   const paymentTotals:Record<string,number>={};
@@ -1145,6 +1149,7 @@ async function getCashSessionDetails(sessionId:string) {
   return {
     session:mapCashSession(session,session.cash_registers,session.operators),
     operator:session.operators||null,
+    store:store||null,
     sales:paid,
     movements:movements||[],
     metrics:{
