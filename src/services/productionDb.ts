@@ -1126,7 +1126,21 @@ async function getCashSessionDetails(sessionId:string) {
   paid.forEach((sale:any)=>(sale.sale_payments||[]).filter((p:any)=>p.status==='CONFIRMADO').forEach((p:any)=>{
     paymentTotals[p.method]=(paymentTotals[p.method]||0)+Number(p.amount||0)-Number(p.change_amount||0);
   }));
-  const total=paid.reduce((sum:number,sale:any)=>sum+Number(sale.total||0),0);
+
+  // No fechamento simplificado os meios de pagamento são declarados no próprio
+  // turno, e não necessariamente vinculados a cada sale_payment. O histórico
+  // precisa preservar e exibir exatamente o que foi informado no fechamento.
+  if(session.closing_report_at){
+    paymentTotals.PIX=Number(session.closing_report_pix||0);
+    paymentTotals.DEBITO=Number(session.closing_report_debit||0);
+    paymentTotals.CREDITO=Number(session.closing_report_credit||0);
+    paymentTotals.DINHEIRO=Number(session.closing_report_cash||0);
+  }
+
+  // cash_sessions.total_sales é a fonte consolidada do turno. Mantemos a soma
+  // das vendas como fallback para sessões antigas que não possuam o acumulado.
+  const paidSalesTotal=paid.reduce((sum:number,sale:any)=>sum+Number(sale.total||0),0);
+  const total=Number(session.total_sales||0) || paidSalesTotal;
   return {
     session:mapCashSession(session,session.cash_registers,session.operators),
     operator:session.operators||null,
