@@ -25,9 +25,100 @@ export const ProductionCashView: React.FC<Props> = ({ currentUser, currentSessio
 
   const openSessionDetails=async(session:CashSession)=>{setDetailBusy(true);setError('');setAuditResult(null);try{setSelected(await productionDb.getCashSessionDetails(session.id));}catch(e:any){setError(e?.message||'Não foi possível abrir o histórico deste caixa.');}finally{setDetailBusy(false);}};
   const money=(v:any)=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-  const sessionReportHtml=(d:any)=>`<!doctype html><html><head><meta charset="utf-8"><title>Turno - ${d.session.operatorName}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1{font-size:22px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.box{border:1px solid #ddd;border-radius:8px;padding:12px}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left;font-size:12px}</style></head><body><h1>Histórico do turno · ${d.session.cashRegisterNumber} · ${d.session.operatorName}</h1><p>${new Date(d.session.openedAt).toLocaleString('pt-BR')} ${d.session.closedAt?'→ '+new Date(d.session.closedAt).toLocaleString('pt-BR'):'· em andamento'}</p><div class="grid"><div class="box">Vendas<br><b>${d.metrics.salesCount}</b></div><div class="box">Faturamento<br><b>${money(d.metrics.total)}</b></div><div class="box">Diferença<br><b>${money(d.session.cashDifference||0)}</b></div></div><h2>Vendas</h2><table><tr><th>Nº</th><th>Data</th><th>Valor</th></tr>${d.sales.map((x:any)=>`<tr><td>#${x.sale_number}</td><td>${new Date(x.created_at).toLocaleString('pt-BR')}</td><td>${money(x.total)}</td></tr>`).join('')}</table></body></html>`;
+  const sessionReportHtml=(d:any)=>{
+    const esc=(v:any)=>String(v??'').replace(/[&<>"']/g,(ch)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' } as Record<string,string>)[ch]||ch);
+    const opened=new Date(d.session.openedAt);
+    const closed=d.session.closedAt?new Date(d.session.closedAt):null;
+    const payments=d.metrics.paymentTotals||{};
+    const pix=Number(payments.PIX||0);
+    const debit=Number(payments.DEBITO||0);
+    const credit=Number(payments.CREDITO||0);
+    const sangria=Number(d.metrics.sangrias||0);
+    const expenses=Number(d.session.totalExpenses||0);
+    const totalMov=Number((sangria+pix+debit+credit+expenses).toFixed(2));
+    const storeName=String(d.store?.trade_name||d.store?.legal_name||'ADEGA PRO').toUpperCase();
+    const turno=`${d.session.cashRegisterNumber} · ${opened.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}${closed?' - '+closed.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}`;
+    const observations=d.session.closureNotes||'';
+    return `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Folha de fechamento - ${esc(d.session.operatorName)}</title>
+<style>
+@page{size:A4 portrait;margin:0}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}
+.page{width:210mm;min-height:297mm;margin:0 auto;padding:16mm 16mm 14mm;position:relative;background:#fff}
+.header{text-align:center}
+.header h1{margin:0;font-size:20pt;line-height:1.05;font-weight:800;letter-spacing:.1px}
+.header h2{margin:5mm 0 9mm;font-size:14pt;line-height:1;font-weight:800}
+.meta{display:grid;grid-template-columns:1fr 1fr;column-gap:14mm;row-gap:5mm;margin-bottom:13mm;font-size:12pt}
+.meta .name{grid-column:1 / -1}
+.field{display:flex;align-items:flex-end;gap:4mm}
+.label{font-weight:700;white-space:nowrap}
+.line{flex:1;min-height:7mm;border-bottom:1px solid #111;padding:0 1mm 1.2mm;font-size:11pt}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{border:1px solid #111;height:15mm;padding:3mm 2mm;font-size:11.5pt}
+th{background:#d0d0d0;font-weight:800;text-align:left}
+th:last-child{text-align:center}
+td:first-child{width:60%}
+td:last-child{width:40%;text-align:center;font-weight:600}
+.total-row td{font-weight:800;background:#f4f4f4}
+.obs{margin-top:10mm;border:1px solid #111;height:78mm}
+.obs-title{height:12mm;background:#d0d0d0;border-bottom:1px solid #111;padding:3mm 2mm;font-size:11.5pt;font-weight:800}
+.obs-body{padding:4mm;font-size:11pt;white-space:pre-wrap;line-height:1.45}
+.responsible-page{display:flex;align-items:flex-start;padding-top:18mm;font-size:11.5pt}
+.responsible{width:100%;display:flex;align-items:flex-end;gap:3mm}
+.responsible .line{min-height:6mm}
+.small-note{position:absolute;left:16mm;right:16mm;bottom:8mm;font-size:7.5pt;color:#666;text-align:center}
+@media print{.page{margin:0;page-break-after:always}.page:last-child{page-break-after:auto}}
+</style>
+</head>
+<body>
+<section class="page">
+  <div class="header">
+    <h1>${esc(storeName)}</h1>
+    <h2>FOLHA DE FECHAMENTO DE CAIXA</h2>
+  </div>
+
+  <div class="meta">
+    <div class="field name"><span class="label">Nome:</span><span class="line">${esc(d.session.operatorName)}</span></div>
+    <div class="field"><span class="label">Data:</span><span class="line">${esc(opened.toLocaleDateString('pt-BR'))}</span></div>
+    <div class="field"><span class="label">Turno:</span><span class="line">${esc(turno)}</span></div>
+  </div>
+
+  <table>
+    <thead><tr><th>MOVIMENTAÇÃO DO CAIXA</th><th>VALOR (R$)</th></tr></thead>
+    <tbody>
+      <tr><td>Vendas</td><td>${money(d.metrics.total)}</td></tr>
+      <tr><td>Sangria</td><td>${money(sangria)}</td></tr>
+      <tr><td>Pix</td><td>${money(pix)}</td></tr>
+      <tr><td>Débito</td><td>${money(debit)}</td></tr>
+      <tr><td>Crédito</td><td>${money(credit)}</td></tr>
+      <tr><td>Despesas</td><td>${money(expenses)}</td></tr>
+      <tr class="total-row"><td>TOTAL</td><td>${money(totalMov)}</td></tr>
+      <tr class="total-row"><td>DIFERENÇA</td><td>${money(d.session.cashDifference||0)}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="obs">
+    <div class="obs-title">OBSERVAÇÕES</div>
+    <div class="obs-body">${esc(observations)}</div>
+  </div>
+  <div class="small-note">Gerado pelo Adega Pro a partir do turno registrado no sistema.</div>
+</section>
+
+<section class="page responsible-page">
+  <div class="responsible">
+    <span class="label">Responsável pelo fechamento:</span>
+    <span class="line">${esc(d.session.operatorName)}</span>
+  </div>
+</section>
+</body>
+</html>`;
+  };
   const printSession=()=>{if(!selected)return;const w=window.open('','_blank','width=900,height=900');if(!w)return setError('Permita pop-ups para imprimir.');w.document.write(sessionReportHtml(selected));w.document.close();w.print();};
-  const downloadSession=()=>{if(!selected)return;const blob=new Blob([sessionReportHtml(selected)],{type:'text/html;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`turno-${selected.session.operatorName}-${selected.session.id}.html`;a.click();URL.revokeObjectURL(url);setFeedback('Relatório baixado. Abra e use Imprimir > Salvar como PDF.');};
+  const downloadSession=()=>{if(!selected)return;const blob=new Blob([sessionReportHtml(selected)],{type:'text/html;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`folha-fechamento-${selected.session.operatorName}-${selected.session.id}.html`;a.click();URL.revokeObjectURL(url);setFeedback('Relatório baixado. Abra e use Imprimir > Salvar como PDF.');};
   const shareSession=async()=>{if(!selected)return;const text=`Turno ${selected.session.operatorName} · ${selected.metrics.salesCount} vendas · ${money(selected.metrics.total)} · ${new Date(selected.session.openedAt).toLocaleString('pt-BR')}`;try{if(navigator.share)await navigator.share({title:'Histórico do turno',text});else await navigator.clipboard.writeText(text);setFeedback('Resumo do turno compartilhado.');}catch(e:any){if(e?.name!=='AbortError')setError('Não foi possível compartilhar.');}};
   const auditSession=async()=>{if(!selected)return;setDetailBusy(true);setError('');try{const r=await productionDb.auditCashSession(selected.session.id);setAuditResult(r);setFeedback('Auditoria administrativa concluída: '+r.status+'.');}catch(e:any){setError(e?.message||'Não foi possível auditar o turno.');}finally{setDetailBusy(false);}};
   const operatorVoucher=async()=>{if(!selected)return;const raw=await adegaPrompt({title:'Vale Operador',message:'Registro administrativo no RH. Não altera nem reabre o caixa.',label:'Valor do vale (R$)',inputMode:'decimal',confirmLabel:'Continuar'});if(raw===null)return;const amount=Number(raw.replace(',','.'));if(!Number.isFinite(amount)||amount<=0)return setError('Valor do vale inválido.');const reason=(await adegaPrompt({title:'Vale Operador',label:'Motivo obrigatório',confirmLabel:'Registrar vale'}))?.trim();if(!reason)return;await run(async()=>{await productionDb.registerHrOperatorVoucher(selected.session.operatorId,selected.session.id,amount,reason);setFeedback('Vale Operador registrado no RH sem alterar o caixa.');});};
