@@ -985,7 +985,8 @@ async function verifyOperatorPin(operatorId: string, pin: string, accessOrigin:'
   });
   if (error) throw error;
   if (data?.ok && data?.operator_session_token) {
-    try { await supabase.rpc('record_operator_attendance_v2',{p_store_id:ctx.storeId,p_operator_id:operatorId,p_event_type:'ENTRADA_PIN',p_notes:'Entrada registrada por validação de PIN',p_access_origin:accessOrigin}); } catch {}
+    // A entrada do turno é registrada transacionalmente no servidor ao abrir o caixa.
+    // Evita duplicidade de ponto e elimina falhas silenciosas do registro feito pelo frontend.
     sessionStorage.setItem(OPERATOR_TOKEN_KEY, data.operator_session_token);
     sessionStorage.setItem(OPERATOR_PROFILE_KEY, JSON.stringify(data.operator));
   }
