@@ -110,6 +110,39 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
     return () => window.removeEventListener('popstate', syncFromPath);
   }, [initialView]);
 
+  useEffect(() => {
+    if (view !== 'LANDING') return;
+    const path = window.location.pathname;
+    const publicPaths = ['/', '/recursos', '/produtos', '/integracoes', '/planos'];
+    if (!publicPaths.includes(path)) return;
+
+    const dedupeKey = `adega_pro_visit_sent:${path}`;
+    const lastSent = Number(sessionStorage.getItem(dedupeKey) || 0);
+    if (Date.now() - lastSent < 30 * 60 * 1000) return;
+
+    let visitorKey = localStorage.getItem('adega_pro_public_visitor_key') || '';
+    if (!visitorKey) {
+      visitorKey = typeof crypto?.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('adega_pro_public_visitor_key', visitorKey);
+    }
+
+    sessionStorage.setItem(dedupeKey, String(Date.now()));
+    void fetch('/api/track-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        visitor_key: visitorKey,
+        request_path: path,
+        referrer: document.referrer || null
+      })
+    }).catch(() => {
+      sessionStorage.removeItem(dedupeKey);
+    });
+  }, [view]);
+
   const checkRateLimit = async (action: 'login'|'signup'|'recovery', identifier: string) => {
     const { data, error } = await supabase.functions.invoke('auth-rate-limit', {
       body: { action, identifier: identifier.trim().toLowerCase() }
