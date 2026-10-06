@@ -158,6 +158,12 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     const normalizedDiscount=Math.round(discount*100)/100;
     const normalizedSubtotal=Math.round(subtotal*100)/100;
     if(normalizedDiscount<0||normalizedDiscount>normalizedSubtotal){setError('Desconto inválido. O desconto não pode superar o subtotal.');return;}
+    if(method==='DINHEIRO'&&tenderedNumber+0.001<total){setError('Valor recebido em dinheiro é menor que o total da venda.');return;}
+    if(method==='FIADO'&&!customerId){setError('Selecione um cliente para registrar venda fiada.');return;}
+    if(method==='PIX'&&pixStatus!=='PAID'){setError('Confirme o PIX como PAGO antes de finalizar a venda.');return;}
+
+    const paymentAmount=method==='DINHEIRO'?tenderedNumber:total;
+    const paymentChange=method==='DINHEIRO'?change:0;
 
     // The database calculates the sale total from item-level discounts.
     // Allocate the cart discount across lines so UI total, payment and RPC total are identical.
@@ -177,17 +183,22 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         customer_id:customerId||null,
         idempotency_key:crypto.randomUUID(),
         items:saleItems,
-        payments:[],
+        payments:[{
+          method,
+          amount:paymentAmount,
+          change_amount:paymentChange,
+          provider:method==='PIX'?'MANUAL_PIX':method==='DEBITO'||method==='CREDITO'?'CARD_TERMINAL':'MANUAL'
+        }],
         surcharge:0
       });
       setLastReceipt({
-        id,total,subtotal,discount,method:'FECHAMENTO',amount:total,change:0,
+        id,total,subtotal,discount,method,amount:paymentAmount,change:paymentChange,
         createdAt:new Date().toISOString(),
         customer:selectedCustomer?.name||'Cliente Final',
         items:cart.map(l=>({name:l.product.name,quantity:l.quantity,unit:l.product.salePrice,total:l.product.salePrice*l.quantity}))
       });
       setMessage('Venda finalizada com sucesso.');
-      setCart([]);setCustomerId('');setCustomerQuery('');setDiscount(0);setTendered('');
+      setCart([]);setCustomerId('');setCustomerQuery('');setDiscount(0);setTendered('');setMethod('DINHEIRO');setPixStatus('PENDING');
       await load();
     }catch(e:any){
       const raw=String(e?.message||'Venda não concluída.');
