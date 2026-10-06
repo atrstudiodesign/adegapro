@@ -874,6 +874,18 @@ async function savePixConfig(input:{pixKey:string;pixKeyType:string;merchantName
 async function getMyCustomerReferralSnapshot(){ const {data,error}=await supabase.rpc('get_my_customer_referral_snapshot'); if(error) throw error; return data||{account:{},referrals:[]}; }
 async function createMyCustomerReferral(input:{name:string;phone:string;email?:string}){ const {data,error}=await supabase.rpc('create_my_customer_referral',{p_lead_name:input.name.trim(),p_lead_phone:input.phone.trim(),p_lead_email:input.email?.trim()||null}); if(error) throw error; return data as string; }
 
+async function getMyIntegrationConnections(){
+  const {data,error}=await supabase.rpc('get_my_integration_connections');
+  if(error) throw error;
+  return data||[];
+}
+async function saveMyIntegrationConnection(provider:string,externalAccountRef?:string,secretRef?:string){
+  const ctx=await getContext();
+  const {data,error}=await supabase.rpc('save_my_integration_connection',{p_store_id:ctx.storeId,p_provider:provider,p_external_account_ref:externalAccountRef||null,p_secret_ref:secretRef||null});
+  if(error) throw error;
+  return data as string;
+}
+
 async function getIntegrationWebhookConfigs() {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -1356,6 +1368,8 @@ export const productionDb = {
   getMyCustomerReferralSnapshot,
   createMyCustomerReferral,
   getIntegrationWebhookConfigs,
+  getMyIntegrationConnections,
+  saveMyIntegrationConnection,
   saveIntegrationWebhookConfig,
   createSupportTicket,
   getOperators,
