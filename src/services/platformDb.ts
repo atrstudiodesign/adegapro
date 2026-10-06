@@ -182,7 +182,12 @@ async function setPlatformTenantAccess(tenantId: string, active: boolean, licens
   if (error) throw error;
 }
 
+async function getPlatformIntegrationSettings(){const {data,error}=await platformSupabase.rpc('get_platform_integration_settings');if(error)throw error;return data||[];}
+async function savePlatformIntegrationSetting(payload:Record<string,unknown>){const {data,error}=await platformSupabase.rpc('save_platform_integration_setting',{p_payload:payload});if(error)throw error;return data as string;}
+
 export const platformDb = {
+  getPlatformIntegrationSettings,
+  savePlatformIntegrationSetting,
   isPlatformAdmin,
   claimPlatformAdminInvite,
   getPlatformControlSnapshot,
