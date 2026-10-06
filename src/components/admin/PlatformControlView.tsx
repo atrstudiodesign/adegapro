@@ -8,8 +8,9 @@ import { platformDb } from '../../services/platformDb';
 import { platformSupabase } from '../../services/platformSupabase';
 import { PartnerControlView } from './PartnerControlView';
 import { LandingPageControl } from './LandingPageControl';
+import { PlatformIntegrationsView } from './PlatformIntegrationsView';
 
-type Tab='OVERVIEW'|'VISITORS'|'TENANTS'|'BILLING'|'REFERRALS'|'PARTNERS'|'LANDING'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
+type Tab='OVERVIEW'|'VISITORS'|'TENANTS'|'BILLING'|'REFERRALS'|'PARTNERS'|'LANDING'|'INTEGRATIONS'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
 
 const FEATURE_CATALOG=[
   ['dashboard','Dashboard geral','Visão consolidada da operação'],['minidash','Mini PDV','Resumo rápido de vendas e caixa'],['pos','Frente de caixa (PDV)','Venda rápida e recebimentos'],['sales','Vendas & cupons','Histórico e comprovantes'],['cash','Caixas & sessões','Abertura, movimentação e fechamento'],
@@ -127,6 +128,7 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
             ['REFERRALS','Indicações & Fidelidade',Gift],
             ['PARTNERS','Vendedores & Comissões',Handshake],
             ['LANDING','Landing Page',ClipboardList],
+            ['INTEGRATIONS','Integrações',Cable],
             ['SUPPORT','Suporte',Headphones],
             ['INCIDENTS','Incidentes',AlertTriangle],
             ['AUDIT','Auditoria',History],
@@ -140,6 +142,8 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
         {feedback&&<div className="mb-4 p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{feedback}</div>}
 
         {tab==='VISITORS'&&<VisitorAnalyticsPanel/>}
+
+        {tab==='INTEGRATIONS'&&<PlatformIntegrationsView/>}
 
         {tab==='OVERVIEW'&&<>
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
