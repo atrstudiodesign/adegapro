@@ -245,6 +245,8 @@ export default function App() {
   }
 
   if (platformAdminRoute) {
+    // ATR Control is a separate control plane. It must never render the tenant
+    // application or inherit tenant navigation/feature state.
     return <PlatformAdminAccessScreen />;
   }
 
