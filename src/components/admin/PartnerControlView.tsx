@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {
   BarChart3,CheckCircle2,Clock3,Copy,CreditCard,Download,Filter,Info,Link2,
-  Plus,Search,ShoppingCart,UserPlus,Users,WalletCards,XCircle
+  Plus,Search,ShoppingCart,UserPlus,Users,WalletCards,XCircle,Printer,Share2,Ban,CheckCircle
 } from 'lucide-react';
 import { platformDb } from '../../services/platformDb';
 
@@ -123,6 +123,29 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     finally{setBusy(false);}
   };
 
+  const setSellerStatus=async(p:any,status:'ATIVO'|'SUSPENSO'|'CANCELADO')=>{
+    const label=status==='ATIVO'?'reativar':status==='SUSPENSO'?'suspender':'cancelar';
+    if(!window.confirm(`Confirma ${label} o vendedor ${p.full_name}? O histórico financeiro e de indicações será preservado.`))return;
+    setBusy(true);onError('');
+    try{await platformDb.setPlatformSalesPartnerStatus(p.id,status);onFeedback(`Vendedor ${status.toLowerCase()} com sucesso.`);await load();}
+    catch(e:any){onError(e?.message||'Falha ao alterar status do vendedor.');}
+    finally{setBusy(false);}
+  };
+
+  const printSeller=(p:any)=>{
+    const w=window.open('','_blank','width=900,height=700');
+    if(!w){onError('O navegador bloqueou a janela de impressão.');return;}
+    const link=share(p);
+    w.document.write(`<!doctype html><html><head><title>Ficha do vendedor</title><style>body{font-family:Arial;padding:32px;color:#111}h1{margin:0 0 8px}.row{padding:8px 0;border-bottom:1px solid #ddd}small{color:#666}</style></head><body><h1>ATR Control — Vendedor Autônomo</h1><small>Ficha administrativa</small><div class="row"><b>Nome:</b> ${p.full_name}</div><div class="row"><b>E-mail:</b> ${p.email}</div><div class="row"><b>Telefone:</b> ${p.phone||'—'}</div><div class="row"><b>Código:</b> ${p.referral_code}</div><div class="row"><b>Status:</b> ${p.registration_status||(p.active?'ATIVO':'SUSPENSO')}</div><div class="row"><b>Link:</b> ${link}</div><div class="row"><b>Vendas:</b> ${money(p.sales_value||0)}</div><div class="row"><b>Comissões pagas:</b> ${money(p.paid_amount||0)}</div></body></html>`);
+    w.document.close();w.focus();w.print();
+  };
+
+  const shareSeller=async(p:any)=>{
+    const url=share(p);
+    if(navigator.share){try{await navigator.share({title:`Indicação — ${p.full_name}`,text:'Link de indicação Adega Pro',url});return;}catch{}}
+    await copy(url,'Link');
+  };
+
   const exportCsv=()=>{
     const rows=[['Vendedor','Código','Indicações','Convertidos','Pendentes','Cancelados','Vendas','Liberado','Agendado','Pago']];
     partners.forEach((p:any)=>rows.push([p.full_name,p.referral_code,p.referrals,p.converted,p.pending,p.cancelled,p.sales_value,p.available_amount,p.scheduled_amount,p.paid_amount].map(String)));
@@ -217,7 +240,13 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
             <td className="p-3 text-right">{money(p.sales_value||0)}</td><td className="p-3 text-right text-amber-400 font-black">{money(commission)}</td>
             <td className="p-3"><Status value={commissionStatus}/></td>
             <td className="p-3">{paymentStatus==='—'?<span className="text-neutral-600">—</span>:<Status value={paymentStatus}/>}</td>
-            <td className="p-3"><div className="flex gap-1"><button onClick={()=>void copy(share(p))} className="h-8 px-2 rounded border border-neutral-800">Link</button><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="h-8 px-2 rounded border border-neutral-800">Ver</button></div></td>
+            <td className="p-3"><div className="flex flex-wrap gap-1">
+              <button title="Alterar" onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="h-8 px-2 rounded border border-neutral-800">Alterar</button>
+              <button title="Compartilhar" onClick={()=>void shareSeller(p)} className="h-8 px-2 rounded border border-neutral-800 inline-flex items-center gap-1"><Share2 size={11}/>Compartilhar</button>
+              <button title="Imprimir ficha" onClick={()=>printSeller(p)} className="h-8 px-2 rounded border border-neutral-800 inline-flex items-center gap-1"><Printer size={11}/>Imprimir</button>
+              {p.active?<button disabled={busy} title="Suspender" onClick={()=>void setSellerStatus(p,'SUSPENSO')} className="h-8 px-2 rounded border border-amber-800 text-amber-300 inline-flex items-center gap-1"><Ban size={11}/>Suspender</button>:<button disabled={busy} title="Reativar" onClick={()=>void setSellerStatus(p,'ATIVO')} className="h-8 px-2 rounded border border-emerald-800 text-emerald-300 inline-flex items-center gap-1"><CheckCircle size={11}/>Ativar</button>}
+              {p.registration_status!=='CANCELADO'&&<button disabled={busy} title="Cancelar vínculo" onClick={()=>void setSellerStatus(p,'CANCELADO')} className="h-8 px-2 rounded border border-rose-800 text-rose-300">Cancelar</button>}
+            </div></td>
           </tr>
         })}</tbody>
       </table></div>
