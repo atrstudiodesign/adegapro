@@ -30,6 +30,7 @@ export const Header:React.FC<HeaderProps>=({
   const[notificationsOpen,setNotificationsOpen]=useState(false);
   const[notificationItems,setNotificationItems]=useState<any[]>([]);
   const[hrAlerts,setHrAlerts]=useState<any>({pending_total:0,due_today:0,overdue:0,urgent:0,items:[]});
+  const[subscription,setSubscription]=useState<any>(null);
   const[store,setStore]=useState(()=>db.getStore());
   const[theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
   const isPos=currentTab==='pos'||currentTab==='minidash';
@@ -41,9 +42,10 @@ export const Header:React.FC<HeaderProps>=({
     const load=async()=>{
       if(appMode==='PRODUCTION'){
         try{
-          const [s,products,expiry]=await Promise.all([productionDb.getStore(),productionDb.getProducts(),productionDb.getExpiryAlerts(30)]);
+          const [s,products,expiry,sub]=await Promise.all([productionDb.getStore(),productionDb.getProducts(),productionDb.getExpiryAlerts(30),productionDb.getMySubscriptionStatus().catch(()=>null)]);
           if(!alive)return;
           setStore(s);
+          setSubscription(sub);
           const low=products.filter(p=>!p.isCombo&&p.currentStock<=p.minStock);
           setUnreadNotifications(low.length+expiry.length);
           setNotificationItems([
@@ -72,6 +74,14 @@ export const Header:React.FC<HeaderProps>=({
     return()=>{alive=false;if(timer)window.clearInterval(timer);};
   },[currentTab,appMode,currentUser.role]);
 
+
+  const billingAlert=subscription&&['DUE_SOON','OVERDUE','OVERDUE_GRACE','BLOCKED'].includes(subscription.alert_level);
+  const billingText=subscription?.alert_level==='DUE_SOON'
+    ?`Assinatura: vence em ${subscription.days_to_due} dia(s)`
+    :subscription?.alert_level==='OVERDUE'? 'Assinatura vencida — regularize o pagamento'
+    :subscription?.alert_level==='OVERDUE_GRACE'? 'Assinatura vencida fora do período de tolerância'
+    :subscription?.alert_level==='BLOCKED'? 'Assinatura suspensa ou encerrada':'';
+
   const navClass=(active:boolean)=>`h-11 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs font-black whitespace-nowrap transition-all ${active?'bg-amber-400 border-amber-300 text-neutral-950 shadow-[0_0_22px_rgba(250,204,21,.16)]':'bg-[#0d1217] border-neutral-700 text-neutral-200 hover:border-neutral-500'}`;
   const initials=currentUser.name.split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'OP';
   const openMiniPdv=()=>{
@@ -83,6 +93,7 @@ export const Header:React.FC<HeaderProps>=({
     const topAlert=hrAlerts?.items?.[0];
     const hrPending=Number(hrAlerts?.pending_total||0);
     return <div className="sticky top-0 z-40">
+      {billingAlert&&<div className="min-h-9 px-3 sm:px-5 flex items-center gap-2 bg-amber-950/95 border-b border-amber-700 text-amber-100 text-[10px] sm:text-xs font-bold"><Bell size={13}/><span>{billingText}</span>{subscription?.payment_url&&<a href={subscription.payment_url} target="_blank" rel="noreferrer" className="ml-auto underline font-black">PAGAR AGORA</a>}</div>}
       <header className="min-h-16 px-3 sm:px-5 bg-[#070b0f] border-b border-neutral-800 flex items-center gap-3 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
       <button onClick={onMenuToggle} aria-label="Abrir funcionalidades" className="w-10 h-10 rounded-xl text-neutral-200 grid place-items-center hover:bg-neutral-900 shrink-0"><Menu size={22}/></button>
       <button onClick={()=>onNavigate('dashboard')} className="shrink-0"><BrandLogo size="sm" variant="full"/></button>
@@ -137,7 +148,7 @@ export const Header:React.FC<HeaderProps>=({
     </div>;
   }
 
-  return <header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a] border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
+  return <><>{billingAlert&&<div className="sticky top-0 z-40 min-h-9 px-3 sm:px-5 flex items-center gap-2 bg-amber-950/95 border-b border-amber-700 text-amber-100 text-[10px] sm:text-xs font-bold"><Bell size={13}/><span>{billingText}</span>{subscription?.payment_url&&<a href={subscription.payment_url} target="_blank" rel="noreferrer" className="ml-auto underline font-black">PAGAR AGORA</a>}</div>}</><header className="min-h-16 px-3 sm:px-4 lg:px-6 bg-[#0a0a0a] border-b border-amber-500/10 flex items-center justify-between sticky top-0 z-30 gap-2 shadow-[0_8px_30px_rgba(0,0,0,.28)]">
     <div className="flex items-center gap-2 sm:gap-4 min-w-0">
       <button onClick={onMenuToggle} className="w-10 h-10 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 grid place-items-center"><Menu size={18}/></button>
       <button onClick={()=>onNavigate('dashboard')}><BrandLogo size="sm" variant="full"/></button>
@@ -151,5 +162,5 @@ export const Header:React.FC<HeaderProps>=({
       <div className="hidden lg:block"><OfflineSyncControl/></div><div className="hidden lg:block"><PWAInstallButton/></div>
       {onLock&&<button onClick={onLock} title="Tela de bloqueio" className="h-10 px-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-300 flex items-center gap-2 text-[10px] font-black"><Lock size={14}/><span className="hidden md:inline">Tela de bloqueio</span></button>}
     </div>
-  </header>;
+  </header></>;
 };
