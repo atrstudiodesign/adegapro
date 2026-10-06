@@ -135,8 +135,9 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
   const printSeller=(p:any)=>{
     const w=window.open('','_blank','width=900,height=700');
     if(!w){onError('O navegador bloqueou a janela de impressão.');return;}
+    const esc=(value:any)=>String(value??'—').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]||ch));
     const link=share(p);
-    w.document.write(`<!doctype html><html><head><title>Ficha do vendedor</title><style>body{font-family:Arial;padding:32px;color:#111}h1{margin:0 0 8px}.row{padding:8px 0;border-bottom:1px solid #ddd}small{color:#666}</style></head><body><h1>ATR Control — Vendedor Autônomo</h1><small>Ficha administrativa</small><div class="row"><b>Nome:</b> ${p.full_name}</div><div class="row"><b>E-mail:</b> ${p.email}</div><div class="row"><b>Telefone:</b> ${p.phone||'—'}</div><div class="row"><b>Código:</b> ${p.referral_code}</div><div class="row"><b>Status:</b> ${p.registration_status||(p.active?'ATIVO':'SUSPENSO')}</div><div class="row"><b>Link:</b> ${link}</div><div class="row"><b>Vendas:</b> ${money(p.sales_value||0)}</div><div class="row"><b>Comissões pagas:</b> ${money(p.paid_amount||0)}</div></body></html>`);
+    w.document.write(`<!doctype html><html><head><title>Ficha do vendedor</title><style>body{font-family:Arial;padding:32px;color:#111}h1{margin:0 0 8px}.row{padding:8px 0;border-bottom:1px solid #ddd}small{color:#666}</style></head><body><h1>ATR Control — Vendedor Autônomo</h1><small>Ficha administrativa</small><div class="row"><b>Nome:</b> ${esc(p.full_name)}</div><div class="row"><b>E-mail:</b> ${esc(p.email)}</div><div class="row"><b>Telefone:</b> ${esc(p.phone)}</div><div class="row"><b>Código:</b> ${esc(p.referral_code)}</div><div class="row"><b>Status:</b> ${esc(p.registration_status||(p.active?'ATIVO':'SUSPENSO'))}</div><div class="row"><b>Link:</b> ${esc(link)}</div><div class="row"><b>Vendas:</b> ${esc(money(p.sales_value||0))}</div><div class="row"><b>Comissões pagas:</b> ${esc(money(p.paid_amount||0))}</div></body></html>`);
     w.document.close();w.focus();w.print();
   };
 
