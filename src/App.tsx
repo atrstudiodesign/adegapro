@@ -84,6 +84,7 @@ export default function App() {
   });
   const [demoAccessGranted, setDemoAccessGranted] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mobileDockOpen, setMobileDockOpen] = useState(false);
   const [legalCleared, setLegalCleared] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDocKey>('terms_of_use');
   const [saasEntryView, setSaasEntryView] = useState<'LANDING' | 'LOGIN' | 'REGISTER'>(() =>
@@ -218,6 +219,12 @@ export default function App() {
     if(appMode!=='PRODUCTION'||!saasAuthenticated){setFeatureAccess({});return;}
     void productionDb.getTenantFeatures().then(setFeatureAccess).catch(()=>setFeatureAccess({}));
   },[appMode,saasAuthenticated,isLocked]);
+
+  useEffect(() => {
+    if (!mobileDockOpen) return;
+    const timer = window.setTimeout(() => setMobileDockOpen(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [mobileDockOpen, currentTab]);
 
   useEffect(()=>{
     if(appMode!=='PRODUCTION') return;
@@ -514,15 +521,32 @@ export default function App() {
           )}
         </main>
       </div>
-      <nav className="ap-mobile-dock lg:hidden" aria-label="Navegação principal mobile">
-        {[
-          ['dashboard','⌂','Início'],
-          ['pos','🛒','PDV'],
-          ['cash','▣','Caixa'],
-          ['stock','◇','Estoque'],
-          ['__menu','☰','Menu']
-        ].map(([id,icon,label])=><button key={id} onClick={()=>id==='__menu'?setMobileNavOpen(true):setCurrentTab(id)} className={currentTab===id?'active':''}><span>{icon}</span><small>{label}</small></button>)}
-      </nav>
+      <div className="lg:hidden">
+        {!mobileDockOpen && (
+          <button
+            type="button"
+            onClick={() => setMobileDockOpen(true)}
+            className="ap-mobile-dock-trigger"
+            aria-label="Abrir navegação rápida"
+            title="Abrir navegação"
+          >
+            ☰
+          </button>
+        )}
+        <nav className={`ap-mobile-dock ${mobileDockOpen ? 'is-open' : 'is-collapsed'}`} aria-label="Navegação principal mobile">
+          {[
+            ['dashboard','⌂','Início'],
+            ['pos','🛒','PDV'],
+            ['cash','▣','Caixa'],
+            ['stock','◇','Estoque'],
+            ['__menu','☰','Menu']
+          ].map(([id,icon,label])=><button key={id} onClick={()=>{
+            if(id==='__menu') setMobileNavOpen(true);
+            else setCurrentTab(id);
+            setMobileDockOpen(false);
+          }} className={currentTab===id?'active':''}><span>{icon}</span><small>{label}</small></button>)}
+        </nav>
+      </div>
     </div>
   );
 }
