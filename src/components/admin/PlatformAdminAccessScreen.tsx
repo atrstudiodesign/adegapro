@@ -18,14 +18,19 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
   const[error,setError]=useState('');
   const[message,setMessage]=useState('');
 
+  // P0: visiting /atr-control never elevates or claims privileges.
+  // An administrative session must already map to an active platform_admin.
+  const validatePlatformAdmin=async()=>{
+    const ok=await platformDb.isPlatformAdmin();
+    if(!ok) throw new Error('Conta sem privilégio de administrador da plataforma.');
+    setAllowed(true);
+  };
+
+  // Claiming an invite is allowed only after an explicit ATR Control authentication action.
   const claimAndValidate=async()=>{
     let ok=await platformDb.isPlatformAdmin();
     if(!ok){
-      try{
-        await platformDb.claimPlatformAdminInvite();
-      }catch{
-        throw new Error('Conta autenticada, mas sem autorização administrativa.');
-      }
+      await platformDb.claimPlatformAdminInvite();
       ok=await platformDb.isPlatformAdmin();
     }
     if(!ok) throw new Error('Conta sem privilégio de administrador da plataforma.');
@@ -36,11 +41,12 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
     if(mode==='RESET_PASSWORD'){setAllowed(false);setReady(true);return;}
     const {data}=await platformSupabase.auth.getSession();
     if(!data.session){setAllowed(false);setReady(true);return;}
-    try{await claimAndValidate();}
+    try{await validatePlatformAdmin();}
     catch{
-      await platformSupabase.auth.signOut();
+      // Never let a tenant/customer session become a platform session merely by visiting this route.
+      await platformSupabase.auth.signOut({ scope: 'local' });
       setAllowed(false);
-      setError('Acesso não autorizado para esta conta.');
+      setError('Acesso restrito. Entre com uma conta administrativa do ATR Control.');
     }
     setReady(true);
   };
