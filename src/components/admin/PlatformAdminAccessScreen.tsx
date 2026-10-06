@@ -39,15 +39,11 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
 
   const validate=async()=>{
     if(mode==='RESET_PASSWORD'){setAllowed(false);setReady(true);return;}
-    const {data}=await platformSupabase.auth.getSession();
-    if(!data.session){setAllowed(false);setReady(true);return;}
-    try{await validatePlatformAdmin();}
-    catch{
-      // Never let a tenant/customer session become a platform session merely by visiting this route.
-      await platformSupabase.auth.signOut({ scope: 'local' });
-      setAllowed(false);
-      setError('Acesso restrito. Entre com uma conta administrativa do ATR Control.');
-    }
+    // P0: /atr-control always starts behind its own explicit login gate.
+    // Even a previously persisted platform session must authenticate again.
+    await platformSupabase.auth.signOut({ scope: 'local' });
+    setAllowed(false);
+    setPassword('');
     setReady(true);
   };
 
@@ -70,9 +66,11 @@ export const PlatformAdminAccessScreen:React.FC=()=>{
     try{
       const {error:authError}=await platformSupabase.auth.signInWithPassword({email:email.trim(),password});
       if(authError)throw authError;
-      await claimAndValidate();
+      await validatePlatformAdmin();
     }catch(err:any){
-      setError(err?.message||'Não foi possível autenticar.');
+      await platformSupabase.auth.signOut({ scope: 'local' });
+      setAllowed(false);
+      setError('E-mail ou senha inválidos, ou conta sem autorização para o ATR Control.');
     }finally{setBusy(false);setReady(true);}
   };
 
