@@ -14,6 +14,8 @@ const integrationState=(cfg:any)=>{
 };
 
 const providers=[
+ {id:'BLING',name:'Bling',desc:'ERP, produtos, estoque e pedidos via OAuth 2.0. Ative somente após autorizar a conta Bling.',tone:'bg-green-700',icon:Cable},
+ {id:'SHOPIFY',name:'Shopify',desc:'Produtos, estoque e pedidos via app autenticado e Admin API. Ative somente após instalar/autorizar o app.',tone:'bg-emerald-800',icon:Cable},
  {id:'IFOOD',name:'iFood',desc:'Pedidos, catálogo e delivery após homologação.',tone:'bg-red-600',icon:Smartphone},
  {id:'ASAAS',name:'Asaas',desc:'PIX, cobrança e recorrência via API/webhook.',tone:'bg-blue-700',icon:CreditCard},
  {id:'PAGSEGURO',name:'PagSeguro',desc:'Pagamentos e terminais conforme produto homologado.',tone:'bg-emerald-700',icon:CreditCard},
