@@ -1297,12 +1297,19 @@ async function saveHrFinancialMovement(payload:Record<string,unknown>){
   return data as string;
 }
 
+async function getMySubscriptionStatus(){
+  const {data,error}=await supabase.rpc('get_my_subscription_status');
+  if(error) throw error;
+  return data||{alert_level:'UNCONFIGURED'};
+}
+
 export const productionDb = {
   getContext,
   getAccessibleStores,
   selectStore,
   createStore,
   getTenantFeatures,
+  getMySubscriptionStatus,
   exportTenantBackup,
   validateTenantBackup,
   getEntitlement,
