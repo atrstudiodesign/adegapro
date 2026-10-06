@@ -127,6 +127,11 @@ async function updatePlatformPartnerCommission(id:string,status:string,paymentRe
   if(error) throw error;
 }
 
+async function setPlatformSalesPartnerStatus(id:string,status:'ATIVO'|'SUSPENSO'|'CANCELADO'){
+  const {error}=await platformSupabase.rpc('set_platform_sales_partner_status',{p_id:id,p_status:status});
+  if(error) throw error;
+}
+
 async function getPlatformTenantSecurity(tenantId:string){
   const {data,error}=await platformSupabase.rpc('get_platform_tenant_security',{p_tenant_id:tenantId});
   if(error) throw error;
@@ -198,6 +203,7 @@ export const platformDb = {
   confirmPlatformPartnerCustomerPayment,
   acceptPlatformPartnerPolicy,
   updatePlatformPartnerCommission,
+  setPlatformSalesPartnerStatus,
   getPlatformTenantSecurity,
   setPlatformTenantSecurity,
   setPlatformTenantAccess,
