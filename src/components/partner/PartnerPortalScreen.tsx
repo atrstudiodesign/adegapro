@@ -82,7 +82,7 @@ export const PartnerPortalScreen:React.FC=()=>{
 
   const persistPending=()=>{
     localStorage.setItem('adega_partner_pending_claim',JSON.stringify({
-      token:invite,fullName:form.fullName,phone:form.phone,pixKey:form.pixKey,
+      token:invite||'',fullName:form.fullName,phone:form.phone,pixKey:form.pixKey,
       payoutMode:form.payoutMode,monthlyPayoutDay:form.monthlyPayoutDay
     }));
   };
@@ -91,7 +91,8 @@ export const PartnerPortalScreen:React.FC=()=>{
     const raw=localStorage.getItem('adega_partner_pending_claim');
     if(!raw)return false;
     const pending=JSON.parse(raw);
-    await partnerDb.claimInvite(pending);
+    if(pending.token) await partnerDb.claimInvite(pending);
+    else await partnerDb.registerApplication(pending);
     localStorage.removeItem('adega_partner_pending_claim');
     localStorage.removeItem('adega_partner_invite');
     await load();
@@ -114,7 +115,6 @@ export const PartnerPortalScreen:React.FC=()=>{
   const register=async(e:React.FormEvent)=>{
     e.preventDefault();setBusy(true);setError('');setMessage('');
     try{
-      if(!invite)throw new Error('Use o link de convite enviado pela ATR Studio.');
       if(!form.fullName.trim())throw new Error('Informe seu nome completo.');
       if(form.phone.replace(/\D/g,'').length<10)throw new Error('Informe um telefone válido.');
       if(password.length<8)throw new Error('A senha precisa ter pelo menos 8 caracteres.');
@@ -124,18 +124,18 @@ export const PartnerPortalScreen:React.FC=()=>{
         email:email.trim(),password,
         options:{
           data:{full_name:form.fullName.trim(),account_type:'ADEGA_PRO_PARTNER'},
-          emailRedirectTo:PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro?invite='+encodeURIComponent(invite)
+          emailRedirectTo:PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro'+(invite?'?invite='+encodeURIComponent(invite):'')
         }
       });
       if(authError)throw authError;
       if(authData.session){
         await claimPending();
-        setMessage('Cadastro concluído. Seu painel de vendedor está ativo.');
+        setMessage('Cadastro enviado. Aguarde a aprovação no ATR Control.');
       }else if(authData.user && Array.isArray(authData.user.identities) && authData.user.identities.length===0){
-        setMessage('Este e-mail já possui uma conta no Adega Pro. Entre com a senha já existente para vincular o convite de vendedor.');
+        setMessage('Este e-mail já possui uma conta no Adega Pro. Entre com a senha existente para concluir o cadastro de vendedor e aguardar aprovação.');
         setMode('LOGIN');
       }else{
-        setMessage('Cadastro criado. O e-mail de confirmação foi solicitado. Confira também Spam/Lixo eletrônico e depois entre para concluir o vínculo do convite.');
+        setMessage('Cadastro criado. Confirme seu e-mail e depois entre. Seu cadastro ficará pendente para aprovação no ATR Control.');
         setMode('LOGIN');
       }
     }catch(err:any){setError(err?.message||'Não foi possível concluir o cadastro.');}
@@ -146,12 +146,12 @@ export const PartnerPortalScreen:React.FC=()=>{
     setBusy(true);setError('');setMessage('');
     try{
       if(!email.trim())throw new Error('Informe seu e-mail.');
-      if(invite)persistPending();
+      persistPending();
       const {error:otpError}=await partnerSupabase.auth.signInWithOtp({
         email:email.trim(),
         options:{
           shouldCreateUser:true,
-          emailRedirectTo:PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro?invite='+encodeURIComponent(invite)
+          emailRedirectTo:PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro'+(invite?'?invite='+encodeURIComponent(invite):'')
         }
       });
       if(otpError)throw otpError;
@@ -173,7 +173,7 @@ export const PartnerPortalScreen:React.FC=()=>{
       });
       if(verifyError)throw verifyError;
       await claimPending();
-      setMessage('E-mail confirmado e cadastro de vendedor vinculado com sucesso.');
+      setMessage('E-mail confirmado. Seu cadastro foi enviado para aprovação no ATR Control.');
       setEmailOtp('');setOtpRequested(false);
     }catch(e:any){setError(e?.message||'Código inválido ou expirado.');}
     finally{setBusy(false);}
