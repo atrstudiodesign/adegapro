@@ -295,7 +295,7 @@ export const PartnerPortalScreen:React.FC=()=>{
         });
         localStorage.removeItem('adega_partner_pending_claim');
         localStorage.removeItem('adega_partner_invite');
-        setMessage('Cadastro de vendedor concluído.');
+        setMessage('Cadastro enviado. Aguarde a aprovação administrativa da ATR Studio.');
         await load();
       }catch(e:any){setError(e?.message||'Não foi possível concluir o cadastro do vendedor.');}
       finally{setBusy(false);}
@@ -325,6 +325,36 @@ export const PartnerPortalScreen:React.FC=()=>{
 
   const partner=data.partner||{};
   const metrics=data.metrics||{};
+
+  if(partner.registration_status==='PENDENTE'){
+    return <div className="min-h-dvh bg-[#06090c] text-white grid place-items-center p-5">
+      <div className="max-w-xl w-full p-6 rounded-3xl border border-amber-700/50 bg-[#0b1014] shadow-2xl">
+        <div className="text-[10px] uppercase tracking-[.18em] text-amber-400 font-black">Cadastro recebido</div>
+        <h1 className="text-2xl font-black mt-2">Aguardando aprovação da ATR Studio</h1>
+        <p className="text-sm text-neutral-400 mt-3 leading-relaxed">Seu e-mail e seus dados foram vinculados ao portal de vendedor. O acesso comercial será liberado após a validação administrativa no ATR Control.</p>
+        <div className="mt-5 grid sm:grid-cols-2 gap-3">
+          <Info l="Nome" v={partner.full_name}/>
+          <Info l="E-mail" v={partner.email}/>
+        </div>
+        <div className="mt-5 p-3 rounded-xl border border-neutral-800 bg-neutral-950 text-xs text-neutral-500">Enquanto estiver pendente, o sistema bloqueia novas indicações e comissões. Assim que o cadastro for aprovado, o mesmo login será liberado automaticamente.</div>
+        <div className="mt-5 flex gap-2">
+          <button disabled={busy} onClick={()=>void load()} className="flex-1 h-11 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black inline-flex items-center justify-center gap-2"><RefreshCw size={14}/>Verificar aprovação</button>
+          <button onClick={()=>void logout()} className="h-11 px-4 rounded-xl border border-neutral-700 text-xs font-black text-neutral-300">Sair</button>
+        </div>
+      </div>
+    </div>;
+  }
+
+  if(partner.registration_status==='SUSPENSO'||partner.registration_status==='CANCELADO'){
+    return <div className="min-h-dvh bg-[#06090c] text-white grid place-items-center p-5">
+      <div className="max-w-xl w-full p-6 rounded-3xl border border-rose-900/60 bg-[#0b1014] shadow-2xl">
+        <div className="text-[10px] uppercase tracking-[.18em] text-rose-400 font-black">Acesso indisponível</div>
+        <h1 className="text-2xl font-black mt-2">Cadastro {String(partner.registration_status).toLowerCase()}</h1>
+        <p className="text-sm text-neutral-400 mt-3">O portal comercial está bloqueado para este cadastro. Entre em contato com a ATR Studio para revisão.</p>
+        <button onClick={()=>void logout()} className="mt-5 w-full h-11 rounded-xl border border-neutral-700 text-xs font-black text-neutral-300">Sair</button>
+      </div>
+    </div>;
+  }
   const referralLink=`${window.location.origin}/?ref=${encodeURIComponent(partner.referral_code||'')}`;
   const referrals=data.referrals||[];
   const commissions=data.commissions||[];
