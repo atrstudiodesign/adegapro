@@ -10,16 +10,7 @@ begin
  op:=private.require_operator_session(s.store_id,p_operator_token);
  if s.operator_ref is distinct from op then raise exception 'operator does not own cash session'; end if;
  if least(coalesce(p_pix,-1),coalesce(p_debit,-1),coalesce(p_credit,-1),coalesce(p_cash,-1))<0 then raise exception 'invalid reconciliation amount'; end if;
-
- -- Cash closing must only include expenses explicitly linked to this cash session.
- -- Store-wide administrative/RH expenses must never contaminate an operator shift.
- select coalesce(sum(ft.amount),0) into exp
- from public.financial_transactions ft
- where ft.tenant_id=s.tenant_id and ft.store_id=s.store_id
-   and ft.transaction_type='DESPESA'
-   and ft.reference_id=p_cash_session_id
-   and upper(coalesce(ft.source,'')) in ('CAIXA','CASH_SESSION','PDV');
-
+ select coalesce(sum(ft.amount),0) into exp from public.financial_transactions ft where ft.tenant_id=s.tenant_id and ft.store_id=s.store_id and ft.transaction_type='DESPESA' and ft.reference_id=p_cash_session_id and upper(coalesce(ft.source,'')) in ('CAIXA','CASH_SESSION','PDV');
  expected_cash_sales:=round(coalesce(s.total_sales,0)-p_pix-p_debit-p_credit-exp,2);
  cash_variance:=round(p_cash-expected_cash_sales,2);
  balance:=round(expected_cash_sales-coalesce(s.total_withdrawals,0),2);
