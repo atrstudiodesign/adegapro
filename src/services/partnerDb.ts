@@ -12,6 +12,18 @@ async function recordAccess(event:'LOGIN'|'SESSION_REFRESH'|'PROFILE_CHANGE_REQU
   });
   if(error) throw error;
 }
+
+async function touchSession(sessionKey:string,device?:string){
+  const {data,error}=await partnerSupabase.rpc('touch_my_partner_session',{
+    p_session_key:sessionKey,p_device:device||null
+  });
+  if(error) throw error;
+  return data;
+}
+async function closeSession(sessionKey:string){
+  const {error}=await partnerSupabase.rpc('close_my_partner_session',{p_session_key:sessionKey});
+  if(error) throw error;
+}
 async function claimInvite(input:{token:string;fullName:string;phone:string;pixKey?:string;payoutMode:'IMEDIATO'|'FECHAMENTO_MENSAL';monthlyPayoutDay:number}){
   const {data,error}=await partnerSupabase.rpc('claim_platform_partner_invite',{
     p_token:input.token,
@@ -59,4 +71,4 @@ async function acceptPolicy(version:string){
   const {error}=await partnerSupabase.rpc('accept_my_partner_policy',{p_version:version});
   if(error) throw error;
 }
-export const partnerDb={getDashboard,recordAccess,claimInvite,registerApplication,saveReferral,updateProfile,acceptPolicy};
+export const partnerDb={getDashboard,recordAccess,touchSession,closeSession,claimInvite,registerApplication,saveReferral,updateProfile,acceptPolicy};
