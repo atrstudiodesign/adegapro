@@ -49,9 +49,9 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     return partners.filter((p:any)=>{
       const hay=[p.full_name,p.email,p.phone,p.referral_code].join(' ').toLowerCase();
       if(term&&!hay.includes(term))return false;
-      if(statusFilter==='ACTIVE')return p.active&&p.converted>0;
-      if(statusFilter==='PENDING')return Number(p.pending||0)>0||Number(p.waiting_payment||0)>0;
-      if(statusFilter==='CANCELLED')return Number(p.cancelled||0)>0;
+      if(statusFilter==='ACTIVE')return p.registration_status==='ATIVO';
+      if(statusFilter==='PENDING')return p.registration_status==='PENDENTE';
+      if(statusFilter==='CANCELLED')return p.registration_status==='CANCELADO';
       return true;
     });
   },[partners,q,statusFilter]);
@@ -145,8 +145,8 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     finally{setBusy(false);}
   };
 
-  const setSellerStatus=async(p:any,status:'ATIVO'|'SUSPENSO'|'CANCELADO')=>{
-    const label=status==='ATIVO'?'reativar':status==='SUSPENSO'?'suspender':'cancelar';
+  const setSellerStatus=async(p:any,status:'PENDENTE'|'ATIVO'|'SUSPENSO'|'CANCELADO')=>{
+    const label=status==='ATIVO'?(p.registration_status==='PENDENTE'?'aprovar':'reativar'):status==='SUSPENSO'?'suspender':status==='PENDENTE'?'marcar como pendente':'cancelar';
     if(!window.confirm(`Confirma ${label} o vendedor ${p.full_name}? O histórico financeiro e de indicações será preservado.`))return;
     setBusy(true);onError('');
     try{await platformDb.setPlatformSalesPartnerStatus(p.id,status);onFeedback(`Vendedor ${status.toLowerCase()} com sucesso.`);await load();}
@@ -193,8 +193,9 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
       </div>
     </div>
 
-    <div className="grid grid-cols-1 min-[390px]:grid-cols-2 xl:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 min-[390px]:grid-cols-2 xl:grid-cols-6 gap-3">
       <Kpi icon={Users} label="Vendedores ativos" value={metrics.partners_active||0} sub={`de ${metrics.partners_total||0} cadastrados`}/>
+      <Kpi icon={Clock3} label="Aguardando aprovação" value={partners.filter((p:any)=>p.registration_status==='PENDENTE').length} sub="cadastros para validar no ATR Control"/>
       <Kpi icon={Users} label="Leads gerados" value={metrics.referrals_total||0} sub="via links, códigos e cadastro"/>
       <Kpi icon={ShoppingCart} label="Clientes convertidos" value={metrics.referrals_converted||0} sub="realizaram conversão"/>
       <Kpi icon={WalletCards} label="Comissões liberadas" value={money(metrics.commission_available||0)} sub="após confirmação do pagamento"/>
@@ -256,7 +257,7 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
           const hasConfirmedPayment=partnerReferrals.some((r:any)=>r.customer_payment_status==='CONFIRMADO');
           const paymentStatus=Number(p.waiting_payment||0)>0?'PENDENTE':hasConfirmedPayment?'PAGO':'—';
           return <tr key={p.id} className="border-b border-neutral-900 hover:bg-neutral-900/40">
-            <td className="p-3"><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="text-left"><div className="font-black">{p.full_name}</div><div className="text-[9px] text-neutral-500">{p.email}</div><div className={`mt-1 text-[8px] font-black ${p.portal_registered?'text-emerald-400':'text-amber-400'}`}>PORTAL {p.portal_registered?'CADASTRADO':'PENDENTE'}</div></button></td>
+            <td className="p-3"><button onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="text-left"><div className="font-black">{p.full_name}</div><div className="text-[9px] text-neutral-500">{p.email}</div><div className={`mt-1 text-[8px] font-black ${p.registration_status==='ATIVO'?'text-emerald-400':p.registration_status==='PENDENTE'?'text-amber-400':p.registration_status==='CANCELADO'?'text-rose-400':'text-orange-400'}`}>PORTAL {p.portal_registered?'CADASTRADO':'NÃO VINCULADO'} · {p.registration_status||'PENDENTE'}</div></button></td>
             <td className="p-3"><button onClick={()=>void copy(share(p))} className="text-sky-400 hover:underline inline-flex items-center gap-2">{share(p).replace(window.location.origin,'adegapro')}<Copy size={11}/></button></td>
             <td className="p-3"><button onClick={()=>void copy(p.referral_code,'Código')} className="px-2 py-1 rounded bg-neutral-900 border border-neutral-700 font-mono inline-flex items-center gap-2">{p.referral_code}<Copy size={10}/></button></td>
             <td className="p-3 text-center font-bold">{p.referrals||0}</td><td className="p-3 text-center font-bold">{p.converted||0}</td>
@@ -269,7 +270,9 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
               {!p.portal_registered&&<button disabled={busy} title="Reenviar convite por e-mail" onClick={()=>void sendSellerInvite(p,'EMAIL')} className="h-8 px-2 rounded border border-sky-800 text-sky-300">E-mail convite</button>}
               {!p.portal_registered&&<button disabled={busy||!p.phone} title="Reenviar convite por SMS" onClick={()=>void sendSellerInvite(p,'SMS')} className="h-8 px-2 rounded border border-violet-800 text-violet-300 disabled:opacity-40">SMS convite</button>}
               <button title="Imprimir ficha" onClick={()=>printSeller(p)} className="h-8 px-2 rounded border border-neutral-800 inline-flex items-center gap-1"><Printer size={11}/>Imprimir</button>
-              {p.active?<button disabled={busy} title="Suspender" onClick={()=>void setSellerStatus(p,'SUSPENSO')} className="h-8 px-2 rounded border border-amber-800 text-amber-300 inline-flex items-center gap-1"><Ban size={11}/>Suspender</button>:<button disabled={busy} title="Reativar" onClick={()=>void setSellerStatus(p,'ATIVO')} className="h-8 px-2 rounded border border-emerald-800 text-emerald-300 inline-flex items-center gap-1"><CheckCircle size={11}/>Ativar</button>}
+              {p.registration_status==='PENDENTE'&&<button disabled={busy} title="Aprovar vendedor" onClick={()=>void setSellerStatus(p,'ATIVO')} className="h-8 px-2 rounded bg-emerald-700 text-white font-black inline-flex items-center gap-1"><CheckCircle size={11}/>Aprovar</button>}
+              {p.registration_status==='ATIVO'&&<button disabled={busy} title="Suspender" onClick={()=>void setSellerStatus(p,'SUSPENSO')} className="h-8 px-2 rounded border border-amber-800 text-amber-300 inline-flex items-center gap-1"><Ban size={11}/>Suspender</button>}
+              {p.registration_status==='SUSPENSO'&&<button disabled={busy} title="Reativar" onClick={()=>void setSellerStatus(p,'ATIVO')} className="h-8 px-2 rounded border border-emerald-800 text-emerald-300 inline-flex items-center gap-1"><CheckCircle size={11}/>Reativar</button>}
               {p.registration_status!=='CANCELADO'&&<button disabled={busy} title="Cancelar vínculo" onClick={()=>void setSellerStatus(p,'CANCELADO')} className="h-8 px-2 rounded border border-rose-800 text-rose-300">Cancelar</button>}
             </div></td>
           </tr>
