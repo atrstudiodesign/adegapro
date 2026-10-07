@@ -7,6 +7,7 @@ import { platformDb } from '../../services/platformDb';
 
 type Tab='OVERVIEW'|'SELLERS'|'REFERRALS'|'COMMISSIONS'|'PAYMENTS'|'REPORTS';
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
+const PARTNER_CANONICAL_ORIGIN='https://adegapro.vercel.app';
 const date=(v:any)=>v?new Date(v).toLocaleDateString('pt-BR'):'—';
 
 export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>void;onError:(s:string)=>void})=>{
@@ -75,7 +76,7 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     setBusy(true);onError('');
     try{
       const result=await platformDb.createPlatformPartnerInvite(inviteEmail||undefined,7);
-      const url=`${window.location.origin}/vendedor/cadastro?invite=${encodeURIComponent(result.token)}`;
+      const url=`${PARTNER_CANONICAL_ORIGIN}/vendedor/cadastro?invite=${encodeURIComponent(result.token)}`;
       setLastInvite(url);
       await navigator.clipboard?.writeText(url);
       onFeedback('Link de cadastro do vendedor gerado e copiado. Validade: 7 dias e uso único.');
