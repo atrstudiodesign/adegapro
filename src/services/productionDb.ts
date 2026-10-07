@@ -1169,6 +1169,18 @@ async function getCashSessionDetails(sessionId:string) {
       total,
       averageTicket:paid.length?total/paid.length:0,
       paymentTotals,
+      closingReport: session.closing_report_at ? {
+        pix:Number(session.closing_report_pix||0),
+        debit:Number(session.closing_report_debit||0),
+        credit:Number(session.closing_report_credit||0),
+        cash:Number(session.closing_report_cash||0),
+        receipts:Number(session.closing_report_total||0),
+        reconciliationDifference:Number(session.closing_report_difference||0),
+        expenses:Number(session.closing_report_expenses||0),
+        expectedPhysicalCash:Number(session.expected_cash||0),
+        countedCash:session.counted_cash==null?null:Number(session.counted_cash),
+        physicalCashDifference:session.cash_difference==null?null:Number(session.cash_difference)
+      } : null,
       sangrias:(movements||[]).filter((m:any)=>m.movement_type==='SANGRIA').reduce((a:number,m:any)=>a+Number(m.amount||0),0),
       suprimentos:(movements||[]).filter((m:any)=>m.movement_type==='SUPRIMENTO').reduce((a:number,m:any)=>a+Number(m.amount||0),0)
     }
