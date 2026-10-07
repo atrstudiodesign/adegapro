@@ -22,7 +22,7 @@ export const PartnerPortalScreen:React.FC=()=>{
   const[ready,setReady]=useState(false);
   const[session,setSession]=useState<any>(null);
   const[data,setData]=useState<any>(null);
-  const[mode,setMode]=useState<'LOGIN'|'REGISTER'>(()=>inviteFromUrl||window.location.pathname.includes('/cadastro')?'REGISTER':'LOGIN');
+  const[mode,setMode]=useState<'LOGIN'|'REGISTER'>(()=>window.location.pathname.includes('/cadastro')?'REGISTER':'LOGIN');
   const[tab,setTab]=useState<PortalTab>('OVERVIEW');
   const[busy,setBusy]=useState(false);
   const[error,setError]=useState('');
@@ -261,7 +261,6 @@ export const PartnerPortalScreen:React.FC=()=>{
           }} className="w-full h-10 rounded-xl border border-neutral-700 text-xs font-black text-neutral-300 disabled:opacity-40">Reenviar confirmação por e-mail</button>
           <p className="text-[10px] text-neutral-600 text-center">Se o e-mail já tiver uma conta Adega Pro confirmada, use a senha existente; não será enviado um novo e-mail de cadastro.</p>
         </form>:<form onSubmit={register} className="space-y-4">
-          {!invite&&<div className="p-3 rounded-xl border border-amber-800 bg-amber-950/20 text-amber-300 text-xs">Você precisa abrir o link de cadastro enviado pela ATR Studio.</div>}
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Nome completo"><TextInput value={form.fullName} onChange={v=>setForm({...form,fullName:v})} icon={UserRound}/></Field>
             <Field label="Telefone / WhatsApp"><TextInput value={form.phone} onChange={v=>setForm({...form,phone:v})}/></Field>
@@ -272,7 +271,7 @@ export const PartnerPortalScreen:React.FC=()=>{
           </div>
           <Field label="Recebimento da comissão"><select value={form.payoutMode} onChange={e=>setForm({...form,payoutMode:e.target.value as any})} className="w-full rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400"><option value="IMEDIATO">Imediato após pagamento confirmado</option><option value="FECHAMENTO_MENSAL">Fechamento mensal</option></select></Field>
           {form.payoutMode==='FECHAMENTO_MENSAL'&&<Field label="Dia do fechamento"><input className="w-full rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400" type="number" min="1" max="28" value={form.monthlyPayoutDay} onChange={e=>setForm({...form,monthlyPayoutDay:Number(e.target.value)})}/></Field>}
-          <button disabled={busy||!invite} className="w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black disabled:opacity-40">{busy?'Criando acesso...':'Concluir meu cadastro'}</button>
+          <button disabled={busy} className="w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black disabled:opacity-40">{busy?'Criando acesso...':'Concluir meu cadastro'}</button>
         </form>}
       </div>
     </div>;
@@ -282,17 +281,18 @@ export const PartnerPortalScreen:React.FC=()=>{
     const finishLinkedRegistration=async(e:React.FormEvent)=>{
       e.preventDefault();setBusy(true);setError('');setMessage('');
       try{
-        if(!invite)throw new Error('Abra novamente o link de convite enviado pela ATR Studio.');
         if(!form.fullName.trim())throw new Error('Informe seu nome completo.');
         if(form.phone.replace(/\D/g,'').length<10)throw new Error('Informe um telefone válido.');
-        await partnerDb.claimInvite({
+        const payload={
           token:invite,
           fullName:form.fullName,
           phone:form.phone,
           pixKey:form.pixKey,
           payoutMode:form.payoutMode,
           monthlyPayoutDay:form.monthlyPayoutDay
-        });
+        };
+        if(invite) await partnerDb.claimInvite(payload);
+        else await partnerDb.registerApplication(payload);
         localStorage.removeItem('adega_partner_pending_claim');
         localStorage.removeItem('adega_partner_invite');
         setMessage('Cadastro enviado. Aguarde a aprovação administrativa da ATR Studio.');
@@ -308,7 +308,7 @@ export const PartnerPortalScreen:React.FC=()=>{
         <p className="text-xs text-neutral-500 mt-2">Sua autenticação está válida. Finalize seus dados para vincular este usuário ao convite de vendedor.</p>
         {error&&<div className="mt-4 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
         {message&&<div className="mt-4 p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{message}</div>}
-        {invite?<form onSubmit={finishLinkedRegistration} className="mt-5 space-y-3">
+        <form onSubmit={finishLinkedRegistration} className="mt-5 space-y-3">
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Nome completo"><TextInput value={form.fullName} onChange={v=>setForm({...form,fullName:v})} icon={UserRound}/></Field>
             <Field label="Telefone / WhatsApp"><TextInput value={form.phone} onChange={v=>setForm({...form,phone:v})}/></Field>
@@ -317,7 +317,7 @@ export const PartnerPortalScreen:React.FC=()=>{
           </div>
           {form.payoutMode==='FECHAMENTO_MENSAL'&&<Field label="Dia do fechamento"><input type="number" min="1" max="28" value={form.monthlyPayoutDay} onChange={e=>setForm({...form,monthlyPayoutDay:Number(e.target.value)})} className="w-full rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400"/></Field>}
           <button disabled={busy} className="w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black disabled:opacity-50">{busy?'Vinculando...':'Concluir cadastro e abrir meu painel'}</button>
-        </form>:<div className="mt-5 p-4 rounded-xl border border-amber-800 bg-amber-950/20 text-amber-300 text-xs">Este usuário ainda não possui vínculo. Solicite um novo link de cadastro à ATR Studio.</div>}
+        </form>
         <button onClick={()=>void logout()} className="mt-4 w-full text-xs text-neutral-500 hover:text-white">Sair deste acesso</button>
       </div>
     </div>;
