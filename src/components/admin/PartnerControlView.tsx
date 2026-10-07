@@ -72,6 +72,27 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     onFeedback(label+' copiado.');
   };
 
+  const sendSellerInvite=async(p:any,channel:'EMAIL'|'SMS')=>{
+    setBusy(true);onError('');
+    try{
+      const result=await platformDb.createPlatformPartnerInvite(p.email||undefined,7);
+      const url=PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro?invite='+encodeURIComponent(result.token);
+      const message='ADEGA PRO - convite de vendedor. Conclua seu cadastro por este link: '+url;
+      if(channel==='EMAIL'){
+        if(!p.email)throw new Error('Vendedor sem e-mail cadastrado.');
+        window.location.href='mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent('Convite de vendedor - ADEGA PRO')+'&body='+encodeURIComponent(message);
+        onFeedback('Novo convite gerado. O aplicativo de e-mail foi aberto para envio.');
+      }else{
+        const phone=String(p.phone||'').replace(/\D/g,'');
+        if(phone.length<10)throw new Error('Vendedor sem telefone válido para SMS.');
+        window.location.href='sms:'+phone+'?body='+encodeURIComponent(message);
+        onFeedback('Novo convite gerado. O aplicativo de SMS foi aberto para envio.');
+      }
+      setLastInvite(url);
+      await load();
+    }catch(e:any){onError(e?.message||'Não foi possível gerar o novo convite.');}
+    finally{setBusy(false);}
+  };
   const generateInvite=async()=>{
     setBusy(true);onError('');
     try{
@@ -245,6 +266,8 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
             <td className="p-3"><div className="flex flex-wrap gap-1">
               <button title="Alterar" onClick={()=>{setForm({...p});setShowSellerForm(true)}} className="h-8 px-2 rounded border border-neutral-800">Alterar</button>
               <button title="Compartilhar" onClick={()=>void shareSeller(p)} className="h-8 px-2 rounded border border-neutral-800 inline-flex items-center gap-1"><Share2 size={11}/>Compartilhar</button>
+              {!p.portal_registered&&<button disabled={busy} title="Reenviar convite por e-mail" onClick={()=>void sendSellerInvite(p,'EMAIL')} className="h-8 px-2 rounded border border-sky-800 text-sky-300">E-mail convite</button>}
+              {!p.portal_registered&&<button disabled={busy||!p.phone} title="Reenviar convite por SMS" onClick={()=>void sendSellerInvite(p,'SMS')} className="h-8 px-2 rounded border border-violet-800 text-violet-300 disabled:opacity-40">SMS convite</button>}
               <button title="Imprimir ficha" onClick={()=>printSeller(p)} className="h-8 px-2 rounded border border-neutral-800 inline-flex items-center gap-1"><Printer size={11}/>Imprimir</button>
               {p.active?<button disabled={busy} title="Suspender" onClick={()=>void setSellerStatus(p,'SUSPENSO')} className="h-8 px-2 rounded border border-amber-800 text-amber-300 inline-flex items-center gap-1"><Ban size={11}/>Suspender</button>:<button disabled={busy} title="Reativar" onClick={()=>void setSellerStatus(p,'ATIVO')} className="h-8 px-2 rounded border border-emerald-800 text-emerald-300 inline-flex items-center gap-1"><CheckCircle size={11}/>Ativar</button>}
               {p.registration_status!=='CANCELADO'&&<button disabled={busy} title="Cancelar vínculo" onClick={()=>void setSellerStatus(p,'CANCELADO')} className="h-8 px-2 rounded border border-rose-800 text-rose-300">Cancelar</button>}
