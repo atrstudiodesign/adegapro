@@ -125,6 +125,7 @@ export const PartnerPortalScreen:React.FC=()=>{
       try{await claimPending();}catch(err:any){
         if(String(err?.message||'').includes('convite'))throw err;
       }
+      await partnerDb.recordAccess('LOGIN',navigator.userAgent.slice(0,120)).catch(()=>undefined);
       setMessage('Acesso realizado com sucesso.');
     }catch(err:any){setError(err?.message||'Não foi possível entrar.');}
     finally{setBusy(false);}
@@ -148,6 +149,7 @@ export const PartnerPortalScreen:React.FC=()=>{
       if(authError)throw authError;
       if(authData.session){
         await claimPending();
+        await partnerDb.recordAccess('LOGIN',navigator.userAgent.slice(0,120)).catch(()=>undefined);
         setMessage('Cadastro enviado. Aguarde a aprovação no ATR Control.');
       }else if(authData.user && Array.isArray(authData.user.identities) && authData.user.identities.length===0){
         setMessage('Este e-mail já possui uma conta no Adega Pro. Entre com a senha existente para concluir o cadastro de vendedor e aguardar aprovação.');
@@ -191,6 +193,7 @@ export const PartnerPortalScreen:React.FC=()=>{
       });
       if(verifyError)throw verifyError;
       await claimPending();
+      await partnerDb.recordAccess('LOGIN',navigator.userAgent.slice(0,120)).catch(()=>undefined);
       setMessage('E-mail confirmado. Seu cadastro foi enviado para aprovação no ATR Control.');
       setEmailOtp('');setOtpRequested(false);
     }catch(e:any){setError(e?.message||'Código inválido ou expirado.');}
@@ -228,7 +231,7 @@ export const PartnerPortalScreen:React.FC=()=>{
         payout_mode:form.payoutMode||data?.partner?.payout_mode,
         monthly_payout_day:form.monthlyPayoutDay||data?.partner?.monthly_payout_day
       });
-      setMessage('Dados de repasse atualizados.');
+      setMessage('Dados atualizados. Alterações de telefone ou chave PIX ficam pendentes até aprovação no ATR Control.');
       await load();
     }catch(e:any){setError(e?.message||'Não foi possível atualizar os dados.');}
     finally{setBusy(false);}
@@ -441,7 +444,7 @@ export const PartnerPortalScreen:React.FC=()=>{
 
       {tab==='COMMISSIONS'&&<section className="p-4 rounded-2xl border border-neutral-800 bg-[#0b1014]"><div><h2 className="font-black">Minhas comissões</h2><p className="text-[10px] text-neutral-500 mt-1">A comissão só é liberada depois que o pagamento do cliente é confirmado pela ATR Studio.</p></div><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[800px] text-xs"><thead className="text-neutral-500"><tr><th className="p-2 text-left">Tipo</th><th className="p-2 text-right">Base</th><th className="p-2 text-right">Comissão</th><th className="p-2 text-left">Status</th><th className="p-2 text-left">Vencimento</th><th className="p-2 text-left">Pago em</th></tr></thead><tbody>{commissions.map((c:any)=><tr key={c.id} className="border-t border-neutral-800"><td className="p-2 font-bold">{c.commission_type}</td><td className="p-2 text-right">{money(c.base_amount)}</td><td className="p-2 text-right text-amber-400 font-black">{money(c.amount_due)}</td><td className="p-2"><Status value={c.status}/></td><td className="p-2">{dt(c.due_at)}</td><td className="p-2">{dt(c.paid_at)}</td></tr>)}</tbody></table></div></section>}
 
-      {tab==='PROFILE'&&<section className="p-4 rounded-2xl border border-neutral-800 bg-[#0b1014] max-w-2xl"><h2 className="font-black">Perfil & repasse</h2><div className="grid sm:grid-cols-2 gap-3 mt-4"><Info l="Nome" v={partner.full_name}/><Info l="E-mail" v={partner.email}/><Field label="Telefone"><TextInput value={form.phone||partner.phone||''} onChange={v=>setForm({...form,phone:v})}/></Field><Field label="Chave PIX"><TextInput value={form.pixKey||partner.pix_key||''} onChange={v=>setForm({...form,pixKey:v})}/></Field></div><Field label="Modo de repasse"><select className="w-full rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400" value={form.payoutMode||partner.payout_mode} onChange={e=>setForm({...form,payoutMode:e.target.value as any})}><option value="IMEDIATO">Imediato</option><option value="FECHAMENTO_MENSAL">Fechamento mensal</option></select></Field><button onClick={()=>void saveProfile()} disabled={busy} className="mt-4 h-10 px-4 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black inline-flex items-center justify-center gap-2 disabled:opacity-50">Salvar dados</button></section>}
+      {tab==='PROFILE'&&<section className="p-4 rounded-2xl border border-neutral-800 bg-[#0b1014] max-w-2xl"><h2 className="font-black">Perfil & repasse</h2><div className="mt-2 p-3 rounded-xl border border-amber-900/60 bg-amber-950/20 text-[10px] text-amber-200">Por segurança, mudanças de telefone e chave PIX precisam ser aprovadas no ATR Control antes de substituir os dados atuais.</div><div className="grid sm:grid-cols-2 gap-3 mt-4"><Info l="Nome" v={partner.full_name}/><Info l="E-mail" v={partner.email}/><Field label="Telefone"><TextInput value={form.phone||partner.phone||''} onChange={v=>setForm({...form,phone:v})}/></Field><Field label="Chave PIX"><TextInput value={form.pixKey||partner.pix_key||''} onChange={v=>setForm({...form,pixKey:v})}/></Field></div><Field label="Modo de repasse"><select className="w-full rounded-xl bg-neutral-950 border border-neutral-700 px-3 py-3 text-sm outline-none focus:border-amber-400" value={form.payoutMode||partner.payout_mode} onChange={e=>setForm({...form,payoutMode:e.target.value as any})}><option value="IMEDIATO">Imediato</option><option value="FECHAMENTO_MENSAL">Fechamento mensal</option></select></Field><button onClick={()=>void saveProfile()} disabled={busy} className="mt-4 h-10 px-4 rounded-xl bg-amber-400 text-neutral-950 text-xs font-black inline-flex items-center justify-center gap-2 disabled:opacity-50">Salvar dados</button></section>}
     </main>
 
     <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-neutral-800 bg-black/95 backdrop-blur px-2 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))] grid grid-cols-4 gap-1">
