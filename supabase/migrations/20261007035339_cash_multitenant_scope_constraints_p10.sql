@@ -1,0 +1,7 @@
+do $$ begin
+if not exists(select 1 from pg_constraint where conname='cash_sessions_id_tenant_store_uk') then alter table public.cash_sessions add constraint cash_sessions_id_tenant_store_uk unique(id,tenant_id,store_id); end if;
+if not exists(select 1 from pg_constraint where conname='sales_id_tenant_uk') then alter table public.sales add constraint sales_id_tenant_uk unique(id,tenant_id); end if;
+if not exists(select 1 from pg_constraint where conname='sales_session_scope_fk') then alter table public.sales add constraint sales_session_scope_fk foreign key(cash_session_id,tenant_id,store_id) references public.cash_sessions(id,tenant_id,store_id) on update restrict on delete set null; end if;
+if not exists(select 1 from pg_constraint where conname='cash_movements_session_scope_fk') then alter table public.cash_movements add constraint cash_movements_session_scope_fk foreign key(cash_session_id,tenant_id,store_id) references public.cash_sessions(id,tenant_id,store_id) on update restrict on delete restrict; end if;
+if not exists(select 1 from pg_constraint where conname='sale_payments_sale_scope_fk') then alter table public.sale_payments add constraint sale_payments_sale_scope_fk foreign key(sale_id,tenant_id) references public.sales(id,tenant_id) on update restrict on delete cascade; end if;
+end $$;
