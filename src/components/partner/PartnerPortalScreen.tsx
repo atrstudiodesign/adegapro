@@ -250,7 +250,7 @@ export const PartnerPortalScreen:React.FC=()=>{
         <div className="flex items-center gap-3 mb-6"><img src="/adega-pro-mark.svg" className="w-12 h-12 rounded-xl border border-amber-500/30"/><div><div className="text-[10px] uppercase tracking-[.2em] text-amber-400 font-black">Programa de vendedores</div><h1 className="text-2xl font-black">ADEGA <span className="text-amber-400">PRO</span></h1></div></div>
         <div className="flex gap-2 p-1 rounded-xl bg-neutral-950 border border-neutral-800 mb-6">
           <button onClick={()=>setMode('LOGIN')} className={`flex-1 py-2 rounded-lg text-xs font-black ${mode==='LOGIN'?'bg-amber-400 text-neutral-950':'text-neutral-400'}`}>Entrar</button>
-          <button onClick={()=>setMode('REGISTER')} className={`flex-1 py-2 rounded-lg text-xs font-black ${mode==='REGISTER'?'bg-amber-400 text-neutral-950':'text-neutral-400'}`}>Cadastrar com convite</button>
+          <button onClick={()=>setMode('REGISTER')} className={`flex-1 py-2 rounded-lg text-xs font-black ${mode==='REGISTER'?'bg-amber-400 text-neutral-950':'text-neutral-400'}`}>Cadastrar</button>
         </div>
         {error&&<div className="mb-4 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
         {message&&<div className="mb-4 p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{message}</div>}
@@ -384,6 +384,7 @@ export const PartnerPortalScreen:React.FC=()=>{
       <div className="min-w-0 flex-1 sm:flex-none">
         <div className="text-[9px] sm:text-[10px] text-neutral-500">Portal do vendedor</div>
         <div className="text-[11px] sm:text-xs font-black truncate">{partner.full_name}</div>
+        <div className="text-[8px] text-neutral-600">{lastSync?'Atualizado '+lastSync.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'Sincronizando...'}</div>
       </div>
       <nav className="ml-auto hidden sm:flex gap-1 overflow-x-auto max-w-[70vw]">
         {([['OVERVIEW','Visão Geral',BarChart3],['REFERRALS','Indicações',Users],['COMMISSIONS','Comissões',WalletCards],['PROFILE','Perfil',UserRound]] as [PortalTab,string,any][]).map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`h-10 px-3 rounded-lg border flex items-center gap-2 text-[10px] font-black whitespace-nowrap ${tab===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#0d1217] border-neutral-800 text-neutral-400'}`}><I size={13}/>{label}</button>)}
