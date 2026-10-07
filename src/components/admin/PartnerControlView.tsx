@@ -19,6 +19,7 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
   const[showSellerForm,setShowSellerForm]=useState(false);
   const[inviteEmail,setInviteEmail]=useState('');
   const[lastInvite,setLastInvite]=useState('');
+  const[lastSync,setLastSync]=useState<Date|null>(null);
   const[paymentValues,setPaymentValues]=useState<Record<string,string>>({});
   const[form,setForm]=useState<any>({
     full_name:'',email:'',phone:'',email_verified:false,phone_verified:false,active:true,
@@ -202,7 +203,8 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
         {topTabs.map(([id,label,I])=><button key={id} onClick={()=>setTab(id)} className={`h-10 px-4 rounded-lg border flex items-center gap-2 whitespace-nowrap text-[11px] font-black ${tab===id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#0c1115] border-neutral-800 text-neutral-300 hover:border-neutral-600'}`}><I size={14}/>{label}</button>)}
       </nav>
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full xl:w-auto">
-        <div className="px-3 h-10 rounded-lg border border-neutral-800 bg-[#0c1115] flex items-center justify-center sm:justify-start gap-2 text-[10px] text-neutral-400"><Clock3 size={13}/><span>Período</span><b className="text-neutral-200">Atual</b></div>
+        <div className="px-3 h-10 rounded-lg border border-neutral-800 bg-[#0c1115] flex items-center justify-center sm:justify-start gap-2 text-[10px] text-neutral-400"><Clock3 size={13}/><span>Atualização</span><b className="text-neutral-200">{lastSync?lastSync.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'...'}</b></div>
+        <button onClick={()=>void load(true)} className="h-10 px-3 rounded-lg bg-neutral-900 border border-neutral-700 text-[10px] sm:text-xs font-black flex items-center justify-center gap-2"><Clock3 size={14}/>Atualizar</button>
         <button onClick={()=>setShowSellerForm(v=>!v)} className="h-10 px-3 rounded-lg bg-neutral-900 border border-neutral-700 text-[10px] sm:text-xs font-black flex items-center justify-center gap-2"><Plus size={14}/>Novo vendedor</button>
       </div>
     </div>
