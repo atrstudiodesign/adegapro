@@ -1,0 +1,12 @@
+CREATE OR REPLACE FUNCTION public.save_cash_closing_report_secure(p_cash_session_id uuid, p_operator_token text, p_pix numeric, p_debit numeric, p_credit numeric, p_cash numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'private', 'auth'
+AS $function$
+declare s public.cash_sessions%rowtype; op uuid; exp numeric; immediate numeric; fiado numeric; settled numeric; recon_diff numeric; expected_physical numeric;
+begin if auth.uid() is null then raise exception 'authentication required'; end if; select * into s from public.cash_sessions where id=p_cash_session_id for update; if not found or s.status<>'ABERTO' then raise exception 'cash session is not open'; end if; if not private.has_store_access(s.store_id) then raise exception 'forbidden'; end if; op:=private.require_operator_session(s.store_id,p_operator_token); if s.operator_ref is distinct from op then raise exception 'operator does not own cash session'; end if; if least(coalesce(p_pix,-1),coalesce(p_debit,-1),coalesce(p_credit,-1),coalesce(p_cash,-1))<0 then raise exception 'invalid reconciliation amount'; end if;
+select coalesce(sum(ft.amount),0) into exp from public.financial_transactions ft where ft.tenant_id=s.tenant_id and ft.store_id=s.store_id and ft.transaction_type='DESPESA' and ft.reference_id=p_cash_session_id and upper(coalesce(ft.source,'')) in ('CAIXA','CASH_SESSION','PDV');
+immediate:=round(p_pix+p_debit+p_credit+p_cash,2); fiado:=private.cash_session_fiado_total(p_cash_session_id); settled:=round(immediate+fiado,2); recon_diff:=round(settled-coalesce(s.total_sales,0),2); if abs(recon_diff)>.01 then raise exception 'Fechamento não conciliado: vendas %, recebimentos imediatos %, fiado %, diferença %',round(coalesce(s.total_sales,0),2),immediate,fiado,recon_diff; end if; expected_physical:=round(coalesce(s.initial_balance,0)+p_cash+coalesce(s.total_supplies,0)-coalesce(s.total_withdrawals,0)-exp,2);
+update public.cash_sessions set closing_report_pix=round(p_pix,2),closing_report_debit=round(p_debit,2),closing_report_credit=round(p_credit,2),closing_report_cash=round(p_cash,2),closing_report_fiado=fiado,total_expenses=round(exp,2),closing_report_at=now(),closing_report_by=op,expected_cash=expected_physical,cash_difference=null where id=p_cash_session_id;
+return jsonb_build_object('sales',round(coalesce(s.total_sales,0),2),'immediate_receipts',immediate,'fiado_receivable',fiado,'settled_total',settled,'reconciliation_difference',recon_diff,'expected_physical_cash',expected_physical); end $function$
