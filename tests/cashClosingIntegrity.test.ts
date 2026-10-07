@@ -30,6 +30,11 @@ describe('cash closing integrity',()=>{
     expect(r.reconciliationDifference).toBe(0); expect(r.countedCash).toBeNull(); expect(r.physicalCashDifference).toBeNull();
   });
 
+  test('FIADO reconciles as receivable without entering physical cash',()=>{
+    const r=calculateCashClosing({salesTotal:500,cashReceived:100,pixReceived:200,debitReceived:100,creditReceived:50,fiadoReceivable:50,openingBalance:20,supplies:0,withdrawals:0,linkedCashExpenses:0,countedCash:120});
+    expect(r.receiptsTotal).toBe(450); expect(r.fiadoReceivable).toBe(50); expect(r.settledTotal).toBe(500); expect(r.reconciled).toBe(true); expect(r.expectedPhysicalCash).toBe(120); expect(r.physicalCashDifference).toBe(0);
+  });
+
   test('RAVI-style declared mix remains a reconciliation mismatch, not a physical conclusion',()=>{
     const r=calculateCashClosing({salesTotal:282.42,cashReceived:46.80,pixReceived:232,debitReceived:120,creditReceived:18,openingBalance:.10,supplies:14,withdrawals:14,linkedCashExpenses:0,countedCash:46.80});
     expect(r.receiptsTotal).toBe(416.80); expect(r.reconciliationDifference).toBe(134.38); expect(r.reconciled).toBe(false);
