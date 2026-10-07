@@ -324,6 +324,8 @@ export default function App() {
     return <CommercialAccessGate onAllowed={() => setCommercialCleared(true)} />;
   }
 
+  useEffect(()=>{const relock=()=>{setCurrentSession(undefined);setIsLocked(true);};window.addEventListener('adega-pro-operator-session-invalid',relock);return()=>window.removeEventListener('adega-pro-operator-session-invalid',relock);},[]);
+
   // If a public customer opens the digital receipt URL
   if (receiptHashId) {
     return (
