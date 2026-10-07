@@ -159,6 +159,8 @@ export default function App() {
     };
   }, []);
 
+  useEffect(()=>{const relock=()=>{setCurrentSession(undefined);setIsLocked(true);};window.addEventListener('adega-pro-operator-session-invalid',relock);return()=>window.removeEventListener('adega-pro-operator-session-invalid',relock);},[]);
+
   // Clean public/admin routes. Legacy hash URLs are redirected to their slash equivalents.
   useEffect(() => {
     const syncRoute = () => {
@@ -323,8 +325,6 @@ export default function App() {
   if (saasAuthenticated && appMode === 'PRODUCTION' && legalCleared && !commercialCleared && !receiptHashId) {
     return <CommercialAccessGate onAllowed={() => setCommercialCleared(true)} />;
   }
-
-  useEffect(()=>{const relock=()=>{setCurrentSession(undefined);setIsLocked(true);};window.addEventListener('adega-pro-operator-session-invalid',relock);return()=>window.removeEventListener('adega-pro-operator-session-invalid',relock);},[]);
 
   // If a public customer opens the digital receipt URL
   if (receiptHashId) {
