@@ -7,6 +7,7 @@ import { partnerSupabase } from '../../services/partnerSupabase';
 import { partnerDb } from '../../services/partnerDb';
 
 const money=(v:any)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
+const PARTNER_CANONICAL_ORIGIN='https://adegapro.vercel.app';
 const dt=(v:any)=>v?new Date(v).toLocaleDateString('pt-BR'):'—';
 const statusTone=(s:string)=>{
   if(['CONVERTIDO','CONFIRMADO','LIBERADA','PAGA'].includes(s))return 'emerald';
@@ -121,15 +122,18 @@ export const PartnerPortalScreen:React.FC=()=>{
         email:email.trim(),password,
         options:{
           data:{full_name:form.fullName.trim(),account_type:'ADEGA_PRO_PARTNER'},
-          emailRedirectTo:window.location.origin+'/vendedor/cadastro?invite='+encodeURIComponent(invite)
+          emailRedirectTo:PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro?invite='+encodeURIComponent(invite)
         }
       });
       if(authError)throw authError;
       if(authData.session){
         await claimPending();
         setMessage('Cadastro concluído. Seu painel de vendedor está ativo.');
+      }else if(authData.user && Array.isArray(authData.user.identities) && authData.user.identities.length===0){
+        setMessage('Este e-mail já possui uma conta no Adega Pro. Entre com a senha já existente para vincular o convite de vendedor.');
+        setMode('LOGIN');
       }else{
-        setMessage('Cadastro criado. Confirme seu e-mail e depois entre para concluir o vínculo do convite.');
+        setMessage('Cadastro criado. O e-mail de confirmação foi solicitado. Confira também Spam/Lixo eletrônico e depois entre para concluir o vínculo do convite.');
         setMode('LOGIN');
       }
     }catch(err:any){setError(err?.message||'Não foi possível concluir o cadastro.');}
@@ -198,7 +202,20 @@ export const PartnerPortalScreen:React.FC=()=>{
           <Field label="E-mail"><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3 [&>input]:w-full [&>input]:bg-transparent [&>input]:py-3 [&>input]:outline-none [&>input]:text-sm [&>svg]:text-neutral-500"><Mail size={15}/><input required type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email"/></div></Field>
           <Field label="Senha"><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3 [&>input]:w-full [&>input]:bg-transparent [&>input]:py-3 [&>input]:outline-none [&>input]:text-sm [&>svg]:text-neutral-500"><LockKeyhole size={15}/><input required type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/><button type="button" onClick={()=>setShowPassword(v=>!v)}>{showPassword?<EyeOff size={15}/>:<Eye size={15}/>}</button></div></Field>
           <button disabled={busy} className="w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black">{busy?'Entrando...':'Acessar meu painel'}</button>
-          <p className="text-[10px] text-neutral-600 text-center">O acesso de vendedor é separado do painel dos clientes e do ATR Control administrativo.</p>
+          <button type="button" disabled={busy||!email.trim()} onClick={async()=>{
+            setBusy(true);setError('');setMessage('');
+            try{
+              const {error:resendError}=await partnerSupabase.auth.resend({
+                type:'signup',
+                email:email.trim(),
+                options:{emailRedirectTo:PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro?invite='+encodeURIComponent(invite)}
+              });
+              if(resendError)throw resendError;
+              setMessage('Novo e-mail de confirmação solicitado. Confira também Spam/Lixo eletrônico.');
+            }catch(e:any){setError(e?.message||'Não foi possível reenviar a confirmação.');}
+            finally{setBusy(false);}
+          }} className="w-full h-10 rounded-xl border border-neutral-700 text-xs font-black text-neutral-300 disabled:opacity-40">Reenviar confirmação por e-mail</button>
+          <p className="text-[10px] text-neutral-600 text-center">Se o e-mail já tiver uma conta Adega Pro confirmada, use a senha existente; não será enviado um novo e-mail de cadastro.</p>
         </form>:<form onSubmit={register} className="space-y-4">
           {!invite&&<div className="p-3 rounded-xl border border-amber-800 bg-amber-950/20 text-amber-300 text-xs">Você precisa abrir o link de cadastro enviado pela ATR Studio.</div>}
           <div className="grid sm:grid-cols-2 gap-3">
