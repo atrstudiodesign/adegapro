@@ -28,6 +28,14 @@ export const PartnerPortalScreen:React.FC=()=>{
   const[error,setError]=useState('');
   const[message,setMessage]=useState('');
   const[lastSync,setLastSync]=useState<Date|null>(null);
+  const sessionKey=useMemo(()=>{
+    let key=localStorage.getItem('adega_partner_session_key')||'';
+    if(!key){
+      key=typeof crypto?.randomUUID==='function'?crypto.randomUUID():'partner-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+      localStorage.setItem('adega_partner_session_key',key);
+    }
+    return key;
+  },[]);
   const[email,setEmail]=useState('');
   const[password,setPassword]=useState('');
   const[confirmPassword,setConfirmPassword]=useState('');
@@ -87,16 +95,31 @@ export const PartnerPortalScreen:React.FC=()=>{
 
   useEffect(()=>{
     if(!session)return;
-    const refresh=()=>{ if(document.visibilityState==='visible') void load(true); };
+    let sessionAllowed=true;
+    const touch=async()=>{
+      if(!sessionAllowed)return;
+      try{
+        await partnerDb.touchSession(sessionKey,navigator.userAgent.slice(0,120));
+      }catch(e:any){
+        sessionAllowed=false;
+        setError(e?.message||'Sessão bloqueada por segurança.');
+        await partnerSupabase.auth.signOut();
+        setSession(null);setData(null);
+      }
+    };
+    void touch();
+    const refresh=()=>{ if(document.visibilityState==='visible'){void load(true);void touch();} };
     const timer=window.setInterval(refresh,10000);
+    const sessionTimer=window.setInterval(()=>void touch(),5*60*1000);
     window.addEventListener('focus',refresh);
     document.addEventListener('visibilitychange',refresh);
     return()=>{
       window.clearInterval(timer);
+      window.clearInterval(sessionTimer);
       window.removeEventListener('focus',refresh);
       document.removeEventListener('visibilitychange',refresh);
     };
-  },[session]);
+  },[session,sessionKey]);
 
   const persistPending=()=>{
     localStorage.setItem('adega_partner_pending_claim',JSON.stringify({
@@ -201,6 +224,7 @@ export const PartnerPortalScreen:React.FC=()=>{
   };
 
   const logout=async()=>{
+    await partnerDb.closeSession(sessionKey).catch(()=>undefined);
     await partnerSupabase.auth.signOut();
     setData(null);setSession(null);setMode('LOGIN');
     window.history.pushState({},'', '/vendedor');
