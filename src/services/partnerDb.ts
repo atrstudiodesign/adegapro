@@ -28,6 +28,17 @@ async function registerApplication(input:{fullName:string;phone:string;pixKey?:s
   if(error) throw error;
   return data as string;
 }
+async function registerSelf(input:{fullName:string;phone:string;pixKey?:string;payoutMode:'IMEDIATO'|'FECHAMENTO_MENSAL';monthlyPayoutDay:number}){
+  const {data,error}=await partnerSupabase.rpc('register_platform_partner_self',{
+    p_full_name:input.fullName,
+    p_phone:input.phone,
+    p_pix_key:input.pixKey||null,
+    p_payout_mode:input.payoutMode,
+    p_monthly_payout_day:input.monthlyPayoutDay
+  });
+  if(error) throw error;
+  return data as string;
+}
 async function saveReferral(payload:Record<string,unknown>){
   const {data,error}=await partnerSupabase.rpc('save_my_partner_referral',{p_payload:payload});
   if(error) throw error;
