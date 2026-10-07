@@ -27,6 +27,7 @@ export const PartnerPortalScreen:React.FC=()=>{
   const[busy,setBusy]=useState(false);
   const[error,setError]=useState('');
   const[message,setMessage]=useState('');
+  const[lastSync,setLastSync]=useState<Date|null>(null);
   const[email,setEmail]=useState('');
   const[password,setPassword]=useState('');
   const[confirmPassword,setConfirmPassword]=useState('');
@@ -58,14 +59,18 @@ export const PartnerPortalScreen:React.FC=()=>{
     }));
   },[data?.partner?.id]);
 
-  const load=async()=>{
-    setBusy(true);setError('');
-    try{setData(await partnerDb.getDashboard());}
+  const load=async(silent=false)=>{
+    if(!silent)setBusy(true);
+    setError('');
+    try{
+      setData(await partnerDb.getDashboard());
+      setLastSync(new Date());
+    }
     catch(e:any){
-      setData(null);
+      if(!silent)setData(null);
       const msg=String(e?.message||'');
       if(!msg.includes('seller access not linked'))setError(msg||'Não foi possível carregar seu painel.');
-    }finally{setBusy(false);}
+    }finally{if(!silent)setBusy(false);}
   };
   useEffect(()=>{
     if(!session){setData(null);return;}
@@ -78,6 +83,19 @@ export const PartnerPortalScreen:React.FC=()=>{
         await load();
       }
     })();
+  },[session]);
+
+  useEffect(()=>{
+    if(!session)return;
+    const refresh=()=>{ if(document.visibilityState==='visible') void load(true); };
+    const timer=window.setInterval(refresh,10000);
+    window.addEventListener('focus',refresh);
+    document.addEventListener('visibilitychange',refresh);
+    return()=>{
+      window.clearInterval(timer);
+      window.removeEventListener('focus',refresh);
+      document.removeEventListener('visibilitychange',refresh);
+    };
   },[session]);
 
   const persistPending=()=>{
