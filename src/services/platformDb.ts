@@ -127,7 +127,7 @@ async function updatePlatformPartnerCommission(id:string,status:string,paymentRe
   if(error) throw error;
 }
 
-async function setPlatformSalesPartnerStatus(id:string,status:'ATIVO'|'SUSPENSO'|'CANCELADO'){
+async function setPlatformSalesPartnerStatus(id:string,status:'PENDENTE'|'ATIVO'|'SUSPENSO'|'CANCELADO'){
   const {error}=await platformSupabase.rpc('set_platform_sales_partner_status',{p_id:id,p_status:status});
   if(error) throw error;
 }
