@@ -31,6 +31,8 @@ export const PartnerPortalScreen:React.FC=()=>{
   const[password,setPassword]=useState('');
   const[confirmPassword,setConfirmPassword]=useState('');
   const[showPassword,setShowPassword]=useState(false);
+  const[emailOtp,setEmailOtp]=useState('');
+  const[otpRequested,setOtpRequested]=useState(false);
   const[form,setForm]=useState({
     fullName:'',phone:'',pixKey:'',payoutMode:'IMEDIATO' as 'IMEDIATO'|'FECHAMENTO_MENSAL',monthlyPayoutDay:5
   });
@@ -140,6 +142,43 @@ export const PartnerPortalScreen:React.FC=()=>{
     finally{setBusy(false);}
   };
 
+  const requestEmailCode=async()=>{
+    setBusy(true);setError('');setMessage('');
+    try{
+      if(!email.trim())throw new Error('Informe seu e-mail.');
+      if(invite)persistPending();
+      const {error:otpError}=await partnerSupabase.auth.signInWithOtp({
+        email:email.trim(),
+        options:{
+          shouldCreateUser:true,
+          emailRedirectTo:PARTNER_CANONICAL_ORIGIN+'/vendedor/cadastro?invite='+encodeURIComponent(invite)
+        }
+      });
+      if(otpError)throw otpError;
+      setOtpRequested(true);
+      setMessage('Código/link de acesso enviado por e-mail. Confira também Spam/Lixo eletrônico.');
+    }catch(e:any){setError(e?.message||'Não foi possível enviar o código por e-mail.');}
+    finally{setBusy(false);}
+  };
+
+  const confirmEmailCode=async()=>{
+    setBusy(true);setError('');setMessage('');
+    try{
+      const code=emailOtp.replace(/\s/g,'');
+      if(!email.trim()||code.length<6)throw new Error('Informe o e-mail e o código recebido.');
+      const {error:verifyError}=await partnerSupabase.auth.verifyOtp({
+        email:email.trim(),
+        token:code,
+        type:'email'
+      });
+      if(verifyError)throw verifyError;
+      await claimPending();
+      setMessage('E-mail confirmado e cadastro de vendedor vinculado com sucesso.');
+      setEmailOtp('');setOtpRequested(false);
+    }catch(e:any){setError(e?.message||'Código inválido ou expirado.');}
+    finally{setBusy(false);}
+  };
+
   const logout=async()=>{
     await partnerSupabase.auth.signOut();
     setData(null);setSession(null);setMode('LOGIN');
@@ -202,6 +241,11 @@ export const PartnerPortalScreen:React.FC=()=>{
           <Field label="E-mail"><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3 [&>input]:w-full [&>input]:bg-transparent [&>input]:py-3 [&>input]:outline-none [&>input]:text-sm [&>svg]:text-neutral-500"><Mail size={15}/><input required type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email"/></div></Field>
           <Field label="Senha"><div className="mt-1.5 flex items-center gap-2 rounded-xl bg-neutral-950 border border-neutral-700 px-3 [&>input]:w-full [&>input]:bg-transparent [&>input]:py-3 [&>input]:outline-none [&>input]:text-sm [&>svg]:text-neutral-500"><LockKeyhole size={15}/><input required type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/><button type="button" onClick={()=>setShowPassword(v=>!v)}>{showPassword?<EyeOff size={15}/>:<Eye size={15}/>}</button></div></Field>
           <button disabled={busy} className="w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black">{busy?'Entrando...':'Acessar meu painel'}</button>
+          <button type="button" disabled={busy||!email.trim()} onClick={()=>void requestEmailCode()} className="w-full h-10 rounded-xl border border-amber-700/70 text-xs font-black text-amber-300 disabled:opacity-40">Receber código por e-mail</button>
+          {otpRequested&&<div className="grid grid-cols-[1fr_auto] gap-2">
+            <input value={emailOtp} onChange={e=>setEmailOtp(e.target.value)} inputMode="numeric" autoComplete="one-time-code" placeholder="Código recebido" className="h-10 rounded-xl bg-neutral-950 border border-neutral-700 px-3 text-sm outline-none focus:border-amber-400"/>
+            <button type="button" disabled={busy||emailOtp.replace(/\s/g,'').length<6} onClick={()=>void confirmEmailCode()} className="h-10 px-4 rounded-xl bg-emerald-600 text-white text-xs font-black disabled:opacity-40">Confirmar</button>
+          </div>}
           <button type="button" disabled={busy||!email.trim()} onClick={async()=>{
             setBusy(true);setError('');setMessage('');
             try{
