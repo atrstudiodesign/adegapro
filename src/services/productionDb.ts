@@ -985,7 +985,22 @@ function getOperatorToken() {
 
 function getOperatorProfile() {
   const raw = sessionStorage.getItem(OPERATOR_PROFILE_KEY);
-  return raw ? JSON.parse(raw) : null;
+  try { return raw ? JSON.parse(raw) : null; } catch { sessionStorage.removeItem(OPERATOR_PROFILE_KEY); return null; }
+}
+
+function clearOperatorSessionLocal() {
+  sessionStorage.removeItem(OPERATOR_TOKEN_KEY);
+  sessionStorage.removeItem(OPERATOR_PROFILE_KEY);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('adega-pro-operator-session-invalid'));
+}
+
+function handleOperatorSessionError(error:any): never {
+  const message=String(error?.message||'');
+  if (/operator session (invalid or expired|required)/i.test(message)) {
+    clearOperatorSessionLocal();
+    throw new Error('Sessão do operador expirou. Digite seu PIN novamente para continuar.');
+  }
+  throw error;
 }
 
 async function verifyOperatorPin(operatorId: string, pin: string, accessOrigin:'NA_LOJA'|'EXTERNO'='NA_LOJA') {
@@ -1200,7 +1215,7 @@ async function openCashSession(registerId: string, _operatorId: string | null, i
     p_operator_token: token,
     p_initial_balance: initialBalance
   });
-  if (error) throw error;
+  if (error) handleOperatorSessionError(error);
   return data as string;
 }
 
@@ -1214,7 +1229,7 @@ async function registerCashMovement(sessionId: string, type: 'SANGRIA'|'SUPRIMEN
     p_amount: amount,
     p_reason: reason
   });
-  if (error) throw error;
+  if (error) handleOperatorSessionError(error);
   return data as string;
 }
 
@@ -1229,7 +1244,7 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
     p_counted_cash: countedCash,
     p_notes: notes || null
   });
-  if (error) throw error;
+  if (error) handleOperatorSessionError(error);
   return data;
 }
 
