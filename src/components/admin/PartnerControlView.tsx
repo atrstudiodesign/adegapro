@@ -13,6 +13,7 @@ const date=(v:any)=>v?new Date(v).toLocaleDateString('pt-BR'):'—';
 export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>void;onError:(s:string)=>void})=>{
   const[data,setData]=useState<any>(null);
   const[security,setSecurity]=useState<any>({pending_profile_changes:[],admin_audit:[],access_audit:[]});
+  const[isolationHealth,setIsolationHealth]=useState<any>(null);
   const[selectedHistory,setSelectedHistory]=useState<string>('');
   const[busy,setBusy]=useState(false);
   const[tab,setTab]=useState<Tab>('OVERVIEW');
@@ -36,12 +37,14 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     if(!silent)setBusy(true);
     onError('');
     try{
-      const [snapshot,securitySnapshot]=await Promise.all([
+      const [snapshot,securitySnapshot,healthSnapshot]=await Promise.all([
         platformDb.getPlatformPartnerSnapshot(),
-        platformDb.getPlatformPartnerSecuritySnapshot()
+        platformDb.getPlatformPartnerSecuritySnapshot(),
+        platformDb.auditPartnerIsolationHealth()
       ]);
       setData(snapshot);
       setSecurity(securitySnapshot||{pending_profile_changes:[],admin_audit:[],access_audit:[]});
+      setIsolationHealth(healthSnapshot||null);
       setLastSync(new Date());
     }
     catch(e:any){onError(e?.message||'Falha ao carregar vendedores.');}
@@ -245,6 +248,11 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
         <button onClick={()=>setShowSellerForm(v=>!v)} className="h-10 px-3 rounded-lg bg-neutral-900 border border-neutral-700 text-[10px] sm:text-xs font-black flex items-center justify-center gap-2"><Plus size={14}/>Novo vendedor</button>
       </div>
     </div>
+
+    {isolationHealth&&<section className={`rounded-xl border p-3 ${((isolationHealth.direct_authenticated_select_tables||[]).length===0&&(isolationHealth.direct_anon_select_tables||[]).length===0&&Number(isolationHealth.duplicate_email_count||0)===0&&Number(isolationHealth.duplicate_auth_user_count||0)===0&&Number(isolationHealth.orphan_referrals||0)===0&&Number(isolationHealth.orphan_commissions||0)===0)?'border-emerald-900 bg-emerald-950/10':'border-rose-900 bg-rose-950/10'}`}>
+      <div className="font-black text-xs">Isolamento de vendedores: {((isolationHealth.direct_authenticated_select_tables||[]).length===0&&(isolationHealth.direct_anon_select_tables||[]).length===0&&Number(isolationHealth.duplicate_email_count||0)===0&&Number(isolationHealth.duplicate_auth_user_count||0)===0&&Number(isolationHealth.orphan_referrals||0)===0&&Number(isolationHealth.orphan_commissions||0)===0)?'OK':'ATENÇÃO'}</div>
+      <div className="text-[9px] text-neutral-500 mt-1">Acesso direto auth: {(isolationHealth.direct_authenticated_select_tables||[]).length} · anon: {(isolationHealth.direct_anon_select_tables||[]).length} · e-mails duplicados: {isolationHealth.duplicate_email_count||0} · vínculos órfãos: {Number(isolationHealth.orphan_referrals||0)+Number(isolationHealth.orphan_commissions||0)}</div>
+    </section>}
 
     {(partners.some((p:any)=>p.registration_status==='PENDENTE')||(security.pending_profile_changes||[]).length>0)&&<section className="rounded-xl border border-amber-500 bg-amber-950/20 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div><div className="font-black text-sm text-amber-300">Pendências de vendedores</div><div className="text-[10px] text-neutral-400 mt-1">{partners.filter((p:any)=>p.registration_status==='PENDENTE').length} cadastro(s) aguardando aprovação · {(security.pending_profile_changes||[]).length} alteração(ões) de telefone/PIX aguardando validação.</div></div>
