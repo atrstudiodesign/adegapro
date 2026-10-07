@@ -1321,6 +1321,15 @@ async function saveHrFinancialMovement(payload:Record<string,unknown>){
   return data as string;
 }
 
+async function getCashIntegrityAlerts(limit=100){
+  const ctx=await getContext();
+  const token=getOperatorToken();
+  if(!token) throw new Error('Sessão do operador não encontrada.');
+  const {data,error}=await supabase.rpc('get_cash_integrity_alerts_secure',{p_store_id:ctx.storeId,p_operator_token:token,p_limit:limit});
+  if(error) throw error;
+  return Array.isArray(data)?data:[];
+}
+
 async function getMySubscriptionStatus(){
   const {data,error}=await supabase.rpc('get_my_subscription_status');
   if(error) throw error;
@@ -1404,6 +1413,7 @@ export const productionDb = {
   registerHrOperatorVoucher,
   getHrOperatorVouchers,
   auditCashSession,
+  getCashIntegrityAlerts,
   openCashSession,
   registerCashMovement,
   reverseCashMovement,
