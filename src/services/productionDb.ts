@@ -1138,7 +1138,7 @@ async function getCashSessionDetails(sessionId:string) {
 
   const [{data:sales,error:salesError},{data:movements,error:movementsError},{data:store,error:storeError}]=await Promise.all([
     supabase.from('sales')
-      .select('id,sale_number,total,status,operator_ref,created_at,sale_payments(method,amount,change_amount,status)')
+      .select('id,sale_number,total,status,operator_ref,created_at,sale_payments!sale_payments_sale_id_fkey(method,amount,change_amount,status)')
       .eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).eq('cash_session_id',sessionId)
       .order('created_at',{ascending:false}),
     supabase.from('cash_movements')
