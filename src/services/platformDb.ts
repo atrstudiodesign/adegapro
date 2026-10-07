@@ -100,6 +100,12 @@ async function getPlatformPartnerSecuritySnapshot(){
   if(error) throw error;
   return data||{};
 }
+
+async function auditPartnerIsolationHealth(){
+  const {data,error}=await platformSupabase.rpc('audit_partner_isolation_health');
+  if(error) throw error;
+  return data||{};
+}
 async function reviewPlatformPartnerProfileChange(partnerId:string,approve:boolean){
   const {error}=await platformSupabase.rpc('review_platform_partner_profile_change',{
     p_partner_id:partnerId,p_approve:approve
@@ -216,6 +222,7 @@ export const platformDb = {
   createPlatformPartnerInvite,
   getPlatformPartnerSnapshot,
   getPlatformPartnerSecuritySnapshot,
+  auditPartnerIsolationHealth,
   reviewPlatformPartnerProfileChange,
   savePlatformSalesPartner,
   savePlatformPartnerReferral,
