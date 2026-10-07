@@ -1152,6 +1152,7 @@ async function getCashSessionDetails(sessionId:string) {
     paymentTotals.DEBITO=Number(session.closing_report_debit||0);
     paymentTotals.CREDITO=Number(session.closing_report_credit||0);
     paymentTotals.DINHEIRO=Number(session.closing_report_cash||0);
+    paymentTotals.FIADO=Number(session.closing_report_fiado||paymentTotals.FIADO||0);
   }
 
   // cash_sessions.total_sales é a fonte consolidada do turno. Mantemos a soma
@@ -1174,7 +1175,9 @@ async function getCashSessionDetails(sessionId:string) {
         debit:Number(session.closing_report_debit||0),
         credit:Number(session.closing_report_credit||0),
         cash:Number(session.closing_report_cash||0),
-        receipts:Number(session.closing_report_total||0),
+        fiado:Number(session.closing_report_fiado||0),
+        receipts:Number(session.closing_report_pix||0)+Number(session.closing_report_debit||0)+Number(session.closing_report_credit||0)+Number(session.closing_report_cash||0),
+        settledTotal:Number(session.closing_report_pix||0)+Number(session.closing_report_debit||0)+Number(session.closing_report_credit||0)+Number(session.closing_report_cash||0)+Number(session.closing_report_fiado||0),
         reconciliationDifference:Number(session.closing_report_difference||0),
         expenses:Number(session.closing_report_expenses||0),
         expectedPhysicalCash:Number(session.expected_cash||0),
