@@ -9,15 +9,18 @@ export type CashClosingInput = {
   withdrawals:number;
   linkedCashExpenses:number;
   countedCash?:number|null;
+  fiadoReceivable?:number;
 };
 
 const cents=(value:number)=>Math.round((Number(value)||0)*100)/100;
 
 export function calculateCashClosing(input:CashClosingInput){
   const receiptsTotal=cents(input.cashReceived+input.pixReceived+input.debitReceived+input.creditReceived);
-  const reconciliationDifference=cents(receiptsTotal-input.salesTotal);
+  const fiadoReceivable=cents(input.fiadoReceivable||0);
+  const settledTotal=cents(receiptsTotal+fiadoReceivable);
+  const reconciliationDifference=cents(settledTotal-input.salesTotal);
   const expectedPhysicalCash=cents(input.openingBalance+input.cashReceived+input.supplies-input.withdrawals-input.linkedCashExpenses);
   const countedCash=input.countedCash==null?null:cents(input.countedCash);
   const physicalCashDifference=countedCash==null?null:cents(countedCash-expectedPhysicalCash);
-  return {receiptsTotal,reconciliationDifference,expectedPhysicalCash,countedCash,physicalCashDifference,reconciled:Math.abs(reconciliationDifference)<=0.01};
+  return {receiptsTotal,fiadoReceivable,settledTotal,reconciliationDifference,expectedPhysicalCash,countedCash,physicalCashDifference,reconciled:Math.abs(reconciliationDifference)<=0.01};
 }
