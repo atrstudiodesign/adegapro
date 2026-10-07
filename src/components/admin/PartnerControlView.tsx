@@ -12,6 +12,8 @@ const date=(v:any)=>v?new Date(v).toLocaleDateString('pt-BR'):'—';
 
 export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>void;onError:(s:string)=>void})=>{
   const[data,setData]=useState<any>(null);
+  const[security,setSecurity]=useState<any>({pending_profile_changes:[],admin_audit:[],access_audit:[]});
+  const[selectedHistory,setSelectedHistory]=useState<string>('');
   const[busy,setBusy]=useState(false);
   const[tab,setTab]=useState<Tab>('OVERVIEW');
   const[q,setQ]=useState('');
@@ -34,7 +36,12 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     if(!silent)setBusy(true);
     onError('');
     try{
-      setData(await platformDb.getPlatformPartnerSnapshot());
+      const [snapshot,securitySnapshot]=await Promise.all([
+        platformDb.getPlatformPartnerSnapshot(),
+        platformDb.getPlatformPartnerSecuritySnapshot()
+      ]);
+      setData(snapshot);
+      setSecurity(securitySnapshot||{pending_profile_changes:[],admin_audit:[],access_audit:[]});
       setLastSync(new Date());
     }
     catch(e:any){onError(e?.message||'Falha ao carregar vendedores.');}
@@ -188,6 +195,32 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     await copy(url,'Link');
   };
 
+  const reviewProfileChange=async(partnerId:string,approve:boolean)=>{
+    if(!window.confirm(approve?'Aprovar a alteração de telefone/PIX deste vendedor?':'Rejeitar a alteração pendente deste vendedor?'))return;
+    setBusy(true);onError('');
+    try{
+      await platformDb.reviewPlatformPartnerProfileChange(partnerId,approve);
+      onFeedback(approve?'Alteração de perfil aprovada.':'Alteração de perfil rejeitada.');
+      await load();
+    }catch(e:any){onError(e?.message||'Falha ao revisar alteração de perfil.');}
+    finally{setBusy(false);}
+  };
+
+  const exportSellerCsv=(p:any)=>{
+    const sellerReferrals=referrals.filter((r:any)=>r.partner_id===p.id);
+    const sellerCommissions=commissions.filter((x:any)=>x.partner_id===p.id);
+    const rows:any[][]=[
+      ['Vendedor',p.full_name],['E-mail',p.email],['Código',p.referral_code],['Status',p.registration_status],[],
+      ['INDICAÇÕES'],['Cliente','Tipo','Status','Pagamento','Valor','Data'],
+      ...sellerReferrals.map((r:any)=>[r.lead_name,r.referral_type,r.status,r.customer_payment_status,r.converted_value||r.estimated_value,r.created_at]),[],
+      ['COMISSÕES'],['Tipo','Status','Valor','Criada em','Paga em'],
+      ...sellerCommissions.map((x:any)=>[x.commission_type,x.status,x.amount_due,x.created_at,x.paid_at||''])
+    ];
+    const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(';')).join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='extrato-vendedor-'+String(p.full_name||'vendedor').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.csv';a.click();URL.revokeObjectURL(a.href);
+  };
+
   const exportCsv=()=>{
     const rows=[['Vendedor','Código','Indicações','Convertidos','Pendentes','Cancelados','Vendas','Liberado','Agendado','Pago']];
     partners.forEach((p:any)=>rows.push([p.full_name,p.referral_code,p.referrals,p.converted,p.pending,p.cancelled,p.sales_value,p.available_amount,p.scheduled_amount,p.paid_amount].map(String)));
@@ -212,6 +245,11 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
         <button onClick={()=>setShowSellerForm(v=>!v)} className="h-10 px-3 rounded-lg bg-neutral-900 border border-neutral-700 text-[10px] sm:text-xs font-black flex items-center justify-center gap-2"><Plus size={14}/>Novo vendedor</button>
       </div>
     </div>
+
+    {(partners.some((p:any)=>p.registration_status==='PENDENTE')||(security.pending_profile_changes||[]).length>0)&&<section className="rounded-xl border border-amber-500 bg-amber-950/20 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div><div className="font-black text-sm text-amber-300">Pendências de vendedores</div><div className="text-[10px] text-neutral-400 mt-1">{partners.filter((p:any)=>p.registration_status==='PENDENTE').length} cadastro(s) aguardando aprovação · {(security.pending_profile_changes||[]).length} alteração(ões) de telefone/PIX aguardando validação.</div></div>
+      <button onClick={()=>setTab('SELLERS')} className="h-9 px-4 rounded-lg bg-amber-400 text-neutral-950 text-xs font-black">Revisar agora</button>
+    </section>}
 
     <div className="grid grid-cols-1 min-[390px]:grid-cols-2 xl:grid-cols-6 gap-3">
       <Kpi icon={Users} label="Vendedores ativos" value={metrics.partners_active||0} sub={`de ${metrics.partners_total||0} cadastrados`}/>
@@ -267,6 +305,14 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
       </div>
     </div>
 
+    {tab==='SELLERS'&&(security.pending_profile_changes||[]).length>0&&<section className="rounded-xl border border-sky-900/70 bg-sky-950/10 p-3 space-y-2">
+      <div className="font-black text-sm text-sky-300">Alterações sensíveis aguardando validação</div>
+      {(security.pending_profile_changes||[]).map((x:any)=><div key={x.partner_id} className="p-3 rounded-lg border border-neutral-800 bg-neutral-950 flex flex-col lg:flex-row lg:items-center gap-3">
+        <div className="flex-1"><b>{x.full_name}</b><div className="text-[9px] text-neutral-500">{x.email}</div><div className="text-[10px] text-neutral-400 mt-1">Telefone: {x.current_phone||'—'} → {x.pending_phone||'sem alteração'} · PIX: {x.current_pix_key||'—'} → {x.pending_pix_key||'sem alteração'}</div></div>
+        <div className="flex gap-2"><button disabled={busy} onClick={()=>void reviewProfileChange(x.partner_id,true)} className="h-8 px-3 rounded bg-emerald-700 text-white text-xs font-black">Aprovar</button><button disabled={busy} onClick={()=>void reviewProfileChange(x.partner_id,false)} className="h-8 px-3 rounded border border-rose-800 text-rose-300 text-xs font-black">Rejeitar</button></div>
+      </div>)}
+    </section>}
+
     {(tab==='OVERVIEW'||tab==='SELLERS')&&<section className="rounded-xl border border-neutral-800 bg-[#080d10] overflow-hidden">
       <div className="overflow-x-auto"><table className="w-full min-w-[1180px] text-xs">
         <thead className="text-neutral-500 border-b border-neutral-800"><tr><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Link de Indicação</th><th className="p-3 text-left">Código</th><th className="p-3 text-center">Leads</th><th className="p-3 text-center">Clientes</th><th className="p-3 text-right">Vendas (R$)</th><th className="p-3 text-right">Comissão</th><th className="p-3 text-left">Status Comissão</th><th className="p-3 text-left">Status Pagamento</th><th className="p-3 text-left">Ações</th></tr></thead>
@@ -290,6 +336,8 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
               {!p.portal_registered&&<button disabled={busy} title="Reenviar convite por e-mail" onClick={()=>void sendSellerInvite(p,'EMAIL')} className="h-8 px-2 rounded border border-sky-800 text-sky-300">E-mail convite</button>}
               {!p.portal_registered&&<button disabled={busy||!p.phone} title="Reenviar convite por SMS" onClick={()=>void sendSellerInvite(p,'SMS')} className="h-8 px-2 rounded border border-violet-800 text-violet-300 disabled:opacity-40">SMS convite</button>}
               <button title="Imprimir ficha" onClick={()=>printSeller(p)} className="h-8 px-2 rounded border border-neutral-800 inline-flex items-center gap-1"><Printer size={11}/>Imprimir</button>
+              <button title="Exportar extrato individual" onClick={()=>exportSellerCsv(p)} className="h-8 px-2 rounded border border-neutral-800 inline-flex items-center gap-1"><Download size={11}/>Extrato</button>
+              <button title="Ver histórico de segurança" onClick={()=>setSelectedHistory(selectedHistory===p.id?'':p.id)} className="h-8 px-2 rounded border border-neutral-800">Histórico</button>
               {p.registration_status==='PENDENTE'&&<button disabled={busy} title="Aprovar vendedor" onClick={()=>void setSellerStatus(p,'ATIVO')} className="h-8 px-2 rounded bg-emerald-700 text-white font-black inline-flex items-center gap-1"><CheckCircle size={11}/>Aprovar</button>}
               {p.registration_status==='ATIVO'&&<button disabled={busy} title="Suspender" onClick={()=>void setSellerStatus(p,'SUSPENSO')} className="h-8 px-2 rounded border border-amber-800 text-amber-300 inline-flex items-center gap-1"><Ban size={11}/>Suspender</button>}
               {p.registration_status==='SUSPENSO'&&<button disabled={busy} title="Reativar" onClick={()=>void setSellerStatus(p,'ATIVO')} className="h-8 px-2 rounded border border-emerald-800 text-emerald-300 inline-flex items-center gap-1"><CheckCircle size={11}/>Reativar</button>}
@@ -299,7 +347,14 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
         })}</tbody>
       </table></div>
       <div className="px-3 py-2 text-[9px] text-neutral-600">Mostrando {sellerRows.length} de {partners.length} vendedores</div>
-    </section>}
+      {selectedHistory&&<div className="border-t border-neutral-800 p-3">
+        <div className="font-black text-xs mb-2">Histórico administrativo e de acesso</div>
+        <div className="grid lg:grid-cols-2 gap-3">
+          <div className="rounded-lg border border-neutral-800 overflow-hidden"><div className="px-3 py-2 bg-neutral-900 text-[10px] font-black">ADMINISTRATIVO</div>{(security.admin_audit||[]).filter((a:any)=>a.partner_id===selectedHistory).slice(0,20).map((a:any)=><div key={'a'+a.id} className="px-3 py-2 border-t border-neutral-900 text-[10px]"><b>{a.action}</b> · {a.previous_status||'—'} → {a.new_status||'—'}<div className="text-neutral-600">{new Date(a.created_at).toLocaleString('pt-BR')}</div></div>)}</div>
+          <div className="rounded-lg border border-neutral-800 overflow-hidden"><div className="px-3 py-2 bg-neutral-900 text-[10px] font-black">ACESSOS</div>{(security.access_audit||[]).filter((a:any)=>a.partner_id===selectedHistory).slice(0,20).map((a:any)=><div key={'x'+a.id} className="px-3 py-2 border-t border-neutral-900 text-[10px]"><b>{a.event_type}</b> · {a.device||'dispositivo não informado'}<div className="text-neutral-600">{new Date(a.created_at).toLocaleString('pt-BR')} · IP hash {a.ip_hash?String(a.ip_hash).slice(0,12)+'…':'—'}</div></div>)}</div>
+        </div>
+      </div>}
+    </section>
 
     {tab==='REFERRALS'&&<div className="grid xl:grid-cols-[.65fr_1.35fr] gap-4">
       <section className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 space-y-3"><h2 className="font-black">Registrar indicação</h2><Field label="Vendedor"><select className="input" value={ref.partner_id} onChange={e=>setRef({...ref,partner_id:e.target.value})}><option value="">Selecione...</option>{partners.filter((p:any)=>p.active).map((p:any)=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></Field><Field label="Tipo"><select className="input" value={ref.referral_type} onChange={e=>setRef({...ref,referral_type:e.target.value,estimated_value:e.target.value==='PERSONALIZADO'?990:149})}><option value="ASSINATURA">ASSINATURA</option><option value="PERSONALIZADO">PERSONALIZADO</option></select></Field><Field label="Cliente / empresa"><input className="input" value={ref.lead_name} onChange={e=>setRef({...ref,lead_name:e.target.value})}/></Field><Field label="E-mail"><input className="input" value={ref.lead_email} onChange={e=>setRef({...ref,lead_email:e.target.value})}/></Field><Field label="Telefone"><input className="input" value={ref.lead_phone} onChange={e=>setRef({...ref,lead_phone:e.target.value})}/></Field><button disabled={!ref.partner_id||busy} onClick={()=>void saveReferral()} className="btn-primary w-full">Registrar indicação</button></section>
