@@ -35,7 +35,21 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     catch(e:any){onError(e?.message||'Falha ao carregar vendedores.');}
     finally{setBusy(false);}
   };
-  useEffect(()=>{void load();},[]);
+  useEffect(()=>{
+    const refresh=()=>{
+      if(document.visibilityState!=='visible')return;
+      void load();
+    };
+    void load();
+    const timer=window.setInterval(refresh,30000);
+    window.addEventListener('focus',refresh);
+    document.addEventListener('visibilitychange',refresh);
+    return()=>{
+      window.clearInterval(timer);
+      window.removeEventListener('focus',refresh);
+      document.removeEventListener('visibilitychange',refresh);
+    };
+  },[]);
 
   const partners=data?.partners||[];
   const referrals=data?.referrals||[];
