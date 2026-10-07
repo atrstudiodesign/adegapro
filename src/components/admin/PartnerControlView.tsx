@@ -30,19 +30,23 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
     status:'LEAD',estimated_value:149,converted_value:0,notes:''
   });
 
-  const load=async()=>{
-    setBusy(true);onError('');
-    try{setData(await platformDb.getPlatformPartnerSnapshot());}
+  const load=async(silent=false)=>{
+    if(!silent)setBusy(true);
+    onError('');
+    try{
+      setData(await platformDb.getPlatformPartnerSnapshot());
+      setLastSync(new Date());
+    }
     catch(e:any){onError(e?.message||'Falha ao carregar vendedores.');}
-    finally{setBusy(false);}
+    finally{if(!silent)setBusy(false);}
   };
   useEffect(()=>{
     const refresh=()=>{
       if(document.visibilityState!=='visible')return;
-      void load();
+      void load(true);
     };
     void load();
-    const timer=window.setInterval(refresh,30000);
+    const timer=window.setInterval(refresh,10000);
     window.addEventListener('focus',refresh);
     document.addEventListener('visibilitychange',refresh);
     return()=>{
