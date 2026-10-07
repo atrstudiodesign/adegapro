@@ -95,6 +95,18 @@ async function getPlatformPartnerSnapshot(){
   return data;
 }
 
+async function getPlatformPartnerSecuritySnapshot(){
+  const {data,error}=await platformSupabase.rpc('get_platform_partner_security_snapshot');
+  if(error) throw error;
+  return data||{};
+}
+async function reviewPlatformPartnerProfileChange(partnerId:string,approve:boolean){
+  const {error}=await platformSupabase.rpc('review_platform_partner_profile_change',{
+    p_partner_id:partnerId,p_approve:approve
+  });
+  if(error) throw error;
+}
+
 async function savePlatformSalesPartner(payload:Record<string,unknown>){
   const {data,error}=await platformSupabase.rpc('save_platform_sales_partner',{p_payload:payload});
   if(error) throw error;
@@ -203,6 +215,8 @@ export const platformDb = {
   setPlatformTenantFeature,
   createPlatformPartnerInvite,
   getPlatformPartnerSnapshot,
+  getPlatformPartnerSecuritySnapshot,
+  reviewPlatformPartnerProfileChange,
   savePlatformSalesPartner,
   savePlatformPartnerReferral,
   confirmPlatformPartnerCustomerPayment,
