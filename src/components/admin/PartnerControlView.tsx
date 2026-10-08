@@ -1,3 +1,4 @@
+import { COMMISSION_PLANS, PartnerCommissionPolicy, PartnerReceiptLedger } from '../partner/PartnerCommissionPolicy';
 import React,{useEffect,useMemo,useState} from 'react';
 import {
   BarChart3,CheckCircle2,Clock3,Copy,CreditCard,Download,Filter,Info,Link2,
@@ -24,6 +25,10 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
   const[lastInvite,setLastInvite]=useState('');
   const[lastSync,setLastSync]=useState<Date|null>(null);
   const[paymentValues,setPaymentValues]=useState<Record<string,string>>({});
+  const[paymentPlans,setPaymentPlans]=useState<Record<string,string>>({});
+  const[paymentReferences,setPaymentReferences]=useState<Record<string,string>>({});
+  const[paymentPeriods,setPaymentPeriods]=useState<Record<string,string>>({});
+  const[promoDates,setPromoDates]=useState<Record<string,string>>({});
   const[form,setForm]=useState<any>({
     full_name:'',email:'',phone:'',email_verified:false,phone_verified:false,active:true,
     referral_code:'',payout_mode:'IMEDIATO',monthly_payout_day:5,pix_key:'',notes:''
@@ -159,10 +164,14 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
   };
 
   const confirmPayment=async(r:any)=>{
-    const amount=Number(String(paymentValues[r.id]||(r.referral_type==='PERSONALIZADO'?'330':'149')).replace(',','.'));
-    if(!amount||amount<=0){onError('Informe um pagamento válido.');return;}
+    const plan=paymentPlans[r.id]||(r.referral_type==='PERSONALIZADO'?'CUSTOM990':'MONTHLY149');
+    const rule=COMMISSION_PLANS.find(p=>p.id===plan)!;
+    const amount=Number(String(paymentValues[r.id]||'').replace(',','.'));
+    const reference=(paymentReferences[r.id]||'').trim();
+    const period=paymentPeriods[r.id]||new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'}).slice(0,7);
+    if(!amount||amount<=0||!reference){onError('Informe o valor recebido e a referência única do comprovante.');return;}
     setBusy(true);onError('');
-    try{await platformDb.confirmPlatformPartnerCustomerPayment(r.id,amount);onFeedback('Pagamento confirmado e comissão gerada conforme política.');await load();}
+    try{const result=await platformDb.confirmPlatformPartnerCustomerPayment(r.id,amount,undefined,{plan,reference,period,contractDate:promoDates[r.id]||null});onFeedback(result.commission_id?'Recebimento validado e comissão calculada.':'Parcela registrada. Comissão aguarda quitação do personalizado.');setPaymentReferences(v=>({...v,[r.id]:''}));await load();}
     catch(e:any){onError(e?.message||'Falha ao confirmar pagamento.');}
     finally{setBusy(false);}
   };
@@ -278,6 +287,7 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
       </div>
     </section>
 
+    <PartnerCommissionPolicy/>
     {showSellerForm&&<section className="rounded-xl border border-amber-500/30 bg-neutral-900 p-4">
       <div className="flex items-start justify-between gap-3"><div><h2 className="font-black">Cadastro de vendedor</h2><p className="text-[10px] text-neutral-500 mt-1">Você pode cadastrar manualmente ou enviar um link para o próprio vendedor concluir o cadastro.</p></div><button onClick={()=>setShowSellerForm(false)} className="text-neutral-500"><XCircle size={18}/></button></div>
       <div className="grid xl:grid-cols-[1fr_.8fr] gap-4 mt-4">
@@ -366,9 +376,16 @@ export const PartnerControlView=({onFeedback,onError}:{onFeedback:(s:string)=>vo
 
     {tab==='REFERRALS'&&<div className="grid xl:grid-cols-[.65fr_1.35fr] gap-4">
       <section className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 space-y-3"><h2 className="font-black">Registrar indicação</h2><Field label="Vendedor"><select className="input" value={ref.partner_id} onChange={e=>setRef({...ref,partner_id:e.target.value})}><option value="">Selecione...</option>{partners.filter((p:any)=>p.active).map((p:any)=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></Field><Field label="Tipo"><select className="input" value={ref.referral_type} onChange={e=>setRef({...ref,referral_type:e.target.value,estimated_value:e.target.value==='PERSONALIZADO'?990:149})}><option value="ASSINATURA">ASSINATURA</option><option value="PERSONALIZADO">PERSONALIZADO</option></select></Field><Field label="Cliente / empresa"><input className="input" value={ref.lead_name} onChange={e=>setRef({...ref,lead_name:e.target.value})}/></Field><Field label="E-mail"><input className="input" value={ref.lead_email} onChange={e=>setRef({...ref,lead_email:e.target.value})}/></Field><Field label="Telefone"><input className="input" value={ref.lead_phone} onChange={e=>setRef({...ref,lead_phone:e.target.value})}/></Field><button disabled={!ref.partner_id||busy} onClick={()=>void saveReferral()} className="btn-primary w-full">Registrar indicação</button></section>
-      <section className="rounded-xl border border-neutral-800 bg-[#080d10] overflow-hidden"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Cliente</th><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Origem</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Pagamento</th><th className="p-3 text-right">Valor</th><th className="p-3 text-left">Ação</th></tr></thead><tbody>{filteredReferrals.map((r:any)=>{const p=partnerMap.get(r.partner_id) as any;return <tr key={r.id} className="border-t border-neutral-800"><td className="p-3"><b>{r.lead_name||'Lead sem nome'}</b><div className="text-[9px] text-neutral-600">{r.lead_email||r.lead_phone||'—'}</div></td><td className="p-3">{p?.full_name||'—'}</td><td className="p-3">{r.source||'—'}</td><td className="p-3"><Status value={r.status}/></td><td className="p-3"><Status value={r.customer_payment_status}/></td><td className="p-3 text-right">{money(r.converted_value||r.estimated_value)}</td><td className="p-3">{r.customer_payment_status!=='CONFIRMADO'?<div className="flex gap-1"><input className="w-20 h-8 rounded bg-neutral-950 border border-neutral-700 px-2" value={paymentValues[r.id]??(r.referral_type==='PERSONALIZADO'?'330':'149')} onChange={e=>setPaymentValues(v=>({...v,[r.id]:e.target.value}))}/><button onClick={()=>void confirmPayment(r)} className="h-8 px-2 rounded bg-amber-400 text-neutral-950 font-black">Confirmar</button></div>:<span className="text-emerald-400">Confirmado</span>}</td></tr>})}</tbody></table></div></section>
+      <section className="rounded-xl border border-neutral-800 bg-[#080d10] overflow-hidden"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-xs"><thead className="text-neutral-500"><tr><th className="p-3 text-left">Cliente</th><th className="p-3 text-left">Vendedor</th><th className="p-3 text-left">Origem</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Pagamento</th><th className="p-3 text-right">Valor</th><th className="p-3 text-left">Ação</th></tr></thead><tbody>{filteredReferrals.map((r:any)=>{const p=partnerMap.get(r.partner_id) as any;return <tr key={r.id} className="border-t border-neutral-800"><td className="p-3"><b>{r.lead_name||'Lead sem nome'}</b><div className="text-[9px] text-neutral-600">{r.lead_email||r.lead_phone||'—'}</div></td><td className="p-3">{p?.full_name||'—'}</td><td className="p-3">{r.source||'—'}</td><td className="p-3"><Status value={r.status}/></td><td className="p-3"><Status value={r.customer_payment_status}/></td><td className="p-3 text-right">{money(r.converted_value||r.estimated_value)}</td><td className="p-3"><div className="space-y-2 min-w-[230px]">
+<select aria-label={`Modalidade de pagamento de ${r.lead_name}`} className="input" value={paymentPlans[r.id]||(r.referral_type==='PERSONALIZADO'?'CUSTOM990':'MONTHLY149')} onChange={e=>{setPaymentPlans(v=>({...v,[r.id]:e.target.value}));setPaymentValues(v=>({...v,[r.id]:''}));}}>{COMMISSION_PLANS.filter(plan=>r.referral_type==='PERSONALIZADO'||plan.type==='ASSINATURA').map(plan=><option key={plan.id} value={plan.id}>{plan.label}</option>)}</select>
+<input aria-label="Valor efetivamente recebido" placeholder="Valor recebido" className="input" value={paymentValues[r.id]??''} onChange={e=>setPaymentValues(v=>({...v,[r.id]:e.target.value}))}/>
+<input aria-label="Referência única do recebimento" placeholder="Comprovante / ID único" className="input" value={paymentReferences[r.id]||''} onChange={e=>setPaymentReferences(v=>({...v,[r.id]:e.target.value}))}/>
+<label className="text-[10px] block text-neutral-400">Competência da mensalidade<input type="month" className="input" value={paymentPeriods[r.id]||new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'}).slice(0,7)} onChange={e=>setPaymentPeriods(v=>({...v,[r.id]:e.target.value}))}/></label>
+{['MONTHLY7490','CUSTOM495'].includes(paymentPlans[r.id]||'')&&<label className="text-[10px] block text-amber-300">Data da contratação promocional validada (limite de 15 clientes)<input type="date" min="2026-10-08" max="2026-10-12" className="input" value={promoDates[r.id]||''} onChange={e=>setPromoDates(v=>({...v,[r.id]:e.target.value}))}/></label>}
+<button disabled={busy} onClick={()=>void confirmPayment(r)} className="h-8 px-2 rounded bg-amber-400 text-neutral-950 font-black">Validar recebimento</button><p className="text-[9px] text-neutral-500">Cada mês: nova competência e comprovante. 2 × R$ 400: registrar cada parcela separadamente.</p></div></td></tr>})}</tbody></table></div></section>
     </div>}
 
+    {(tab==='REFERRALS'||tab==='COMMISSIONS'||tab==='PAYMENTS')&&<PartnerReceiptLedger rows={data?.receipts||[]}/>}
     {tab==='COMMISSIONS'&&<CommissionTable rows={commissions} partnerMap={partnerMap} onPay={markPaid} busy={busy}/>}
     {tab==='PAYMENTS'&&<CommissionTable rows={commissions.filter((c:any)=>c.status==='PAGA'||c.status==='LIBERADA'||c.status==='AGENDADA')} partnerMap={partnerMap} onPay={markPaid} busy={busy}/>}
     {tab==='REPORTS'&&<div className="grid md:grid-cols-3 gap-3"><ReportCard title="Conversão" value={metrics.referrals_total?Math.round((metrics.referrals_converted/metrics.referrals_total)*100)+'%':'0%'} detail="indicações convertidas"/><ReportCard title="Venda convertida" value={money(metrics.conversion_value||0)} detail="valor comercial atribuído"/><ReportCard title="Comissões totais" value={money(Number(metrics.commission_available||0)+Number(metrics.commission_scheduled||0)+Number(metrics.commission_paid||0))} detail="liberadas, agendadas e pagas"/></div>}

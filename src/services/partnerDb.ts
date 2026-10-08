@@ -1,9 +1,10 @@
 import { partnerSupabase } from './partnerSupabase';
 
 async function getDashboard(){
-  const {data,error}=await partnerSupabase.rpc('get_my_partner_dashboard');
-  if(error) throw error;
-  return data;
+  const [snapshot,receipts]=await Promise.all([partnerSupabase.rpc('get_my_partner_dashboard'),partnerSupabase.rpc('get_partner_receipt_ledger')]);
+  if(snapshot.error)throw snapshot.error;
+  if(receipts.error && snapshot.data?.partner?.active)throw receipts.error;
+  return {...snapshot.data,receipts:receipts.data||[]};
 }
 
 async function recordAccess(event:'LOGIN'|'SESSION_REFRESH'|'PROFILE_CHANGE_REQUEST'='LOGIN',device?:string){

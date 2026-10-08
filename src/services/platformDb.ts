@@ -90,9 +90,9 @@ async function createPlatformPartnerInvite(email?:string,days=7){
 }
 
 async function getPlatformPartnerSnapshot(){
-  const {data,error}=await platformSupabase.rpc('get_platform_partner_snapshot');
-  if(error) throw error;
-  return data;
+  const [snapshot,receipts]=await Promise.all([platformSupabase.rpc('get_platform_partner_snapshot'),platformSupabase.rpc('get_partner_receipt_ledger')]);
+  if(snapshot.error)throw snapshot.error; if(receipts.error)throw receipts.error;
+  return {...snapshot.data,receipts:receipts.data||[]};
 }
 
 async function getPlatformPartnerSecuritySnapshot(){
@@ -125,14 +125,14 @@ async function savePlatformPartnerReferral(payload:Record<string,unknown>){
   return data as string;
 }
 
-async function confirmPlatformPartnerCustomerPayment(referralId:string,amount:number,paidAt?:string){
-  const {data,error}=await platformSupabase.rpc('confirm_platform_partner_customer_payment',{
-    p_referral_id:referralId,
-    p_amount:amount,
-    p_paid_at:paidAt||new Date().toISOString()
+async function confirmPlatformPartnerCustomerPayment(referralId:string,amount:number,paidAt?:string,receipt?:{plan:string;reference:string;period:string;contractDate:string|null}){
+  if(!receipt)throw new Error('Selecione a modalidade e informe o comprovante do recebimento.');
+  const {data,error}=await platformSupabase.rpc('confirm_platform_partner_receipt_v2',{
+    p_referral_id:referralId,p_amount:amount,p_paid_at:paidAt||new Date().toISOString(),
+    p_plan:receipt.plan,p_reference:receipt.reference,p_period:receipt.period,p_contract_date:receipt.contractDate
   });
-  if(error) throw error;
-  return data as string;
+  if(error)throw error;
+  return data as {commission_id:string|null;received_total:number};
 }
 
 async function acceptPlatformPartnerPolicy(partnerId:string,version:string){

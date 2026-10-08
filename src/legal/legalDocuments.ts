@@ -351,18 +351,18 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
   sales_partner_policy: {
     title: 'Política Comercial de Vendedores Autônomos e Indicações',
     shortTitle: 'Política de Vendedores',
-    version: LEGAL_VERSION,
+    version: '2026.10.08-r7',
     sections: [
       { title: '1. Natureza do programa', paragraphs: [
         'O programa permite que vendedores autônomos indiquem potenciais clientes ao ADEGA PRO por meio de código ou fluxo individual de indicação. A participação não cria vínculo empregatício, sociedade, representação exclusiva, salário fixo, jornada, subordinação ou garantia de renda.',
         'A ATR Studio poderá validar, suspender ou encerrar a participação em caso de fraude, abuso, informação falsa, violação desta política ou uso indevido da marca.'
       ]},
       { title: '2. Comissão por assinatura', paragraphs: [
-        'Na política comercial vigente, a indicação elegível de assinatura mensal gera comissão única de R$ 35,00, somente após a confirmação do primeiro pagamento do cliente indicado.',
-        'A comissão não é recorrente sobre mensalidades futuras, salvo condição comercial específica formalizada pela ATR Studio.'
+        'Assinatura: comissão de R$ 49,00 por mensalidade de R$ 149,00 confirmada; ou R$ 30,00 por mensalidade promocional de R$ 74,90 confirmada. Uma comissão por cliente e competência.',
+        'A comissão é recorrente enquanto o cliente indicado permanece ativo e paga. Teste, meses gratuitos e inadimplência não geram comissão. Ao retornar ao preço regular, a comissão é R$ 49,00.'
       ]},
       { title: '3. Comissão por implantação personalizada', paragraphs: [
-        'Na política comercial vigente, a indicação elegível de implantação personalizada gera comissão única de R$ 200,00 após a confirmação da primeira parcela do cliente.',
+        'Implantação gera comissão única por cliente: R$ 250,00 sobre R$ 990,00 quitados; R$ 150,00 sobre R$ 495,00 à vista; ou R$ 200,00 sobre R$ 800,00 em 2 parcelas de R$ 400,00, somente após as duas confirmações. Não há comissão por cada parcela.',
         'Serviços adicionais, integrações, customizações, hospedagem, manutenção ou valores fora da proposta-base não geram comissão automática, salvo autorização expressa.'
       ]},
       { title: '4. Elegibilidade, atribuição e validação', paragraphs: [
