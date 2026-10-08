@@ -18,8 +18,9 @@ export function AcquisitionCampaign({ onChoose }: { onChoose?: (choice: Campaign
   return <section id="oferta-novos-clientes" className="max-w-6xl mx-auto px-4 sm:px-6 py-10" aria-label="Campanha para novos clientes">
     <div className="p-5 sm:p-8 rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/40 to-neutral-900">
       <p className="text-sm font-bold text-amber-300">{open ? 'Até 12/10/2026 · 15 novas assinaturas' : 'Campanha encerrada em 12/10/2026'}</p>
-      <h2 className="text-3xl sm:text-4xl font-black mt-3">Sua adega vende. Você precisa saber o que sobra.</h2>
+      <h2 className="text-3xl sm:text-4xl font-black mt-3">Seu negócio vende. Você precisa saber o que sobra.</h2>
       <p className="text-base text-neutral-300 mt-4">Organize vendas, caixa, estoque, fiado e financeiro em um só sistema. Escolha como começar no ADEGA PRO.</p>
+      <p className="text-base text-neutral-300 mt-3">Para adegas, distribuidoras, bombonieres, mercadinhos, bares, bazares e barbearias. No plano personalizado, funcionalidades adicionais podem ser implantadas conforme as necessidades do segmento, após avaliação e definição do escopo. Consulte a ATR Studio.</p>
       <div className="grid md:grid-cols-3 gap-4 mt-6">
         <article className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800">
           <h3 className="font-black text-lg">Experimente primeiro</h3><p className="text-3xl font-black text-amber-300 mt-3">30 dias grátis</p>
