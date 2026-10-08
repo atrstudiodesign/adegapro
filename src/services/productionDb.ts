@@ -690,7 +690,7 @@ async function confirmPurchase(payload: Record<string, unknown>) {
   const { data, error } = await supabase.rpc('confirm_purchase', {
     p_payload: { ...payload, store_id: ctx.storeId, operator_session_token: token }
   });
-  if (error) throw error;
+  if (error) handleOperatorSessionError(error);
   return data;
 }
 
@@ -1036,7 +1036,7 @@ async function finalizeSale(payload: Record<string, unknown>) {
   const { data, error } = await supabase.rpc('finalize_sale', {
     p_payload: { ...payload, store_id: ctx.storeId, operator_session_token: token }
   });
-  if (error) throw error;
+  if (error) handleOperatorSessionError(error);
   return data;
 }
 
@@ -1233,7 +1233,7 @@ async function registerCashMovement(sessionId: string, type: 'SANGRIA'|'SUPRIMEN
   return data as string;
 }
 
-async function reverseCashMovement(movementId:string,reason:string){const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('reverse_cash_movement_secure',{p_movement_id:movementId,p_operator_token:token,p_reason:reason});if(error)throw error;return data as string;}
+async function reverseCashMovement(movementId:string,reason:string){const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('reverse_cash_movement_secure',{p_movement_id:movementId,p_operator_token:token,p_reason:reason});if(error)handleOperatorSessionError(error);return data as string;}
 
 async function closeCashSession(sessionId: string, countedCash: number, notes?: string) {
   const token = getOperatorToken();
