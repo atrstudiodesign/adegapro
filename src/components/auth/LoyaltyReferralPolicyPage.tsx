@@ -16,6 +16,7 @@ export const LoyaltyReferralPolicyPage: React.FC<Props> = ({ onBack, onRegister 
       </div>
     </section>
 
+    <p className="max-w-6xl mx-auto px-4 pt-6 text-base text-neutral-400">As condições abaixo descrevem o programa regular de fidelidade e indicações. A campanha temporária de novos clientes tem regras próprias na <a href="/promocao" className="text-amber-300 underline">página exclusiva da promoção</a>. Contratos ativos seguem as condições aceitas na contratação.</p>
     <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid lg:grid-cols-2 gap-5">
         <article className="p-6 sm:p-8 rounded-3xl bg-neutral-900 border border-neutral-800">
