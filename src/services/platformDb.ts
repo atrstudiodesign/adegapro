@@ -161,6 +161,10 @@ async function setPlatformTenantSecurity(tenantId:string,status:'BLOQUEADA'|'DIS
   if(error) throw error;
 }
 
+async function getLandingTestimonials(){const {data,error}=await platformSupabase.rpc('get_landing_testimonials');if(error)throw error;return data||[];}
+async function getAdminLandingTestimonials(){const {data,error}=await platformSupabase.rpc('get_admin_landing_testimonials');if(error)throw error;return data||[];}
+async function saveLandingTestimonial(payload:Record<string,unknown>){const {data,error}=await platformSupabase.rpc('save_landing_testimonial',{p_payload:payload});if(error)throw error;return data;}
+
 async function getLandingPageContent(){
   const {data,error}=await platformSupabase.rpc('get_landing_page_content');
   if(error) throw error;
@@ -233,6 +237,9 @@ export const platformDb = {
   getPlatformTenantSecurity,
   setPlatformTenantSecurity,
   setPlatformTenantAccess,
+  getLandingTestimonials,
+  getAdminLandingTestimonials,
+  saveLandingTestimonial,
   getLandingPageContent,
   saveLandingPageContent,
   uploadLandingMedia,

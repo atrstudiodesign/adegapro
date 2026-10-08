@@ -1,3 +1,4 @@
+import { TestimonialsControl } from './TestimonialsControl';
 import React,{useEffect,useMemo,useState} from 'react';
 import {
   Activity, AlertTriangle, Ban, BellRing, Building2, CheckCircle2, ClipboardList, CreditCard,
@@ -10,7 +11,7 @@ import { PartnerControlView } from './PartnerControlView';
 import { LandingPageControl } from './LandingPageControl';
 import { PlatformIntegrationsView } from './PlatformIntegrationsView';
 
-type Tab='OVERVIEW'|'VISITORS'|'TENANTS'|'BILLING'|'REFERRALS'|'PARTNERS'|'LANDING'|'INTEGRATIONS'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
+type Tab='OVERVIEW'|'VISITORS'|'TENANTS'|'BILLING'|'REFERRALS'|'PARTNERS'|'LANDING'|'TESTIMONIALS'|'INTEGRATIONS'|'SUPPORT'|'INCIDENTS'|'AUDIT'|'HELP';
 
 const FEATURE_CATALOG=[
   ['dashboard','Dashboard geral','Visão consolidada da operação'],['minidash','Mini PDV','Resumo rápido de vendas e caixa'],['pos','Frente de caixa (PDV)','Venda rápida e recebimentos'],['sales','Vendas & cupons','Histórico e comprovantes'],['cash','Caixas & sessões','Abertura, movimentação e fechamento'],
@@ -128,6 +129,7 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
             ['REFERRALS','Indicações & Fidelidade',Gift],
             ['PARTNERS','Vendedores & Comissões',Handshake],
             ['LANDING','Landing Page',ClipboardList],
+            ['TESTIMONIALS','Depoimentos',MessageSquareText],
             ['INTEGRATIONS','Integrações',Cable],
             ['SUPPORT','Suporte',Headphones],
             ['INCIDENTS','Incidentes',AlertTriangle],
@@ -210,6 +212,7 @@ export const PlatformControlView:React.FC<{onClose:()=>void}>=({onClose})=>{
 
         {tab==='REFERRALS'&&<CustomerLoyaltyControl onFeedback={setFeedback} onError={setError}/>}
         {tab==='PARTNERS'&&<PartnerControlView onFeedback={setFeedback} onError={setError}/>}
+        {tab==='TESTIMONIALS'&&<TestimonialsControl onFeedback={setFeedback} onError={setError}/>}
         {tab==='LANDING'&&<LandingPageControl onFeedback={setFeedback} onError={setError}/>}
         {tab==='SUPPORT'&&<GlobalSupport tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}
         {tab==='INCIDENTS'&&<GlobalIncidents tenants={data?.tenants||[]} onOpen={id=>void loadDetail(id)}/>}

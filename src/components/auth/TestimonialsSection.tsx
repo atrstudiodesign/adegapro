@@ -1,0 +1,8 @@
+import React from 'react';
+export type Testimonial={id?:string;name:string;message:string;photo_url:string;published:boolean;position:number;updated_at?:string};
+export function TestimonialsSection({items,onStart}:{items:Testimonial[];onStart?:()=>void}){
+ return <section id="depoimentos" className="max-w-6xl mx-auto px-4 sm:px-6 py-16" aria-labelledby="testimonials-title"><div className="text-center"><p className="text-xs font-black tracking-widest uppercase text-amber-400">Depoimentos</p><h2 id="testimonials-title" className="text-3xl sm:text-4xl font-black mt-3">Quem usa o ADEGA PRO tem voz.</h2><p className="text-base text-neutral-400 mt-4">Experiências compartilhadas por nossos clientes.</p></div>
+ {items.length>0?<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-8">{items.map((item,i)=><figure key={item.id||i} className="p-6 rounded-3xl border border-amber-500/20 bg-neutral-900 flex flex-col"><blockquote className="text-base text-neutral-200 leading-relaxed whitespace-pre-wrap break-words flex-1">“{item.message}”</blockquote><figcaption className="flex gap-4 items-center mt-6 pt-5 border-t border-neutral-800"><img src={item.photo_url} alt={`Foto de ${item.name}`} loading="lazy" width="56" height="56" className="w-14 h-14 rounded-full object-cover shrink-0"/><span className="font-bold text-white break-words">{item.name}</span></figcaption></figure>)}</div>:<p className="mt-8 text-center text-neutral-400">Já usa o ADEGA PRO? Compartilhe sua experiência com a nossa equipe.</p>}
+ {onStart&&<div className="text-center mt-8"><button type="button" onClick={onStart} className="px-7 py-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-black">Quero o ADEGA PRO no meu negócio</button></div>}
+ </section>;
+}

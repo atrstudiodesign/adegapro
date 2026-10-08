@@ -1,3 +1,4 @@
+import { TestimonialsSection, Testimonial } from './TestimonialsSection';
 import React, { useEffect, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import {
@@ -48,6 +49,8 @@ const emptyRegister: RegisterForm = {
 };
 
 export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAuthenticated, initialView = 'LANDING' }) => {
+  const [testimonials,setTestimonials]=useState<Testimonial[]>([]);
+  useEffect(()=>{void platformDb.getLandingTestimonials().then(setTestimonials).catch(()=>setTestimonials([]));},[]);
   const [landingCms, setLandingCms] = useState<any>(null);
   useEffect(() => { void platformDb.getLandingPageContent().then(setLandingCms).catch(() => setLandingCms(null)); }, []);
   const heroImage = landingCms?.hero?.image_url || '/adega-pro-hero.webp';
@@ -681,6 +684,8 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             </div>
           </section>
 
+          <TestimonialsSection items={testimonials} onStart={()=>navigateView('REGISTER')}/>
+
           <section id="planos" className="border-t border-white/5 bg-gradient-to-b from-neutral-950 to-black">
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
               <div className="text-center"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Planos</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Comece com uma operação profissional.</h2><p className="text-sm text-neutral-400 mt-3">Preços regulares abaixo. Os descontos temporários ficam na página exclusiva da promoção.</p></div>
@@ -814,7 +819,13 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
 
       <footer className="relative z-10 border-t border-neutral-800 bg-black">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
-          <div className="grid md:grid-cols-4 gap-8">
+          <section aria-label="Plataformas disponíveis" className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 pb-8 mb-8 border-b border-white/10 text-xs text-neutral-300">
+              <span className="flex items-center gap-2"><img src="/platform-icons/chrome.svg" alt="" width="22" height="22"/>Versão navegador</span>
+              <span className="flex items-center gap-2"><img src="/platform-icons/windows11.svg" alt="" width="22" height="22"/>Windows</span>
+              <span className="flex items-center gap-2"><img src="/platform-icons/apple.svg" alt="" width="22" height="22" className="brightness-0 invert"/>Em breve: iOS</span>
+              <span className="flex items-center gap-2"><img src="/platform-icons/android.svg" alt="" width="22" height="22"/>Em breve: Android</span>
+            </section>
+            <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-1"><img src="/adega-pro-brand.svg" alt="ADEGA PRO" className="h-12 w-auto"/><p className="text-xs text-neutral-500 mt-3 leading-relaxed">Gestão profissional para adegas, conveniências e operações de bebidas.</p></div>
             <div><div className="text-xs font-black text-white mb-3">ADEGA PRO</div><div className="space-y-2 text-xs text-neutral-500"><button onClick={()=>navigateMarketing('/recursos')} className="block hover:text-amber-400">Recursos</button><button onClick={()=>navigateMarketing('/integracoes')} className="block hover:text-amber-400">Integrações</button><button onClick={()=>navigateMarketing('/planos')} className="block hover:text-amber-400">Planos</button><button onClick={navigatePromotion} className="block text-amber-300 hover:text-amber-200">Promoção e descontos</button><button onClick={()=>{setView('POLICY');window.history.pushState({}, '', '/politica-fidelidade-indicacoes');window.scrollTo({top:0});}} className="block hover:text-amber-400">Fidelidade & indicações</button><button onClick={()=>navigateView('LOGIN')} className="block hover:text-amber-400">Entrar</button></div></div>
             <div><div className="text-xs font-black text-white mb-3">PARCEIROS</div><div className="space-y-2 text-xs text-neutral-500"><a href="/vendedor" className="block hover:text-amber-400">Área do vendedor</a><a href="https://wa.me/5511939026928?text=Quero%20participar%20do%20programa%20de%20vendedores%20ADEGA%20PRO" target="_blank" rel="noreferrer" className="block hover:text-amber-400">Quero ser vendedor</a><span className="block">Comissões sujeitas à política vigente</span></div></div>
