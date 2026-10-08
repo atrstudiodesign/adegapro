@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-export const PARTNER_POLICY_VERSION = '2026.10.08-r7';
+export const PARTNER_POLICY_VERSION = '2026.10.08-r8';
 export const COMMISSION_PLANS = [
   {id:'MONTHLY149',label:'Mensal regular',price:149,commission:49,type:'ASSINATURA'},
   {id:'MONTHLY7490',label:'Mensal promocional',price:74.9,commission:30,type:'ASSINATURA'},
@@ -23,7 +23,7 @@ export function PartnerCommissionPolicy(){
  <li>Assinaturas geram comissão mensal enquanto o cliente indicado mantém a assinatura e paga a competência. R$ 149 gera R$ 49; R$ 74,90 gera R$ 30. Ao voltar ao preço regular, vale R$ 49. Meses gratuitos, teste, inadimplência e cobranças não pagas geram R$ 0.</li>
  <li>Implantação é comissão única, sem repetição por parcelas ou troca de plano: R$ 990 quitados gera R$ 250; R$ 495 à vista gera R$ 150; R$ 800 em duas parcelas de R$ 400 gera R$ 200 após quitação das duas. A primeira parcela fica registrada, sem comissão liberada.</li>
  <li>Implantação e mensalidade são eventos distintos. O personalizado pode gerar comissão mensal sobre a assinatura paga depois dos meses gratuitos. Cada recebimento exige comprovante/referência própria e cada mensalidade exige competência identificada.</li>
- <li>As condições promocionais exigem contratação elegível confirmada de 08/10 até 12/10/2026 às 23h59 (Brasília), no limite conjunto de 15 novos clientes, e validação comercial da ATR. Cadastro não reserva vaga. Benefícios confirmados seguem o cronograma contratado.</li>
+ <li>As condições promocionais exigem contratação elegível confirmada de 08/10 até 01/01/2027 às 23h59 (Brasília), no limite conjunto de 15 novos clientes, e validação comercial da ATR. Cadastro não reserva vaga. Benefícios confirmados seguem o cronograma contratado.</li>
  <li>A indicação precisa estar vinculada ao vendedor antes da contratação. Duplicidade de cliente, competência, comprovante ou implantação não gera nova comissão. A ATR valida identidade do cliente, vínculo, pagamento, disponibilidade promocional e dados do vendedor.</li>
  <li>Repasse imediato ou fechamento mensal segue o cadastro aprovado. Cadastro, orçamento ou promessa de pagamento não geram saldo disponível. Não há salário, exclusividade ou garantia de renda.</li>
  <li>Cancelamento interrompe comissões futuras sem apagar o histórico. Estornos, fraude e divergências exigem ajuste administrativo documentado; comissões pagas não são recalculadas ou reabertas automaticamente. Esta versão rege novos recebimentos, sem pagamentos retroativos automáticos.</li>

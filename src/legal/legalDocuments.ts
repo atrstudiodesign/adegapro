@@ -351,7 +351,7 @@ export const LEGAL_DOCS: Record<LegalDocKey, {
   sales_partner_policy: {
     title: 'Política Comercial de Vendedores Autônomos e Indicações',
     shortTitle: 'Política de Vendedores',
-    version: '2026.10.08-r7',
+    version: '2026.10.08-r8',
     sections: [
       { title: '1. Natureza do programa', paragraphs: [
         'O programa permite que vendedores autônomos indiquem potenciais clientes ao ADEGA PRO por meio de código ou fluxo individual de indicação. A participação não cria vínculo empregatício, sociedade, representação exclusiva, salário fixo, jornada, subordinação ou garantia de renda.',

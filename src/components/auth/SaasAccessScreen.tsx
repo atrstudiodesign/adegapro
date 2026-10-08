@@ -154,8 +154,8 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
     const previousTitle = document.title;
     const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     const previousDescription = description?.content;
-    document.title = 'Promoção ADEGA PRO — 15 novos clientes até 12/10/2026';
-    if (description) description.content = 'Conheça a campanha ADEGA PRO: descontos para 15 novos clientes até 12/10/2026. Confira preços, cronograma, teste e política detalhada.';
+    document.title = 'Promoção ADEGA PRO — 15 novos clientes até 01/01/2027';
+    if (description) description.content = 'Conheça a campanha ADEGA PRO: descontos para 15 novos clientes até 01/01/2027. Confira preços, cronograma, teste e política detalhada.';
     return () => {
       document.title = previousTitle;
       if (description && previousDescription !== undefined) description.content = previousDescription;
@@ -778,7 +778,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
                 </label>
                 {(campaignChoice === 'MONTHLY' || campaignChoice === 'PERSONALIZED') && <label className="flex items-start gap-3 text-sm text-neutral-300">
                   <input type="checkbox" required checked={campaignAccepted} onChange={e=>setCampaignAccepted(e.target.checked)} className="mt-1"/>
-                  <span>{campaignChoice === 'PERSONALIZED' ? 'Li as regras e aceito especificamente a fidelidade de 12 meses: implantação R$ 495; meses 1–2 grátis; meses 3–10 R$ 74,90/mês; meses 11–12 R$ 149/mês.' : 'Li as regras e aceito a primeira mensalidade por R$ 74,90 e as seguintes por R$ 149/mês.'} Entendo o limite de 15 novas contratações até 12/10/2026, às 23h59 (Brasília), e que minha solicitação depende da confirmação comercial da ATR Studio.</span>
+                  <span>{campaignChoice === 'PERSONALIZED' ? 'Li as regras e aceito especificamente a fidelidade de 12 meses: implantação R$ 495; meses 1–2 grátis; meses 3–10 R$ 74,90/mês; meses 11–12 R$ 149/mês.' : 'Li as regras e aceito a primeira mensalidade por R$ 74,90 e as seguintes por R$ 149/mês.'} Entendo o limite de 15 novas contratações até 01/01/2027, às 23h59 (Brasília), e que minha solicitação depende da confirmação comercial da ATR Studio.</span>
                 </label>}
                 <p className="text-sm text-neutral-400">Teste, vaga promocional e condições de cobrança são confirmados pela ATR Studio antes da ativação. Os preços promocionais são separados do plano padrão.</p>
               </section>
