@@ -78,9 +78,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
     window.scrollTo({ top: 0 });
   };
   const chooseCampaign = (choice: CampaignChoice) => {
-    setCampaignChoice(choice);
-    setCampaignAccepted(false);
-    navigateView('REGISTER');
+    navigateView('REGISTER', choice);
     window.scrollTo({ top: 0 });
   };
   const [showPassword, setShowPassword] = useState(false);
@@ -102,7 +100,11 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
     ));
   };
 
-  const navigateView = (next: View) => {
+  const navigateView = (next: View, selection: CampaignChoice = 'STANDARD') => {
+    if (next === 'REGISTER') {
+      setCampaignChoice(selection);
+      setCampaignAccepted(false);
+    }
     setView(next);
     dismissCampaignPopup();
     const path = next === 'LOGIN' ? '/entrar' : next === 'REGISTER' ? '/cadastro' : next === 'PROMOTION' ? '/promocao' : '/';
@@ -683,7 +685,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
               <div className="text-center"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Planos</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Comece com uma operação profissional.</h2><p className="text-sm text-neutral-400 mt-3">Preços regulares abaixo. Os descontos temporários ficam na página exclusiva da promoção.</p></div>
               <div className="grid md:grid-cols-2 gap-4 mt-9">
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-red-950/70 to-neutral-900 border border-red-800/50"><div className="text-xs font-black uppercase tracking-[.2em] text-red-200">Assinatura mensal</div><div className="mt-4 text-5xl font-black">R$ 149<span className="text-2xl">,00</span><span className="text-sm text-neutral-400">/mês</span></div><div className="mt-5 text-xs text-neutral-300 space-y-2">{['PDV completo','Estoque e compras','Clientes e fiado','Financeiro e relatórios','Atualizações constantes','Suporte especializado'].map(x=><div key={x} className="flex gap-2"><CheckCircle2 size={14} className="text-emerald-400"/>{x}</div>)}</div><button onClick={()=>setView('REGISTER')} className="mt-6 w-full py-3.5 rounded-xl bg-white text-neutral-950 font-black text-sm">Começar agora</button></div>
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-red-950/70 to-neutral-900 border border-red-800/50"><div className="text-xs font-black uppercase tracking-[.2em] text-red-200">Assinatura mensal</div><div className="mt-4 text-5xl font-black">R$ 149<span className="text-2xl">,00</span><span className="text-sm text-neutral-400">/mês</span></div><div className="mt-5 text-xs text-neutral-300 space-y-2">{['PDV completo','Estoque e compras','Clientes e fiado','Financeiro e relatórios','Atualizações constantes','Suporte especializado'].map(x=><div key={x} className="flex gap-2"><CheckCircle2 size={14} className="text-emerald-400"/>{x}</div>)}</div><button onClick={()=>navigateView('REGISTER')} className="mt-6 w-full py-3.5 rounded-xl bg-white text-neutral-950 font-black text-sm">Começar agora</button></div>
                 <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-950/50 to-neutral-900 border border-amber-700/40"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-300">Fidelização + Personalização</div><div className="mt-4 text-sm text-neutral-400">R$ 990 em até 3x ou</div><div className="text-5xl font-black text-amber-300">R$ 800 <span className="text-sm text-neutral-400">à vista</span></div><div className="mt-5 text-xs text-neutral-300 space-y-2">{['Configuração da operação','Identidade da adega','Ajustes específicos','Treinamento e implantação','Integrações orçadas separadamente'].map(x=><div key={x} className="flex gap-2"><CheckCircle2 size={14} className="text-amber-400"/>{x}</div>)}</div><button type="button" onClick={()=>{setView('POLICY');window.history.pushState({}, '', '/politica-fidelidade-indicacoes');window.scrollTo({top:0});}} className="mt-4 w-full py-3 rounded-xl border border-amber-700/50 text-amber-300 font-black text-xs">Ver política de fidelidade e indicações</button><a href="https://wa.me/5511939026928?text=Olá%2C%20quero%20saber%20mais%20sobre%20a%20implantação%20do%20ADEGA%20PRO." target="_blank" rel="noreferrer" className="mt-6 w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm flex items-center justify-center gap-2">Falar no WhatsApp <ArrowRight size={16}/></a></div>
               </div>
             </div>
