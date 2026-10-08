@@ -43,9 +43,13 @@ export function CampaignPopup({ onOpen, onClose }: { onOpen: () => void; onClose
     return () => { dialog.close(); document.body.style.overflow = previousOverflow; };
   }, []);
   useEffect(() => { if (!open) onClose(); }, [open, onClose]);
-  return <dialog ref={dialogRef} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="campaign-popup-title" aria-describedby="campaign-popup-description" className="m-auto w-[calc(100%_-_2rem)] max-w-xl max-h-[90dvh] overflow-y-auto rounded-3xl bg-neutral-950 text-white border border-amber-500/40 p-0 backdrop:bg-black/80">
-    <div className="relative p-6 sm:p-8">
-      <button type="button" onClick={onClose} aria-label="Fechar promoção" className="absolute right-3 top-3 w-11 h-11 grid place-items-center rounded-full bg-neutral-900 hover:bg-neutral-800 text-neutral-200"><X size={20}/></button>
+  return <dialog ref={dialogRef} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="campaign-popup-title" aria-describedby="campaign-popup-description" className="m-auto w-[calc(100%_-_2rem)] max-w-5xl max-h-[90dvh] overflow-y-auto rounded-3xl bg-neutral-950 text-white border border-amber-500/40 p-0 backdrop:bg-black/80">
+    <div className="relative grid md:grid-cols-[.85fr_1.15fr]">
+      <div className="bg-black p-4 md:p-5 flex items-center justify-center">
+        <img src="/adega-pro-promocao-outubro.webp" alt="Banner oficial da promoção ADEGA PRO: 50% OFF e personalizado por R$ 495" width="941" height="1672" className="w-full max-w-[220px] md:max-w-none h-auto rounded-xl"/>
+      </div>
+      <div className="p-6 sm:p-8 md:self-center">
+      <button type="button" onClick={onClose} aria-label="Fechar promoção" className="absolute z-10 right-3 top-3 w-11 h-11 grid place-items-center rounded-full bg-neutral-900 hover:bg-neutral-800 text-neutral-200"><X size={20}/></button>
       <img src="/adega-pro-brand.svg" alt="ADEGA PRO" className="h-12 w-auto max-w-[70%] mb-6"/>
       <p className="text-sm font-black text-amber-300">Até 12/10/2026 · 15 novos clientes</p>
       <h2 id="campaign-popup-title" className="text-3xl sm:text-4xl font-black mt-3">Mais controle. Menos custo para começar.</h2>
@@ -57,6 +61,7 @@ export function CampaignPopup({ onOpen, onClose }: { onOpen: () => void; onClose
       <button type="button" onClick={onOpen} className="mt-6 w-full py-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 font-black text-base">Quero ver a promoção e me cadastrar</button>
       <p className="text-sm text-neutral-400 mt-4 leading-relaxed">Até 23h59 (Brasília) de 12/10/2026 ou até 15 novas contratações confirmadas. Cadastro não reserva vaga. Teste e promoção não cumulativos. Confira a política completa antes do aceite.</p>
       <button type="button" onClick={onClose} className="mt-4 w-full py-3 text-sm text-neutral-400 hover:text-white">Continuar no site</button>
+      </div>
     </div>
   </dialog>;
 }
