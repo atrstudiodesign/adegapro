@@ -1,3 +1,4 @@
+import { VisitorAnalyticsPanel } from './VisitorAnalyticsPanel';
 import { TestimonialsControl } from './TestimonialsControl';
 import React,{useEffect,useMemo,useState} from 'react';
 import {
@@ -426,60 +427,3 @@ const CustomerLoyaltyControl=({onFeedback,onError}:{onFeedback:(s:string)=>void;
  <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="flex flex-col md:flex-row gap-3 justify-between"><div><h3 className="font-black">Indicações feitas por clientes</h3><p className="text-[10px] text-neutral-500">Pendentes, ativas, convertidas, canceladas e inelegíveis.</p></div><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar cliente ou indicado..." className="rounded-xl bg-neutral-950 border border-neutral-800 px-3 py-2 text-xs"/></div><div className="overflow-x-auto mt-4"><table className="w-full text-xs"><thead className="text-neutral-500"><tr><th className="text-left p-2">Cliente</th><th className="text-left p-2">Indicado</th><th className="text-left p-2">Status</th><th className="text-right p-2">Desconto</th><th className="text-right p-2">Pontos</th><th className="text-right p-2">Cashback</th><th className="text-right p-2">Ação</th></tr></thead><tbody>{rows.map((r:any)=><tr key={r.id} className="border-t border-neutral-800"><td className="p-2 font-bold">{r.client}</td><td className="p-2">{r.lead_name}<div className="text-[9px] text-neutral-600">{r.lead_phone}</div></td><td className="p-2"><Badge tone={r.status==='CONVERTED'?'emerald':r.status==='CANCELLED'?'rose':'amber'}>{r.status}</Badge></td><td className="p-2 text-right">{money(r.discount_value)}</td><td className="p-2 text-right">{r.cashback_points||0}</td><td className="p-2 text-right">{money(r.cashback_value)}</td><td className="p-2 text-right"><select value={r.status} onChange={e=>void change(r,e.target.value)} className="bg-neutral-950 border border-neutral-700 rounded-lg p-1.5"><option>PENDING</option><option>ACTIVE</option><option>CONVERTED</option><option>CANCELLED</option><option>INELIGIBLE</option></select></td></tr>)}</tbody></table>{rows.length===0&&<div className="py-8 text-center text-neutral-600 text-xs">Nenhuma indicação registrada.</div>}</div></section>
  <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h3 className="font-black">Planos de fidelidade dos clientes</h3><p className="text-[10px] text-neutral-500 mt-1">Valor regular, desconto atual, valor final, período FREE, 50% OFF, fidelidade e saldo.</p><div className="grid lg:grid-cols-2 gap-3 mt-4">{(data?.loyalty||[]).map((l:any)=><div key={l.tenant_id} className="p-4 rounded-xl bg-neutral-950 border border-neutral-800"><div className="flex justify-between"><b>{l.client}</b><Badge tone={l.status==='ACTIVE'?'emerald':'rose'}>{l.status}</Badge></div><div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3"><Info l="Regular" v={money(l.regular_monthly_price)}/><Info l="Desconto atual" v={(l.current_discount_percent||0)+'%'}/><Info l="Valor final" v={money(l.final_monthly_price)}/><Info l="Fidelidade" v={(l.loyalty_months||12)+' meses'}/><Info l="FREE" v={(l.free_months||4)+' meses'}/><Info l="50% OFF" v={(l.half_price_months||6)+' meses'}/><Info l="Pontos" v={l.cashback_points||0}/><Info l="Saldo" v={money(l.cashback_balance)}/></div></div>)}</div>{(data?.loyalty||[]).length===0&&<div className="py-8 text-center text-neutral-600 text-xs">Nenhum plano de fidelidade configurado.</div>}</section></div>;
 };
-
-
-const VisitorAnalyticsPanel:React.FC=()=>{
-  const[days,setDays]=useState(30);
-  const[data,setData]=useState<any>(null);
-  const[busy,setBusy]=useState(false);
-  const[error,setError]=useState('');
-
-  const load=async()=>{
-    setBusy(true);setError('');
-    try{
-      const {data:{session}}=await platformSupabase.auth.getSession();
-      if(!session?.access_token)throw new Error('Sessão administrativa expirada.');
-      const response=await fetch('/api/analytics?days='+days,{headers:{Authorization:'Bearer '+session.access_token}});
-      const payload=await response.json();
-      if(!response.ok)throw new Error(payload?.message||'Não foi possível consultar os visitantes.');
-      setData(payload);
-    }catch(e:any){setError(e?.message||'Falha ao carregar Analytics.');}
-    finally{setBusy(false);}
-  };
-  useEffect(()=>{void load();},[days]);
-
-  const rows=(value:any)=>Array.isArray(value)?value:Array.isArray(value?.data)?value.data:[];
-  const label=(r:any)=>r?.requestPath||r?.referrerHostname||r?.deviceType||r?.country||r?.key||r?.name||'—';
-  const value=(r:any)=>r?.visitors??r?.pageviews??r?.count??r?.value??0;
-  const visitors=Number(data?.count?.visitors||0);
-  const pageviews=Number(data?.count?.pageviews||0);
-
-  return <div className="space-y-4">
-    <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h2 className="font-black">Visitantes do site ADEGA PRO</h2><p className="text-[10px] text-neutral-500 mt-1">{data?.source==='FIRST_PARTY'?'Analytics próprio do Adega Pro · fallback seguro ativo.':'Vercel Web Analytics · tráfego público do funil comercial.'}</p></div>
-        <div className="flex items-center gap-2">
-          {[7,30,90].map(n=><button key={n} onClick={()=>setDays(n)} className={`px-3 py-2 rounded-xl border text-xs font-black ${days===n?'bg-amber-500 text-neutral-950 border-amber-400':'bg-neutral-950 border-neutral-800 text-neutral-400'}`}>{n} dias</button>)}
-          <button onClick={()=>void load()} disabled={busy} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs font-black">{busy?'Atualizando...':'Atualizar'}</button>
-        </div>
-      </div>
-      {error&&<div className="mt-4 p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-        <Metric label="Visitantes" value={visitors} icon={Users} tone="sky"/>
-        <Metric label="Visualizações" value={pageviews} icon={Activity} tone="amber"/>
-        <Metric label="Páginas / visitante" value={visitors?(pageviews/visitors).toFixed(2):'0'} icon={ClipboardList} tone="violet"/>
-        <Metric label="Período" value={days+' dias'} icon={History} tone="emerald"/>
-      </div>
-    </section>
-    <div className="grid lg:grid-cols-2 gap-4">
-      <AnalyticsList title="Páginas mais acessadas" rows={rows(data?.paths)} label={label} value={value}/>
-      <AnalyticsList title="Principais origens" rows={rows(data?.referrers)} label={label} value={value}/>
-      <AnalyticsList title="Dispositivos" rows={rows(data?.devices)} label={label} value={value}/>
-      <AnalyticsList title="Países" rows={rows(data?.countries)} label={label} value={value}/>
-    </div>
-    <div className="text-[10px] text-neutral-600">Dados agregados: nenhum IP, senha, dado de caixa, estoque, RH ou operação do cliente é exibido aqui.</div>
-  </div>;
-};
-
-const AnalyticsList:React.FC<{title:string;rows:any[];label:(r:any)=>string;value:(r:any)=>any}>=({title,rows,label,value})=>
-  <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h3 className="font-black">{title}</h3><div className="mt-3 space-y-2">{rows.slice(0,10).map((r:any,i:number)=><div key={i} className="flex items-center justify-between gap-3 p-2 rounded-xl bg-neutral-950 border border-neutral-800"><span className="text-xs text-neutral-300 truncate">{label(r)}</span><b className="text-xs text-amber-400">{value(r)}</b></div>)}{rows.length===0&&<div className="py-5 text-center text-xs text-neutral-600">Sem dados no período.</div>}</div></section>;

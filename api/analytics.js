@@ -28,10 +28,10 @@ async function requirePlatformAdmin(req) {
   return response.ok && (await response.json()) === true;
 }
 
-async function queryFirstParty(days) {
+async function queryFirstParty(days, rpc = 'get_landing_analytics_service') {
   const { url, service } = supabaseConfig();
   if (!service) throw new Error('supabase_service_key_missing');
-  const response = await fetch(url + '/rest/v1/rpc/get_landing_analytics_service', {
+  const response = await fetch(url + '/rest/v1/rpc/' + rpc, {
     method: 'POST',
     headers: {
       apikey: service,
@@ -48,11 +48,18 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'method_not_allowed' });
   if (!(await requirePlatformAdmin(req))) return res.status(403).json({ error: 'forbidden' });
 
-  const days = Math.min(90, Math.max(1, Number(req.query.days || 30)));
+  const requestedDays = Number(req.query.days || 30);
+  const days = Number.isFinite(requestedDays) ? Math.min(90, Math.max(1, Math.floor(requestedDays))) : 30;
+  res.setHeader('Cache-Control', 'private, no-store');
   const until = new Date();
   const since = new Date(until.getTime() - days * 86400000);
   const range = { since: since.toISOString(), until: until.toISOString() };
   const token = process.env.VERCEL_API_TOKEN || process.env.VERCEL_OIDC_TOKEN;
+
+  // Presence is measured by our own public-site heartbeats, even when Vercel supplies historical totals.
+  let live;
+  try { live = await queryFirstParty(days, 'get_landing_live_analytics_service'); }
+  catch { live = { online: null, liveUnavailable: true }; }
 
   if (token) {
     try {
@@ -63,9 +70,10 @@ export default async function handler(req, res) {
         query('visits/aggregate', { ...range, by: 'deviceType', limit: '10' }, token),
         query('visits/aggregate', { ...range, by: 'country', limit: '10' }, token)
       ]);
-      res.setHeader('Cache-Control', 'private, max-age=60');
+
       return res.status(200).json({
         days,
+        live,
         count: count.data || {},
         paths: paths.data || [],
         referrers: refs.data || [],
@@ -80,8 +88,7 @@ export default async function handler(req, res) {
 
   try {
     const payload = await queryFirstParty(days);
-    res.setHeader('Cache-Control', 'private, max-age=30');
-    return res.status(200).json(payload);
+    return res.status(200).json({ ...payload, live });
   } catch (error) {
     return res.status(502).json({
       error: 'analytics_query_failed',

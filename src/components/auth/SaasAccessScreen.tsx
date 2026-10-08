@@ -1,3 +1,4 @@
+import { startPublicVisitTracking } from '../../services/publicVisitTracking';
 import { TestimonialsSection, Testimonial } from './TestimonialsSection';
 import React, { useEffect, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
@@ -163,36 +164,8 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   }, [view]);
 
   useEffect(() => {
-    if (view !== 'LANDING') return;
-    const path = window.location.pathname;
-    const publicPaths = ['/', '/recursos', '/produtos', '/integracoes', '/planos'];
-    if (!publicPaths.includes(path)) return;
-
-    const dedupeKey = `adega_pro_visit_sent:${path}`;
-    const lastSent = Number(sessionStorage.getItem(dedupeKey) || 0);
-    if (Date.now() - lastSent < 30 * 60 * 1000) return;
-
-    let visitorKey = localStorage.getItem('adega_pro_public_visitor_key') || '';
-    if (!visitorKey) {
-      visitorKey = typeof crypto?.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      localStorage.setItem('adega_pro_public_visitor_key', visitorKey);
-    }
-
-    sessionStorage.setItem(dedupeKey, String(Date.now()));
-    void fetch('/api/track-visit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      keepalive: true,
-      body: JSON.stringify({
-        visitor_key: visitorKey,
-        request_path: path,
-        referrer: document.referrer || null
-      })
-    }).catch(() => {
-      sessionStorage.removeItem(dedupeKey);
-    });
+    if (view !== 'LANDING' && view !== 'PROMOTION') return;
+    return startPublicVisitTracking(window.location.pathname);
   }, [view]);
 
   const checkRateLimit = async (action: 'login'|'signup'|'recovery', identifier: string) => {

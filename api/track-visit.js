@@ -29,6 +29,13 @@ function safeReferrer(value) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
 
+  res.setHeader('Cache-Control', 'no-store');
+  const origin = req.headers.origin;
+  if (origin) {
+    try { if (new URL(origin).host !== req.headers.host) return res.status(403).json({ error: 'forbidden_origin' }); }
+    catch { return res.status(403).json({ error: 'forbidden_origin' }); }
+  }
+  if (/bot|crawler|spider|headless/i.test(req.headers['user-agent'] || '')) return res.status(204).end();
   const { url, service } = config();
   if (!service) return res.status(503).json({ error: 'analytics_storage_unavailable' });
 
@@ -36,18 +43,22 @@ export default async function handler(req, res) {
   if (visitorKey.length < 8) return res.status(400).json({ error: 'invalid_visitor_key' });
 
   const requestPath = safePath(req.body?.request_path);
-  const publicPaths = ['/', '/recursos', '/produtos', '/integracoes', '/planos'];
+  const publicPaths = ['/', '/inicio', '/recursos', '/produtos', '/integracoes', '/planos', '/promocao'];
   if (!publicPaths.includes(requestPath)) return res.status(204).end();
 
+  const decode = (value) => { try { return decodeURIComponent(String(value || '')).slice(0,120) || null; } catch { return null; } };
   const payload = {
-    visitor_key: visitorKey,
-    request_path: requestPath,
-    referrer_hostname: safeReferrer(req.body?.referrer),
-    device_type: deviceType(req.headers['user-agent'] || ''),
-    country: String(req.headers['x-vercel-ip-country'] || '').slice(0,8) || null
+    p_visitor: visitorKey,
+    p_path: requestPath,
+    p_referrer: safeReferrer(req.body?.referrer),
+    p_device: deviceType(req.headers['user-agent'] || ''),
+    p_country: decode(req.headers['x-vercel-ip-country']),
+    p_city: decode(req.headers['x-vercel-ip-city']),
+    p_region: decode(req.headers['x-vercel-ip-country-region']),
+    p_pageview: req.body?.event !== 'heartbeat'
   };
 
-  const response = await fetch(url + '/rest/v1/landing_visits', {
+  const response = await fetch(url + '/rest/v1/rpc/record_landing_activity_service', {
     method: 'POST',
     headers: {
       apikey: service,
