@@ -10,6 +10,7 @@ import { platformDb } from '../../services/platformDb';
 import { LegalCenter } from '../legal/LegalCenter';
 import { LEGAL_DOCS, LegalDocKey } from '../../legal/legalDocuments';
 import { LoyaltyReferralPolicyPage } from './LoyaltyReferralPolicyPage';
+import { AcquisitionCampaign, ACQUISITION_CAMPAIGN, CampaignChoice, campaignIsOpen } from './AcquisitionCampaign';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 
 type View = 'LANDING' | 'LOGIN' | 'REGISTER' | 'POLICY' | 'RESET_PASSWORD';
@@ -62,6 +63,14 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [register, setRegister] = useState<RegisterForm>(emptyRegister);
+  const [campaignChoice, setCampaignChoice] = useState<CampaignChoice>('TRIAL');
+  const [campaignAccepted, setCampaignAccepted] = useState(false);
+  const chooseCampaign = (choice: CampaignChoice) => {
+    setCampaignChoice(choice);
+    setCampaignAccepted(false);
+    navigateView('REGISTER');
+    window.scrollTo({ top: 0 });
+  };
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{type:'error'|'success'; text:string}|null>(null);
@@ -198,6 +207,12 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
       setMessage({type:'error', text:'É necessário aceitar os termos para criar a conta.'}); return;
     }
 
+    if (campaignChoice !== 'TRIAL' && campaignIsOpen() && !campaignAccepted) {
+      setMessage({type:'error', text:'Leia e aceite as condições da campanha selecionada.'}); return;
+    }
+    if (campaignChoice !== 'TRIAL' && !campaignIsOpen()) {
+      setMessage({type:'error', text:'O prazo desta campanha terminou. Escolha o teste ou consulte as condições atuais.'}); return;
+    }
     setBusy(true);
     try {
       await checkRateLimit('signup', register.email);
@@ -208,7 +223,15 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
           data: {
             full_name: register.ownerName.trim(),
             phone: register.phone.trim(),
-            product: 'ADEGA PRO'
+            product: 'ADEGA PRO',
+            acquisition_request: {
+              campaign_id: ACQUISITION_CAMPAIGN.id,
+              version: ACQUISITION_CAMPAIGN.version,
+              choice: campaignChoice,
+              conditions_accepted: campaignChoice !== 'TRIAL' && campaignAccepted,
+              requested_at: new Date().toISOString(),
+              status: 'PENDING_COMMERCIAL_VALIDATION'
+            }
           }
         }
       });
@@ -394,6 +417,8 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               </button>
             </div>
           </section>
+
+          <AcquisitionCampaign onChoose={chooseCampaign}/>
 
           <section id="recursos" className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center max-w-2xl mx-auto"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Operação completa</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Do balcão ao financeiro.</h2><p className="text-sm text-neutral-500 mt-3">Um único painel para vender, comprar, controlar estoque, acompanhar clientes e decidir com dados.</p></div>
@@ -613,7 +638,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
 
           <section id="planos" className="border-t border-white/5 bg-gradient-to-b from-neutral-950 to-black">
             <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <div className="text-center"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Planos</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Comece com uma operação profissional.</h2></div>
+              <div className="text-center"><div className="text-amber-400 text-[10px] font-black uppercase tracking-[.2em]">Planos</div><h2 className="text-3xl sm:text-4xl font-black mt-2">Comece com uma operação profissional.</h2><p className="text-sm text-neutral-400 mt-3">Preços regulares abaixo. Novos clientes elegíveis podem solicitar a campanha de 15 contratações apresentada nesta página.</p></div>
               <div className="grid md:grid-cols-2 gap-4 mt-9">
                 <div className="p-6 rounded-3xl bg-gradient-to-br from-red-950/70 to-neutral-900 border border-red-800/50"><div className="text-xs font-black uppercase tracking-[.2em] text-red-200">Assinatura mensal</div><div className="mt-4 text-5xl font-black">R$ 149<span className="text-2xl">,00</span><span className="text-sm text-neutral-400">/mês</span></div><div className="mt-5 text-xs text-neutral-300 space-y-2">{['PDV completo','Estoque e compras','Clientes e fiado','Financeiro e relatórios','Atualizações constantes','Suporte especializado'].map(x=><div key={x} className="flex gap-2"><CheckCircle2 size={14} className="text-emerald-400"/>{x}</div>)}</div><button onClick={()=>setView('REGISTER')} className="mt-6 w-full py-3.5 rounded-xl bg-white text-neutral-950 font-black text-sm">Começar agora</button></div>
                 <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-950/50 to-neutral-900 border border-amber-700/40"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-300">Fidelização + Personalização</div><div className="mt-4 text-sm text-neutral-400">R$ 990 em até 3x ou</div><div className="text-5xl font-black text-amber-300">R$ 800 <span className="text-sm text-neutral-400">à vista</span></div><div className="mt-5 text-xs text-neutral-300 space-y-2">{['Configuração da operação','Identidade da adega','Ajustes específicos','Treinamento e implantação','Integrações orçadas separadamente'].map(x=><div key={x} className="flex gap-2"><CheckCircle2 size={14} className="text-amber-400"/>{x}</div>)}</div><button type="button" onClick={()=>{setView('POLICY');window.history.pushState({}, '', '/politica-fidelidade-indicacoes');window.scrollTo({top:0});}} className="mt-4 w-full py-3 rounded-xl border border-amber-700/50 text-amber-300 font-black text-xs">Ver política de fidelidade e indicações</button><a href="https://wa.me/5511939026928?text=Olá%2C%20quero%20saber%20mais%20sobre%20a%20implantação%20do%20ADEGA%20PRO." target="_blank" rel="noreferrer" className="mt-6 w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm flex items-center justify-center gap-2">Falar no WhatsApp <ArrowRight size={16}/></a></div>
@@ -689,7 +714,22 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
               </div>
             </div>
             {message && <div className={`mb-4 p-3 rounded-xl text-xs border ${message.type==='error'?'bg-rose-950/40 border-rose-800 text-rose-300':'bg-emerald-950/40 border-emerald-800 text-emerald-300'}`}>{message.text}</div>}
+            <AcquisitionCampaign onChoose={(choice) => {setCampaignChoice(choice);setCampaignAccepted(false);}}/>
             <form onSubmit={registerAccount} className="space-y-6">
+              <section className="p-4 rounded-xl bg-neutral-950 border border-neutral-700 space-y-3">
+                <label className="block text-sm font-bold">Como deseja começar?
+                  <select value={campaignChoice} onChange={e=>{setCampaignChoice(e.target.value as CampaignChoice);setCampaignAccepted(false);}} className="block w-full mt-2 p-3 rounded-xl bg-neutral-900 border border-neutral-700 text-sm">
+                    <option value="TRIAL">Solicitar 30 dias gratuitos</option>
+                    {campaignIsOpen() && <option value="MONTHLY">Mensal: R$ 74,50 na primeira; depois R$ 149/mês</option>}
+                    {campaignIsOpen() && <option value="PERSONALIZED">Personalizado: R$ 495 + fidelidade de 12 meses</option>}
+                  </select>
+                </label>
+                {campaignChoice !== 'TRIAL' && <label className="flex items-start gap-3 text-sm text-neutral-300">
+                  <input type="checkbox" required checked={campaignAccepted} onChange={e=>setCampaignAccepted(e.target.checked)} className="mt-1"/>
+                  <span>{campaignChoice === 'PERSONALIZED' ? 'Li as regras e aceito especificamente a fidelidade de 12 meses: implantação R$ 495; meses 1–2 grátis; meses 3–10 R$ 74,50/mês; meses 11–12 R$ 149/mês.' : 'Li as regras e aceito a primeira mensalidade por R$ 74,50 e as seguintes por R$ 149/mês.'} Entendo o limite de 15 novas contratações até 12/10/2026, às 23h59 (Brasília), e que minha solicitação depende da confirmação comercial da ATR Studio.</span>
+                </label>}
+                <p className="text-sm text-neutral-400">O cadastro registra sua solicitação. Teste, vaga promocional e condições de cobrança são confirmados pela ATR Studio antes da ativação.</p>
+              </section>
               <section><h2 className="text-xs font-black text-amber-400 uppercase tracking-wider mb-3">Responsável pela conta</h2><div className="grid sm:grid-cols-2 gap-3">
                 <Field icon={UserRound} label="Nome completo *" value={register.ownerName} onChange={v=>setRegister({...register,ownerName:v})}/>
                 <Field icon={Mail} label="E-mail *" type="email" value={register.email} onChange={v=>setRegister({...register,email:v})}/>

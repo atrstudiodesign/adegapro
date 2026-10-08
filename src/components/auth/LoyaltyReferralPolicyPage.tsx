@@ -1,4 +1,5 @@
 import React from 'react';
+import { AcquisitionCampaign } from './AcquisitionCampaign';
 import { ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, Gift, ShieldCheck, Sparkles, UserPlus } from 'lucide-react';
 
 interface Props { onBack: () => void; onRegister: () => void; }
@@ -16,6 +17,8 @@ export const LoyaltyReferralPolicyPage: React.FC<Props> = ({ onBack, onRegister 
       </div>
     </section>
 
+    <AcquisitionCampaign/>
+    <p className="max-w-6xl mx-auto px-4 text-sm text-neutral-400">As condições abaixo descrevem o programa anterior de fidelidade e indicações. A campanha de novos clientes acima tem regras próprias; contratos ativos seguem as condições aceitas na contratação.</p>
     <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid lg:grid-cols-2 gap-5">
         <article className="p-6 sm:p-8 rounded-3xl bg-neutral-900 border border-neutral-800">
