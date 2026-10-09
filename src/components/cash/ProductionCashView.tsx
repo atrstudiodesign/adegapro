@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Wallet, Unlock, Lock, ArrowUpRight, ArrowDownLeft, RefreshCw, X, Receipt, TrendingUp, UserRound, Printer, Download, Share2, Pencil, Ban, StickyNote, Bell } from 'lucide-react';
+import { Wallet, Unlock, Lock, ArrowUpRight, ArrowDownLeft, RefreshCw, X, Receipt, TrendingUp, UserRound, Printer, Download, Share2, Pencil, Ban, StickyNote, Bell, Calculator } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
 import type { CashRegister, CashSession, CashMovement, User } from '../../types';
 import { EmptyState, MetricCard, PageHeader, StatusBadge } from '../ui/ProUi';
