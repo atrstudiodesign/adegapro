@@ -14,7 +14,7 @@ export async function buildSeoPages() {
  const base = await readFile('dist/index.html','utf8');
  await writeFile('dist/index.html',renderPageMetadata(base,'/'));
  await mkdir('dist/seo-pages',{recursive:true});
- for (const path of [...INDEXABLE_PATHS.filter(p=>p!=='/'), ...PUBLIC_ALIASES, '/atr-control','/entrar','/cadastro','/vendedor','/vendedor/cadastro']) {
+ for (const path of [...INDEXABLE_PATHS.filter(p=>p!=='/'), ...PUBLIC_ALIASES, '/atr-control','/entrar','/cadastro','/vendedor','/vendedor/cadastro','/comprovante']) {
   await writeFile(`dist/seo-pages/${path.slice(1).replaceAll('/','-')}.html`,renderPageMetadata(base,path));
  }
  console.log('SEO: canonical e metadados gerados no HTML inicial de cada rota.');

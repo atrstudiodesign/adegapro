@@ -20,6 +20,6 @@ test('Initial HTML exposes one correct canonical and never indexes restricted ro
 });
 test('All static rewrites point to generated pages with built asset references',async()=>{
  const config=JSON.parse(await readFile('vercel.json','utf8'));
- for(const route of config.rewrites.filter(r=>!r.source.includes(':'))){const html=await readFile('dist'+route.destination,'utf8');assert.match(html,/src="\/assets\/index-/);const metadata=pageMetadata(route.source);assert.ok(html.includes(`content="${metadata.robots}"`));}
+ for(const route of config.rewrites){const html=await readFile('dist'+route.destination,'utf8');assert.match(html,/src="\/assets\/index-/);const metadata=pageMetadata(route.source);assert.ok(html.includes(`content="${metadata.robots}"`));}
  const robots=await readFile('public/robots.txt','utf8');assert.ok(robots.includes('Sitemap: https://adegapro.vercel.app/sitemap.xml'));assert.ok(!robots.includes('Disallow: /atr-control'));assert.ok(config.headers.some(h=>h.source==='/atr-control'&&h.headers.some(v=>v.key==='X-Robots-Tag'&&v.value.includes('noindex'))));
 });

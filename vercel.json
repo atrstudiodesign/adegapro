@@ -167,7 +167,7 @@
     },
     {
       "source": "/comprovante/:id",
-      "destination": "/index.html"
+      "destination": "/seo-pages/comprovante.html"
     }
   ]
 }
