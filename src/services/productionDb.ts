@@ -1268,6 +1268,38 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
 }
 
 
+async function requestAdminCashClose(sessionId: string, reason: string) {
+  const token = getOperatorToken();
+  if (!token) throw new Error('Confirme o PIN do operador.');
+  const { data, error } = await supabase.rpc('request_admin_cash_close', {
+    p_cash_session_id: sessionId, p_operator_token: token, p_reason: reason
+  });
+  if (error) handleOperatorSessionError(error);
+  return data as string;
+}
+
+async function listAdminCashCloseRequests() {
+  const ctx = await getContext();
+  const token = getOperatorToken();
+  if (!token) throw new Error('Confirme o PIN do administrador.');
+  const { data, error } = await supabase.rpc('list_admin_cash_close_requests', {
+    p_store_id: ctx.storeId, p_operator_token: token
+  });
+  if (error) handleOperatorSessionError(error);
+  return data || [];
+}
+
+async function adminCloseCashSession(requestId: string, countedCash: number, notes: string) {
+  const token = getOperatorToken();
+  if (!token) throw new Error('Confirme novamente o PIN do administrador.');
+  const { data, error } = await supabase.rpc('admin_close_cash_session_secure', {
+    p_request_id: requestId, p_operator_token: token,
+    p_counted_cash: countedCash, p_notes: notes
+  });
+  if (error) handleOperatorSessionError(error);
+  return data;
+}
+
 async function getStoreOperators(){const ctx=await getContext();const {data,error}=await supabase.from('operators').select('id,name,role,active').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).eq('active',true).order('name');if(error)throw error;return data||[];}
 
 async function getHrAttendance(){const ctx=await getContext();const {data,error}=await supabase.from('hr_shift_attendance').select('*').eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId).order('event_at',{ascending:false}).limit(300);if(error)throw error;return data||[];}
@@ -1463,6 +1495,9 @@ export const productionDb = {
   registerCashMovement,
   reverseCashMovement,
   closeCashSession,
+  requestAdminCashClose,
+  listAdminCashCloseRequests,
+  adminCloseCashSession,
   getHrSnapshot,
   getHrAttendance,
   getStoreOperators,
