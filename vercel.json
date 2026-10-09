@@ -24,56 +24,146 @@
           "value": "max-age=63072000; includeSubDomains; preload"
         }
       ]
+    },
+    {
+      "source": "/atr-control",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/entrar",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/cadastro",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/vendedor",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/vendedor/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/comprovante/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/splashscreen.html",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
       "source": "/promocao",
-      "destination": "/index.html"
+      "destination": "/seo-pages/promocao.html"
     },
     {
       "source": "/inicio",
-      "destination": "/index.html"
+      "destination": "/seo-pages/inicio.html"
     },
     {
       "source": "/recursos",
-      "destination": "/index.html"
+      "destination": "/seo-pages/recursos.html"
     },
     {
       "source": "/produtos",
-      "destination": "/index.html"
+      "destination": "/seo-pages/produtos.html"
     },
     {
       "source": "/integracoes",
-      "destination": "/index.html"
+      "destination": "/seo-pages/integracoes.html"
     },
     {
       "source": "/planos",
-      "destination": "/index.html"
+      "destination": "/seo-pages/planos.html"
     },
     {
       "source": "/entrar",
-      "destination": "/index.html"
+      "destination": "/seo-pages/entrar.html"
     },
     {
       "source": "/cadastro",
-      "destination": "/index.html"
+      "destination": "/seo-pages/cadastro.html"
     },
     {
       "source": "/politica-fidelidade-indicacoes",
-      "destination": "/index.html"
+      "destination": "/seo-pages/politica-fidelidade-indicacoes.html"
     },
     {
       "source": "/atr-control",
-      "destination": "/index.html"
+      "destination": "/seo-pages/atr-control.html"
     },
     {
       "source": "/vendedor",
-      "destination": "/index.html"
+      "destination": "/seo-pages/vendedor.html"
     },
     {
       "source": "/vendedor/cadastro",
-      "destination": "/index.html"
+      "destination": "/seo-pages/vendedor-cadastro.html"
     },
     {
       "source": "/comprovante/:id",

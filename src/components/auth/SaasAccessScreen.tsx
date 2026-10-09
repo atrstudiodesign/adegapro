@@ -1,3 +1,4 @@
+import { applyPageSeo } from '../../seo/applyPageSeo';
 import { startPublicVisitTracking } from '../../services/publicVisitTracking';
 import { TestimonialsSection, Testimonial } from './TestimonialsSection';
 import React, { useEffect, useState } from 'react';
@@ -150,18 +151,7 @@ export const SaasAccessScreen: React.FC<SaasAccessScreenProps> = ({ onDemo, onAu
     return () => window.clearTimeout(timer);
   }, [view]);
 
-  useEffect(() => {
-    if (view !== 'PROMOTION') return;
-    const previousTitle = document.title;
-    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    const previousDescription = description?.content;
-    document.title = 'Promoção ADEGA PRO — 15 novos clientes até 01/01/2027';
-    if (description) description.content = 'Conheça a campanha ADEGA PRO: descontos para 15 novos clientes até 01/01/2027. Confira preços, cronograma, teste e política detalhada.';
-    return () => {
-      document.title = previousTitle;
-      if (description && previousDescription !== undefined) description.content = previousDescription;
-    };
-  }, [view]);
+  useEffect(() => { applyPageSeo(); }, [view]);
 
   useEffect(() => {
     if (view !== 'LANDING' && view !== 'PROMOTION') return;

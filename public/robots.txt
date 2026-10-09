@@ -1,9 +1,7 @@
 User-agent: *
 Allow: /
-Disallow: /atr-control
-Disallow: /entrar
-Disallow: /cadastro
-Disallow: /vendedor
-Disallow: /comprovante/
+Disallow: /api/
+Disallow: /seo-pages/
 
+# As áreas de acesso usam noindex no HTML e nos cabeçalhos HTTP.
 Sitemap: https://adegapro.vercel.app/sitemap.xml
