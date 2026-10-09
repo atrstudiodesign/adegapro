@@ -1,3 +1,4 @@
+import { requestVisitorAnalytics } from '../../services/analyticsRequest';
 import React, { useEffect, useRef, useState } from 'react';
 import { Activity, Globe2, MapPin, RefreshCw, Users, Eye } from 'lucide-react';
 import { platformSupabase } from '../../services/platformSupabase';
@@ -37,15 +38,13 @@ export function VisitorAnalyticsPanel() {
    pending = true; setBusy(true);
    const requestController = new AbortController();
    controller = requestController;
-   const timeout = window.setTimeout(() => requestController.abort(), 12_000);
+   const timeout = window.setTimeout(() => requestController.abort(), 25_000);
    try {
     const {data:{session}} = await platformSupabase.auth.getSession();
     if (!session?.access_token) throw new Error('Sessão administrativa expirada.');
-    const response = await fetch(`/api/analytics?days=${days}`, {cache:'no-store',signal:requestController.signal,headers:{Authorization:`Bearer ${session.access_token}`}});
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.message || 'Falha ao consultar visitantes.');
+    const payload = await requestVisitorAnalytics(days,session.access_token,requestController.signal);
     if (sequence.current === id) {setData(payload);setUpdated(new Date());setError('');}
-   } catch (e) {if (sequence.current === id && !requestController.signal.aborted) setError(e instanceof Error ? e.message : 'Falha de sincronização.');else if(sequence.current === id) setError('Consulta demorou demais. Clique em atualizar.');}
+   } catch (e) {if (sequence.current === id && !requestController.signal.aborted) setError(e instanceof TypeError ? 'Falha de conexão. Reconexão automática ativa; os últimos dados foram preservados.' : e instanceof Error ? e.message : 'Falha de sincronização.');else if(sequence.current === id) setError('A consulta demorou demais. Reconexão automática ativa.');}
    finally {window.clearTimeout(timeout);pending=false;if(sequence.current === id)setBusy(false);}
   };
   void load();

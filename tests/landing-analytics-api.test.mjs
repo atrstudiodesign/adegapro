@@ -36,3 +36,13 @@ test('Admin dashboard combines history and live data without caching and handles
   assert.equal(res.code,200);assert.equal(res.body.live.online,2);assert.equal(res.body.count.visitors,12);assert.equal(res.headers['Cache-Control'],'private, no-store');assert.equal(payloads.at(-1).p_days,30);
  } finally {global.fetch=original;delete process.env.SUPABASE_SERVICE_ROLE_KEY;}
 });
+test('Upstream admin verification network failure returns JSON and does not read analytics',async()=>{
+ const original=global.fetch;let calls=0;
+ global.fetch=async()=>{calls++;throw new TypeError('fetch failed');};
+ try {const res=response();await analytics({method:'GET',headers:{authorization:'Bearer test'},query:{days:30}},res);assert.equal(res.code,503);assert.equal(res.body.error,'admin_verification_unavailable');assert.equal(calls,1);}finally{global.fetch=original;}
+});
+test('Own analytics stays available without querying invalid Vercel OIDC token',async()=>{
+ const original=global.fetch;const saved=process.env.VERCEL_OIDC_TOKEN;process.env.VERCEL_OIDC_TOKEN='not-a-vercel-api-token';process.env.SUPABASE_SERVICE_ROLE_KEY='test-only';let vercelCalls=0;
+ global.fetch=async(url,options)=>{assert.ok(options.signal);if(url.includes('api.vercel.com'))vercelCalls++;return {ok:true,json:async()=>url.endsWith('is_platform_admin')?true:url.endsWith('get_landing_live_analytics_service')?{online:1}:{source:'FIRST_PARTY',count:{visitors:4}}};};
+ try{const res=response();await analytics({method:'GET',headers:{authorization:'Bearer test'},query:{days:30}},res);assert.equal(res.code,200);assert.equal(res.body.source,'FIRST_PARTY');assert.equal(vercelCalls,0);}finally{global.fetch=original;delete process.env.SUPABASE_SERVICE_ROLE_KEY;if(saved===undefined)delete process.env.VERCEL_OIDC_TOKEN;else process.env.VERCEL_OIDC_TOKEN=saved;}
+});
