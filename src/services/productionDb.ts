@@ -1238,6 +1238,25 @@ async function reverseCashMovement(movementId:string,reason:string){const token=
 async function closeCashSession(sessionId: string, countedCash: number, notes?: string) {
   const token = getOperatorToken();
   if (!token) throw new Error('Sessão do operador não encontrada.');
+  // The backend requires a reconciled closing report before final closure.
+  // Use the current session's server-side totals; never invent payment amounts.
+  const { data: cashSession, error: sessionError } = await supabase
+    .from('cash_sessions')
+    .select('id,closing_report_at,total_cash_sales,total_pix_sales,total_card_debit_sales,total_card_credit_sales')
+    .eq('id', sessionId)
+    .single();
+  if (sessionError) throw sessionError;
+  if (!cashSession.closing_report_at) {
+    const { error: reconciliationError } = await supabase.rpc('save_cash_closing_report_secure', {
+      p_cash_session_id: sessionId,
+      p_operator_token: token,
+      p_pix: Number(cashSession.total_pix_sales || 0),
+      p_debit: Number(cashSession.total_card_debit_sales || 0),
+      p_credit: Number(cashSession.total_card_credit_sales || 0),
+      p_cash: Number(cashSession.total_cash_sales || 0)
+    });
+    if (reconciliationError) handleOperatorSessionError(reconciliationError);
+  }
   const { data, error } = await supabase.rpc('close_cash_session_secure', {
     p_cash_session_id: sessionId,
     p_operator_token: token,
