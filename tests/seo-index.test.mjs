@@ -18,8 +18,28 @@ test('Initial HTML exposes one correct canonical and never indexes restricted ro
  const html=renderPageMetadata(base,path);assert.match(html,/name="robots" content="noindex, nofollow"/);assert.doesNotMatch(html,/rel="canonical"/);
  }
 });
-test('All static rewrites point to generated pages with built asset references',async()=>{
+test('All static rewrites resolve to pages with the correct asset references',async()=>{
  const config=JSON.parse(await readFile('vercel.json','utf8'));
- for(const route of config.rewrites){const html=await readFile('dist'+route.destination,'utf8');assert.match(html,/src="\/assets\/index-/);const metadata=pageMetadata(route.source);assert.ok(html.includes(`content="${metadata.robots}"`));}
+ assert.ok(config.rewrites.some(route=>route.source==='/politicacomercial'&&route.destination==='/politica-comercial.html'));
+ for(const route of config.rewrites){
+  const html=await readFile('dist'+route.destination,'utf8');
+  if(route.source==='/politicacomercial'){
+   assert.equal(route.destination,'/politica-comercial.html');
+   assert.match(html,/<html lang="pt-BR">/);
+   assert.match(html,/ADEGA PRO · POLÍTICA COMERCIAL/);
+   assert.match(html,/src="\/politica-comercial\.js"/);
+   assert.match(html,/href="\/politica-comercial\.css(?:\?[^"]*)?"/);
+   assert.match(html,/name="robots" content="noindex,follow"/);
+   for(const match of html.matchAll(/(?:src|href)="(\/[^"]+)"/g)){
+    await readFile('dist'+new URL(match[1],'https://adegapro.vercel.app').pathname);
+   }
+   continue;
+  }
+  assert.match(html,/src="\/assets\/index-/);
+  const metadata=pageMetadata(route.source);assert.ok(html.includes(`content="${metadata.robots}"`));
+ }
+ const landing=await readFile('src/components/auth/SaasAccessScreen.tsx','utf8');
+ assert.equal((landing.match(/href="\/politicacomercial"/g)||[]).length,2);
+ assert.doesNotMatch(landing,/href="\/politica-comercial\.html"/);
  const robots=await readFile('public/robots.txt','utf8');assert.ok(robots.includes('Sitemap: https://adegapro.vercel.app/sitemap.xml'));assert.ok(!robots.includes('Disallow: /atr-control'));assert.ok(config.headers.some(h=>h.source==='/atr-control'&&h.headers.some(v=>v.key==='X-Robots-Tag'&&v.value.includes('noindex'))));
 });

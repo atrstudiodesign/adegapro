@@ -118,6 +118,10 @@
   ],
   "rewrites": [
     {
+      "source": "/politicacomercial",
+      "destination": "/politica-comercial.html"
+    },
+    {
       "source": "/promocao",
       "destination": "/seo-pages/promocao.html"
     },
