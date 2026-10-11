@@ -7,7 +7,18 @@ const money=(v:any)=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionD
 
 export const ProductionReportsView:React.FC=()=>{
  const[sales,setSales]=useState<any[]>([]);const[products,setProducts]=useState<any[]>([]);const[finance,setFinance]=useState<any[]>([]);const[analytics,setAnalytics]=useState<any>({});const[busy,setBusy]=useState(false);const[error,setError]=useState('');
- const load=async()=>{setBusy(true);setError('');try{const[s,p,f,a]=await Promise.all([productionDb.getSales(1000),productionDb.getProducts(),productionDb.getFinancialTransactions(1000),productionDb.getDashboardAnalytics()]);setSales(s);setProducts(p);setFinance(f);setAnalytics(a||{});}catch(e:any){setError(e?.message||'Falha ao carregar relatórios.');}finally{setBusy(false);}};
+ const load=async()=>{setBusy(true);setError('');try{
+  // Consultas independentes: uma falha de enriquecimento não deve derrubar todos os relatórios.
+  // Limites moderados evitam URLs excessivas nos filtros IN de operadores e vendas.
+  const results=await Promise.allSettled([productionDb.getSales(200),productionDb.getProducts(),productionDb.getFinancialTransactions(200),productionDb.getDashboardAnalytics()]);
+  const [s,p,f,a]=results;
+  setSales(s.status==='fulfilled'?s.value:[]);
+  setProducts(p.status==='fulfilled'?p.value:[]);
+  setFinance(f.status==='fulfilled'?f.value:[]);
+  setAnalytics(a.status==='fulfilled'?a.value||{}:{});
+  const failed=results.flatMap((r,i)=>r.status==='rejected'?[['Vendas','Estoque','Financeiro','Indicadores'][i]+': '+(r.reason?.message||'erro na consulta')]:[]);
+  if(failed.length)setError('Alguns indicadores não puderam ser carregados. '+failed.join(' | '));
+ }catch(e:any){setError(e?.message||'Falha ao carregar relatórios.');}finally{setBusy(false);}};
  useEffect(()=>{void load();},[]);
  const metrics=useMemo(()=>{const paid=sales.filter(s=>s.status==='PAGA');const revenue=paid.reduce((a,s)=>a+Number(s.total||0),0);const costStock=products.reduce((a,p)=>a+Number(p.costPrice||0)*Number(p.currentStock||0),0);const expenses=finance.filter(f=>f.transaction_type==='DESPESA').reduce((a,f)=>a+Number(f.amount||0),0);return{count:paid.length,revenue,ticket:paid.length?revenue/paid.length:0,costStock,expenses};},[sales,products,finance]);
  const top=Array.isArray(analytics?.top_products)?analytics.top_products:[];const categories=Array.isArray(analytics?.top_categories)?analytics.top_categories:[];const payments=Array.isArray(analytics?.payments)?analytics.payments:[];const last7=Array.isArray(analytics?.last7)?analytics.last7:[];const max=Math.max(1,...last7.map((x:any)=>Number(x.revenue||0)));
