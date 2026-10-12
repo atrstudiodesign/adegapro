@@ -1,3 +1,4 @@
+// Authenticated Asaas webhook receiver for Vercel Functions.
 import { createHash, timingSafeEqual } from 'node:crypto';
 
 function env() {
