@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import { CheckCircle2, Gift, Moon, Printer, Save, Settings, SlidersHorizontal, Sun, Users } from 'lucide-react';
+import { CheckCircle2, Download, Upload, Gift, Moon, Printer, Save, Settings, SlidersHorizontal, Sun, Users } from 'lucide-react';
 import { db } from '../../services/db';
 import { productionDb } from '../../services/productionDb';
 import type { AppMode } from '../../services/appMode';
@@ -14,6 +14,36 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
   const[referral,setReferral]=useState({name:'',phone:'',email:''});
   const[referralData,setReferralData]=useState<any>(null);
   const[referralBusy,setReferralBusy]=useState(false);
+  const[backupBusy,setBackupBusy]=useState(false);
+  const[backupNotice,setBackupNotice]=useState('');
+  const[backupError,setBackupError]=useState('');
+  const exportBackup=async()=>{
+    setBackupBusy(true);setBackupError('');setBackupNotice('');
+    try{
+      const payload=await productionDb.exportTenantBackup();
+      if(payload?.format!=='ADEGA_PRO_BACKUP_JSON'||!payload?.tenant_id||!payload?.data)throw new Error('O servidor retornou um backup incompleto.');
+      const file=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(file);
+      const link=document.createElement('a');link.href=url;link.download=`adega-pro-backup-${payload.tenant_id}-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+      setBackupNotice('Exportação preparada. Confirme que o arquivo foi salvo em local seguro.');
+    }catch(e:any){setBackupError(e?.message||'Falha ao exportar backup.');}
+    finally{setBackupBusy(false);}
+  };
+  const importBackup=async(file:File|undefined)=>{
+    if(!file)return;
+    setBackupBusy(true);setBackupError('');setBackupNotice('');
+    try{
+      if(file.size>25*1024*1024)throw new Error('Arquivo maior que 25 MB. Solicite um procedimento assistido.');
+      const payload=JSON.parse(await file.text());
+      if(payload?.format!=='ADEGA_PRO_BACKUP_JSON'||payload?.schema_version!=='1'||!payload?.tenant_id||!payload?.data)throw new Error('Arquivo de backup inválido ou incompatível.');
+      const ctx=await productionDb.getContext();
+      if(payload.tenant_id!==ctx.tenantId)throw new Error('Este arquivo pertence a outra empresa.');
+      const id=await productionDb.validateTenantBackup(file.name,payload);
+      setBackupNotice(`Arquivo validado e registrado para análise (protocolo ${id}). Nenhum dado foi restaurado ou substituído.`);
+    }catch(e:any){setBackupError(e?.message||'Falha ao validar backup.');}
+    finally{setBackupBusy(false);}
+  };
   const loadReferrals=()=>appMode==='PRODUCTION'&&productionDb.getMyCustomerReferralSnapshot().then(setReferralData).catch(()=>{});
   const sendReferral=async()=>{setReferralBusy(true);setError('');setFeedback('');try{await productionDb.createMyCustomerReferral(referral);setReferral({name:'',phone:'',email:''});setFeedback('Indicação enviada e sincronizada com o ATR Control.');await loadReferrals();}catch(e:any){setError(e?.message||'Não foi possível enviar a indicação.');}finally{setReferralBusy(false);}};
   const[theme,setTheme]=useState<'dark'|'light'>(()=>localStorage.getItem('adega_pro_theme')==='light'?'light':'dark');
@@ -57,6 +87,19 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
       </section>
 
       {appMode==='PRODUCTION'&&<section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800"><div className="flex items-center gap-2"><Users size={18} className="text-amber-400"/><h2 className="font-black text-white">Indique um cliente</h2></div><p className="text-xs text-neutral-500 mt-1">Exclusivo para clientes ativos. A indicação entra automaticamente no ATR Control para acompanhamento e benefício.</p><div className="grid md:grid-cols-3 gap-3 mt-4"><Field label="Nome"><input className="input" value={referral.name} onChange={e=>setReferral({...referral,name:e.target.value})} placeholder="Nome do indicado"/></Field><Field label="WhatsApp"><input className="input" value={referral.phone} onChange={e=>setReferral({...referral,phone:e.target.value})} placeholder="(11) 99999-9999"/></Field><Field label="E-mail (opcional)"><input className="input" type="email" value={referral.email} onChange={e=>setReferral({...referral,email:e.target.value})}/></Field></div><div className="flex items-center justify-between gap-3 mt-4"><div className="text-xs text-neutral-400"><Gift size={14} className="inline mr-1 text-amber-400"/>Saldo: <b className="text-white">{Number(referralData?.account?.cashback_points||0)} pts</b> · R$ {Number(referralData?.account?.cashback_balance||0).toFixed(2).replace('.',',')} · {referralData?.referrals?.length||0} indicação(ões)</div><button type="button" disabled={referralBusy||!referral.name.trim()||!referral.phone.trim()} onClick={sendReferral} className="btn-primary">{referralBusy?'Enviando...':'Enviar indicação'}</button></div>{referralData?.referrals?.length>0&&<div className="mt-4 border-t border-neutral-800 pt-3 space-y-2">{referralData.referrals.slice(0,5).map((r:any)=><div key={r.id} className="flex justify-between gap-3 text-xs"><span className="text-neutral-300">{r.lead_name} · {r.lead_phone}</span><StatusBadge tone={r.status==='CONVERTED'?'success':r.status==='CANCELLED'?'danger':'warning'}>{r.status}</StatusBadge></div>)}</div>}</section>}
+
+      {appMode==='PRODUCTION'&&<section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
+        <div className="flex items-center gap-2"><Download size={18} className="text-amber-400"/><h2 className="font-black text-white">Backup da empresa</h2></div>
+        <p className="text-xs text-neutral-400">Exporte um arquivo JSON dos dados disponibilizados pelo servidor para a sua empresa. Não inclui um backup integral da infraestrutura, autenticação ou arquivos externos.</p>
+        <p className="text-xs text-amber-300">Importar apenas valida e registra o arquivo para recuperação assistida. Não restaura nem substitui vendas, caixa ou estoque automaticamente.</p>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" disabled={backupBusy} onClick={()=>void exportBackup()} className="btn-primary flex items-center gap-2"><Download size={15}/>{backupBusy?'Processando...':'Exportar backup JSON'}</button>
+          <label className="btn-secondary flex items-center gap-2 cursor-pointer"><Upload size={15}/>Importar para validação<input type="file" accept=".json,application/json" disabled={backupBusy} className="sr-only" onChange={e=>{void importBackup(e.target.files?.[0]);e.target.value='';}}/></label>
+        </div>
+        {backupError&&<p role="alert" className="text-xs text-rose-300">{backupError}</p>}
+        {backupNotice&&<p role="status" className="text-xs text-emerald-300">{backupNotice}</p>}
+        <p className="text-xs text-neutral-500">Guarde o arquivo em armazenamento protegido: ele pode conter informações comerciais e pessoais da empresa.</p>
+      </section>}
 
       <form onSubmit={save} className="space-y-5">
         <section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
