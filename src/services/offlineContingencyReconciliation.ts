@@ -43,6 +43,18 @@ export function preflightContingencyReconciliation(
       rejected.push({ id: entry.id, reason: 'Formato inválido' });
       continue;
     }
+    // Drafts are not settled payments. Restrict automatic eligibility to cash.
+    const payments = entry.payload.payments;
+    if (!Array.isArray(payments) || payments.length !== 1 ||
+        !payments[0] || typeof payments[0] !== 'object' ||
+        payments[0].method !== 'DINHEIRO' ||
+        typeof payments[0].amount !== 'number' || !Number.isFinite(payments[0].amount) ||
+        payments[0].amount <= 0 ||
+        entry.payload.idempotency_key !== entry.id ||
+        entry.payload.cash_session_id !== entry.cashSessionId) {
+      needsReview.push(entry);
+      continue;
+    }
     eligible.push(entry);
   }
   return { eligible, needsReview, rejected };
