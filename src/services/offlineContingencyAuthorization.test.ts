@@ -12,7 +12,7 @@ function grant(override: Partial<ContingencyTerminalGrant> = {}): ContingencyTer
 }
 
 // Pure contract tests; no production DB and no PIN material.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 
 describe('offline cash assignment metadata (not authorization)', () => {
   const now = new Date('2026-10-14T12:00:00.000Z');
