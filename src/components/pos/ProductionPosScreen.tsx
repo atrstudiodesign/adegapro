@@ -6,6 +6,7 @@ import {
   X, WalletCards, Store as StoreIcon, Cable, Wifi, WifiOff
 } from 'lucide-react';
 import { productionDb } from '../../services/productionDb';
+import { recordContingencyDraft } from '../../services/offlineContingencyJournal';
 import type { CashRegister, CashSession, Category, Customer, Product, Store, User } from '../../types';
 import { QuickSaleModal } from './QuickSaleModal';
 import { publishCustomerDisplay } from '../../services/desktopWindows';
@@ -40,6 +41,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [busy,setBusy]=useState(false);
   // A single checkout attempt keeps its idempotency key across retries.
   const checkoutIdRef=useRef<{fingerprint:string;id:string}|null>(null);
+  const offlineScopeRef=useRef<{tenantId:string;storeId:string}|null>(null);
   const [message,setMessage]=useState('');
   const [error,setError]=useState('');
   const [openingBalance,setOpeningBalance]=useState('100');
@@ -62,6 +64,8 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         productionDb.getIntegrationWebhookConfigs().catch(()=>[]),
         productionDb.getPixConfig().catch(()=>null)
       ]);
+      const scope=await productionDb.getContext();
+      offlineScopeRef.current={tenantId:scope.tenantId,storeId:scope.storeId};
       setProducts(p.filter(x=>x.status==='ACTIVE'));
       setCustomers(c);
       setCategories(cats.filter(x=>x.active));
@@ -180,6 +184,26 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
     const checkoutFingerprint=JSON.stringify({cashSessionId:currentSession.id,customerId:customerId||null,items:saleItems,payments:[{method,amount:paymentAmount,change:paymentChange}],surcharge:0});
     if(checkoutIdRef.current?.fingerprint!==checkoutFingerprint) checkoutIdRef.current={fingerprint:checkoutFingerprint,id:crypto.randomUUID()};
+    if(typeof navigator!=='undefined' && !navigator.onLine){
+      if(method!=='DINHEIRO'||customerId){setError('Offline: somente rascunho de dinheiro sem cliente. PIX, cartão e fiado exigem conexão.');return;}
+      const scope=offlineScopeRef.current;
+      if(!scope||!currentSession.cashRegisterId){setError('Identificação prévia da loja e caixa indisponível.');return;}
+      setBusy(true);setError('');setMessage('');
+      try{
+        await recordContingencyDraft({
+          id:checkoutIdRef.current.id,tenantId:scope.tenantId,storeId:scope.storeId,
+          operatorId:currentUser.id,cashRegisterId:currentSession.cashRegisterId,
+          cashSessionId:currentSession.id,createdAt:new Date().toISOString(),
+          kind:'SALE_DRAFT',status:'PENDING',payload:{
+            cash_session_id:currentSession.id,idempotency_key:checkoutIdRef.current.id,
+            customer_id:null,items:saleItems,payments:[{method:'DINHEIRO',amount:paymentAmount,change_amount:paymentChange,provider:'MANUAL'}],surcharge:0
+          }
+        });
+        setMessage('Rascunho salvo no computador. VENDA NÃO FINALIZADA: aguarda conferência e sincronização online. Não repita a operação.');
+      }catch(e:any){setError(e?.name==='ConstraintError'?'Esta operação já foi registrada localmente. Não repita.':e?.message||'Falha ao salvar rascunho offline.');}
+      finally{setBusy(false);}
+      return;
+    }
     setBusy(true);setError('');setMessage('');
     try{
       const id=await productionDb.finalizeSale({
