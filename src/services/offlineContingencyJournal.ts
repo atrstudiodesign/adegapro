@@ -97,3 +97,49 @@ export async function flagContingencyDraftForReview(
     };
   });
 }
+
+/** Export a scoped recovery copy without deleting any local entries. */
+export async function exportContingencyRecoveryFile(
+  tenantId: string,
+  storeId: string,
+): Promise<Blob> {
+  const entries = await listContingencyDrafts(tenantId, storeId);
+  const payload = {
+    format: 'ADEGA_PRO_OFFLINE_RECOVERY',
+    version: 1,
+    tenantId,
+    storeId,
+    exportedAt: new Date().toISOString(),
+    entries,
+  };
+  return new Blob([JSON.stringify(payload)], { type: 'application/json' });
+}
+
+/** Validate a recovery copy. This deliberately never imports or replays sales. */
+export function validateContingencyRecoveryFile(
+  raw: unknown,
+  tenantId: string,
+  storeId: string,
+): ContingencyEntry[] {
+  if (!raw || typeof raw !== 'object') throw new Error('Arquivo inválido.');
+  const file = raw as Record<string, unknown>;
+  if (file.format !== 'ADEGA_PRO_OFFLINE_RECOVERY' || file.version !== 1 ||
+      file.tenantId !== tenantId || file.storeId !== storeId || !Array.isArray(file.entries)) {
+    throw new Error('Backup offline incompatível ou pertencente a outra loja.');
+  }
+  const ids = new Set<string>();
+  for (const item of file.entries) {
+    if (!item || typeof item !== 'object' || typeof item.id !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(item.id) ||
+        ids.has(item.id) || item.tenantId !== tenantId || item.storeId !== storeId ||
+        !item.operatorId || !item.cashRegisterId || !item.cashSessionId ||
+        !Number.isFinite(Date.parse(item.createdAt)) ||
+        !['PENDING','REVIEW_REQUIRED'].includes(item.status) ||
+        !['SALE_DRAFT','CASH_MOVEMENT_DRAFT'].includes(item.kind) ||
+        !item.payload || typeof item.payload !== 'object' || Array.isArray(item.payload)) {
+      throw new Error('Arquivo contém registros inválidos ou duplicados.');
+    }
+    ids.add(item.id);
+  }
+  return file.entries as ContingencyEntry[];
+}
