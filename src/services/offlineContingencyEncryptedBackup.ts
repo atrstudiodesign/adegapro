@@ -71,7 +71,7 @@ export async function decryptOfflineRecovery(
   if (ciphertext.length < 16 || ciphertext.length > 50 * 1024 * 1024) throw new Error('Tamanho do arquivo inválido.');
   try {
     const key = await deriveKey(password, salt, ITERATIONS);
-    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv as BufferSource }, key, ciphertext as BufferSource);
     return validateContingencyRecoveryFile(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(decrypted)), tenantId, storeId);
   } catch {
     throw new Error('Não foi possível abrir o backup: senha incorreta, arquivo danificado ou dados de outra loja.');
