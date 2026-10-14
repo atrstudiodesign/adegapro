@@ -2,6 +2,8 @@ import React,{useEffect,useState} from 'react';
 import { CheckCircle2, Download, Upload, Gift, Moon, Printer, Save, Settings, SlidersHorizontal, Sun, Users } from 'lucide-react';
 import { db } from '../../services/db';
 import { productionDb } from '../../services/productionDb';
+import { listContingencyDrafts } from '../../services/offlineContingencyJournal';
+import { encryptOfflineRecovery, decryptOfflineRecovery } from '../../services/offlineContingencyEncryptedBackup';
 import type { AppMode } from '../../services/appMode';
 import type { Store } from '../../types';
 import { PageHeader,StatusBadge } from '../ui/ProUi';
@@ -17,6 +19,30 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
   const[backupBusy,setBackupBusy]=useState(false);
   const[backupNotice,setBackupNotice]=useState('');
   const[backupError,setBackupError]=useState('');
+  const[offlinePassword,setOfflinePassword]=useState('');
+  const exportEncryptedRecovery=async()=>{
+    setBackupBusy(true);setBackupError('');setBackupNotice('');
+    try{
+      const ctx=await productionDb.getContext();
+      const entries=await listContingencyDrafts(ctx.tenantId,ctx.storeId);
+      const blob=await encryptOfflineRecovery(entries,ctx.tenantId,ctx.storeId,offlinePassword);
+      const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;
+      link.download=`adega-contingencia-${ctx.storeId}-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+      setBackupNotice(`Backup criptografado preparado com ${entries.length} registro(s). Confirme o download e guarde a senha separadamente.`);
+    }catch(e:any){setBackupError(e?.message||'Falha ao exportar contingência.');}
+    finally{setBackupBusy(false);}
+  };
+  const validateEncryptedRecovery=async(file:File|undefined)=>{
+    if(!file)return;setBackupBusy(true);setBackupError('');setBackupNotice('');
+    try{
+      if(file.size>25*1024*1024)throw new Error('Arquivo excede 25 MB.');
+      const ctx=await productionDb.getContext();
+      const entries=await decryptOfflineRecovery(JSON.parse(await file.text()),ctx.tenantId,ctx.storeId,offlinePassword);
+      setBackupNotice(`Arquivo criptografado validado: ${entries.length} registro(s). Nenhuma venda foi lançada ou restaurada.`);
+    }catch(e:any){setBackupError(e?.message||'Falha ao validar arquivo criptografado.');}
+    finally{setBackupBusy(false);}
+  };
   const exportBackup=async()=>{
     setBackupBusy(true);setBackupError('');setBackupNotice('');
     try{
@@ -99,6 +125,19 @@ export const SettingsView:React.FC<{appMode?:AppMode}>=({appMode='DEMO'})=>{
         {backupError&&<p role="alert" className="text-xs text-rose-300">{backupError}</p>}
         {backupNotice&&<p role="status" className="text-xs text-emerald-300">{backupNotice}</p>}
         <p className="text-xs text-neutral-500">Guarde o arquivo em armazenamento protegido: ele pode conter informações comerciais e pessoais da empresa.</p>
+      </section>}
+
+      {appMode==='PRODUCTION'&&<section className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
+        <h2 className="font-black text-white">Recuperação local de contingência</h2>
+        <p className="text-xs text-neutral-400">Proteja uma cópia dos registros locais desta loja com uma senha. Esta operação não habilita vendas offline nem sincroniza o caixa.</p>
+        <label className="block text-xs text-neutral-300">Senha do arquivo (mínimo 12 caracteres)
+          <input type="password" autoComplete="new-password" value={offlinePassword} onChange={e=>setOfflinePassword(e.target.value)} className="input mt-2" placeholder="Senha para criptografar ou abrir backup"/>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" disabled={backupBusy||offlinePassword.length<12} onClick={()=>void exportEncryptedRecovery()} className="btn-secondary flex items-center gap-2"><Download size={15}/>Exportar contingência criptografada</button>
+          <label className="btn-secondary flex items-center gap-2 cursor-pointer"><Upload size={15}/>Validar arquivo criptografado<input type="file" accept=".json,application/json" disabled={backupBusy||offlinePassword.length<12} className="sr-only" onChange={e=>{void validateEncryptedRecovery(e.target.files?.[0]);e.target.value='';}}/></label>
+        </div>
+        <p className="text-xs text-amber-300">Sem a senha, o arquivo não poderá ser aberto. Validação não é restauração.</p>
       </section>}
 
       <form onSubmit={save} className="space-y-5">
