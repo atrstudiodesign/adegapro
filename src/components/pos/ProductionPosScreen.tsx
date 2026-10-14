@@ -38,6 +38,8 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [method,setMethod]=useState<PayMethod>('DINHEIRO');
   const [tendered,setTendered]=useState('');
   const [busy,setBusy]=useState(false);
+  // A single checkout attempt keeps its idempotency key across retries.
+  const checkoutIdRef=useRef<{fingerprint:string;id:string}|null>(null);
   const [message,setMessage]=useState('');
   const [error,setError]=useState('');
   const [openingBalance,setOpeningBalance]=useState('100');
@@ -176,12 +178,14 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     });
     if(remainingDiscountCents!==0){setError('Não foi possível distribuir o desconto entre os itens. Revise a venda.');return;}
 
+    const checkoutFingerprint=JSON.stringify({cashSessionId:currentSession.id,customerId:customerId||null,items:saleItems,payments:[{method,amount:paymentAmount,change:paymentChange}],surcharge:0});
+    if(checkoutIdRef.current?.fingerprint!==checkoutFingerprint) checkoutIdRef.current={fingerprint:checkoutFingerprint,id:crypto.randomUUID()};
     setBusy(true);setError('');setMessage('');
     try{
       const id=await productionDb.finalizeSale({
         cash_session_id:currentSession.id,
         customer_id:customerId||null,
-        idempotency_key:crypto.randomUUID(),
+        idempotency_key:checkoutIdRef.current.id,
         items:saleItems,
         payments:[{
           method,
@@ -197,6 +201,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         customer:selectedCustomer?.name||'Cliente Final',
         items:cart.map(l=>({name:l.product.name,quantity:l.quantity,unit:l.product.salePrice,total:l.product.salePrice*l.quantity}))
       });
+      checkoutIdRef.current=null;
       setMessage('Venda finalizada com sucesso.');
       setCart([]);setCustomerId('');setCustomerQuery('');setDiscount(0);setTendered('');setMethod('DINHEIRO');setPixStatus('PENDING');
       await load();

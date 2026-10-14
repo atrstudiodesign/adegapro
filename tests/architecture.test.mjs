@@ -130,7 +130,10 @@ describe("production architecture guards", () => {
   test("sale finalization remains server-side and idempotent", async () => {
     const pos = await readFile("src/components/pos/ProductionPosScreen.tsx", "utf8");
     const repo = await readFile("src/services/productionDb.ts", "utf8");
-    expect(pos).toContain("idempotency_key:crypto.randomUUID()");
+    expect(pos).toContain("const checkoutIdRef=useRef<{fingerprint:string;id:string}|null>(null)");
+    expect(pos).toContain("checkoutIdRef.current?.fingerprint!==checkoutFingerprint");
+    expect(pos).toContain("idempotency_key:checkoutIdRef.current.id");
+    expect(pos.indexOf("checkoutIdRef.current=null")).toBeGreaterThan(pos.indexOf("await productionDb.finalizeSale"));
     expect(repo).toContain("supabase.rpc('finalize_sale'");
     expect(repo).toContain("operator_session_token");
   });
