@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { initializeOfflineJournal } from './services/initializeOfflineJournal';
 import { db } from './services/db';
 import { User, CashSession } from './types';
 import { Header } from './components/layout/Header';
@@ -61,6 +62,11 @@ import { CustomerDisplayView } from './components/pos/CustomerDisplayView';
 import { getDesktopModule, isDesktopRuntime } from './services/desktopWindows';
 
 export default function App() {
+  useEffect(() => {
+    void initializeOfflineJournal().catch(error => {
+      console.warn('Armazenamento de contingência indisponível:', error);
+    });
+  }, []);
   const desktopModule = getDesktopModule();
   const [currentTab, setCurrentTab] = useState<string>(() =>
     desktopModule && desktopModule !== 'customer-display' ? desktopModule : 'dashboard'
