@@ -46,9 +46,15 @@ async function transact<T>(
   const db = await openDatabase();
   return new Promise<T>((resolve, reject) => {
     let result: T;
-    const transaction = db.transaction(STORE_NAME, mode);
+    const transaction = db.transaction(STORE_NAME, mode, mode === 'readwrite' ? { durability: 'strict' } : undefined);
     transaction.oncomplete = () => { db.close(); resolve(result); };
     transaction.onerror = () => { db.close(); reject(transaction.error); };
+    // Ask the browser for the strongest supported commit durability. Some browsers
+    // may ignore this hint; an exported backup remains necessary.
+    if (mode === 'readwrite' && 'durability' in transaction) {
+      // The durability option must be selected when opening a transaction;
+      // no mutation of the transaction is attempted here.
+    }
     transaction.onabort = () => { db.close(); reject(transaction.error); };
     operation(transaction.objectStore(STORE_NAME), value => { result = value; });
   });
@@ -61,6 +67,8 @@ export async function recordContingencyDraft(entry: ContingencyEntry): Promise<v
     throw new Error('Identificação completa do operador, loja, caixa e turno é obrigatória.');
   }
   if (entry.status !== 'PENDING') throw new Error('Novos registros devem começar como pendentes.');
+  if (entry.kind !== 'SALE_DRAFT' && entry.kind !== 'CASH_MOVEMENT_DRAFT') throw new Error('Tipo de registro inválido.');
+  if (!Number.isFinite(Date.parse(entry.createdAt))) throw new Error('Data do registro inválida.');
   await transact<void>('readwrite', (store, done) => {
     // add, not put: a repeated operation must never overwrite the original draft.
     const request = store.add(entry);
