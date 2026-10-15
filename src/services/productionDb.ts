@@ -1159,15 +1159,19 @@ async function getCashSessionDetails(sessionId:string) {
     paymentTotals[p.method]=(paymentTotals[p.method]||0)+Number(p.amount||0)-Number(p.change_amount||0);
   }));
 
-  // No fechamento simplificado os meios de pagamento são declarados no próprio
-  // turno, e não necessariamente vinculados a cada sale_payment. O histórico
-  // precisa preservar e exibir exatamente o que foi informado no fechamento.
-  if(session.closing_report_at){
-    paymentTotals.PIX=Number(session.closing_report_pix||0);
-    paymentTotals.DEBITO=Number(session.closing_report_debit||0);
-    paymentTotals.CREDITO=Number(session.closing_report_credit||0);
-    paymentTotals.DINHEIRO=Number(session.closing_report_cash||0);
-    paymentTotals.FIADO=Number(session.closing_report_fiado||paymentTotals.FIADO||0);
+  // Preserve confirmed sale payments separately from the amounts declared at closing.
+  // A legacy closing report may contain zeroes even when confirmed PIX/card
+  // payments exist. Never overwrite the ledger with those declarations.
+  const confirmedPaymentTotals: Record<string, number> = { ...paymentTotals };
+  const declaredPaymentTotals = session.closing_report_at ? {
+    DINHEIRO: Number(session.closing_report_cash || 0),
+    PIX: Number(session.closing_report_pix || 0),
+    DEBITO: Number(session.closing_report_debit || 0),
+    CREDITO: Number(session.closing_report_credit || 0),
+    FIADO: Number(session.closing_report_fiado || 0)
+  } : null;
+  for (const method of ['DINHEIRO', 'PIX', 'DEBITO', 'CREDITO', 'FIADO']) {
+    paymentTotals[method] = Number(paymentTotals[method] || 0);
   }
 
   // cash_sessions.total_sales é a fonte consolidada do turno. Mantemos a soma
@@ -1185,6 +1189,8 @@ async function getCashSessionDetails(sessionId:string) {
       total,
       averageTicket:paid.length?total/paid.length:0,
       paymentTotals,
+      confirmedPaymentTotals,
+      declaredPaymentTotals,
       closingReport: session.closing_report_at ? {
         pix:Number(session.closing_report_pix||0),
         debit:Number(session.closing_report_debit||0),
