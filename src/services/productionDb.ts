@@ -1241,7 +1241,7 @@ async function registerCashMovement(sessionId: string, type: 'SANGRIA'|'SUPRIMEN
 
 async function reverseCashMovement(movementId:string,reason:string){const token=getOperatorToken();if(!token)throw new Error('Sessão do operador não encontrada.');const {data,error}=await supabase.rpc('reverse_cash_movement_secure',{p_movement_id:movementId,p_operator_token:token,p_reason:reason});if(error)handleOperatorSessionError(error);return data as string;}
 
-async function closeCashSession(sessionId: string, countedCash: number, notes?: string) {
+async function closeCashSession(sessionId: string, countedCash: number, notes?: string, declared?: {pix:number;debit:number;credit:number;cash:number}) {
   const token = getOperatorToken();
   if (!token) throw new Error('Sessão do operador não encontrada.');
   // The backend requires a reconciled closing report before final closure.
@@ -1252,14 +1252,16 @@ async function closeCashSession(sessionId: string, countedCash: number, notes?: 
     .eq('id', sessionId)
     .single();
   if (sessionError) throw sessionError;
+  if (declared && Object.values(declared).some(v => !Number.isFinite(v) || v < 0)) throw new Error('Valores declarados inválidos.');
+  if (declared && cashSession.closing_report_at) throw new Error('Este turno já possui uma declaração de fechamento. Reabra a consulta e confira os valores antes de continuar.');
   if (!cashSession.closing_report_at) {
     const { error: reconciliationError } = await supabase.rpc('save_cash_closing_report_secure', {
       p_cash_session_id: sessionId,
       p_operator_token: token,
-      p_pix: Number(cashSession.total_pix_sales || 0),
-      p_debit: Number(cashSession.total_card_debit_sales || 0),
-      p_credit: Number(cashSession.total_card_credit_sales || 0),
-      p_cash: Number(cashSession.total_cash_sales || 0)
+      p_pix: declared ? declared.pix : Number(cashSession.total_pix_sales || 0),
+      p_debit: declared ? declared.debit : Number(cashSession.total_card_debit_sales || 0),
+      p_credit: declared ? declared.credit : Number(cashSession.total_card_credit_sales || 0),
+      p_cash: declared ? declared.cash : Number(cashSession.total_cash_sales || 0)
     });
     if (reconciliationError) handleOperatorSessionError(reconciliationError);
   }
