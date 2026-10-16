@@ -178,17 +178,7 @@ td:last-child{width:40%;text-align:center;font-weight:600}
     if(!currentSession)return;
     const countedCash=await askAmount('Contagem física do caixa','Dinheiro contado fisicamente no caixa','0');
     if(countedCash===null)return;
-    const declarations: {pix:number;debit:number;credit:number;cash:number} = {pix:0,debit:0,credit:0,cash:0};
-    for (const [key,label] of [['cash','Dinheiro'],['pix','PIX'],['debit','Cartão débito'],['credit','Cartão crédito']] as const) {
-      const declared=await askAmount('Recebimentos do turno',label+' recebido no turno (R$)','0');
-      if(declared===null)return;
-      declarations[key]=declared;
-    }
-    const sum=Object.values(declarations).reduce((a,b)=>a+b,0);
-    if(!confirm('Confirme os recebimentos declarados: Dinheiro '+money(declarations.cash)+' | PIX '+money(declarations.pix)+' | Débito '+money(declarations.debit)+' | Crédito '+money(declarations.credit)+' | Total '+money(sum)+'. Esses valores serão registrados na conciliação do turno.'))return;
-    const notes=(await adegaPrompt({title:'Observações do fechamento',message:'Informe eventuais diferenças ou ocorrências do turno. Não altere o valor contado para coincidir com o sistema.',label:'Observação (opcional)',confirmLabel:'Continuar'}))?.trim();
-    if(notes===undefined)return;
-    const result:any=await productionDb.closeCashSession(currentSession.id,countedCash,notes,declarations);
+    const result:any=await productionDb.closeCashSession(currentSession.id,countedCash);
     setFeedback(`Caixa fechado. Esperado físico: ${money(result?.expected_physical_cash)} · Contado: ${money(result?.counted_cash)} · Diferença física: ${money(result?.physical_cash_difference)}.`);
   });
 
