@@ -65,35 +65,36 @@ const Shell: React.FC<{
   );
 };
 
+const PromptDialog: React.FC<{ options: PromptOptions; finish: (value: string | null) => void }> = ({ options, finish }) => {
+  const [value, setValue] = useState(options.defaultValue ?? '');
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { inputRef.current?.focus(); inputRef.current?.select(); }, []);
+  const submit = (e: React.FormEvent) => { e.preventDefault(); finish(value); };
+  return (
+    <Shell title={options.title} message={options.message} tone={options.tone} onClose={() => finish(null)}>
+      <form onSubmit={submit} className="p-4 space-y-4">
+        {options.label && <label htmlFor="adega-dialog-input" className="block text-xs font-bold text-neutral-300">{options.label}</label>}
+        <input
+          id="adega-dialog-input"
+          ref={inputRef}
+          autoComplete="off"
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          placeholder={options.placeholder}
+          inputMode={options.inputMode}
+          className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm text-white outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10"
+        />
+        <div className="flex gap-2 pt-1">
+          <button type="button" onClick={() => finish(null)} className="flex-1 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs font-bold hover:bg-neutral-700">{options.cancelLabel || 'Cancelar'}</button>
+          <button type="submit" className="flex-[1.4] py-2.5 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black hover:bg-amber-400">{options.confirmLabel || 'Confirmar'}</button>
+        </div>
+      </form>
+    </Shell>
+  );
+};
+
 export const adegaPrompt = (options: PromptOptions): Promise<string | null> =>
-  mountDialog<string | null>((finish) => {
-    const PromptDialog = () => {
-      const [value, setValue] = useState(options.defaultValue ?? '');
-      const inputRef = useRef<HTMLInputElement>(null);
-      useEffect(() => { inputRef.current?.focus(); inputRef.current?.select(); }, []);
-      const submit = (e: React.FormEvent) => { e.preventDefault(); finish(value); };
-      return (
-        <Shell title={options.title} message={options.message} tone={options.tone} onClose={() => finish(null)}>
-          <form onSubmit={submit} className="p-4 space-y-4">
-            {options.label && <label className="block text-xs font-bold text-neutral-300">{options.label}</label>}
-            <input
-              ref={inputRef}
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              placeholder={options.placeholder}
-              inputMode={options.inputMode}
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-3 text-sm text-white outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10"
-            />
-            <div className="flex gap-2 pt-1">
-              <button type="button" onClick={() => finish(null)} className="flex-1 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-neutral-300 text-xs font-bold hover:bg-neutral-700">{options.cancelLabel || 'Cancelar'}</button>
-              <button type="submit" className="flex-[1.4] py-2.5 rounded-xl bg-amber-500 text-neutral-950 text-xs font-black hover:bg-amber-400">{options.confirmLabel || 'Confirmar'}</button>
-            </div>
-          </form>
-        </Shell>
-      );
-    };
-    return <PromptDialog/>;
-  });
+  mountDialog<string | null>((finish) => <PromptDialog options={options} finish={finish} />);
 
 export const adegaConfirm = (options: BaseOptions): Promise<boolean> =>
   mountDialog<boolean>((finish) => (
