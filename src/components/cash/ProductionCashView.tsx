@@ -188,10 +188,6 @@ td:last-child{width:40%;text-align:center;font-weight:600}
     if(!confirm('Confirme os recebimentos declarados: Dinheiro '+money(declarations.cash)+' | PIX '+money(declarations.pix)+' | Débito '+money(declarations.debit)+' | Crédito '+money(declarations.credit)+' | Total '+money(sum)+'. Esses valores serão registrados na conciliação do turno.'))return;
     const notes=(await adegaPrompt({title:'Observações do fechamento',message:'Informe eventuais diferenças ou ocorrências do turno. Não altere o valor contado para coincidir com o sistema.',label:'Observação (opcional)',confirmLabel:'Continuar'}))?.trim();
     if(notes===undefined)return;
-    const pin=(await adegaPrompt({title:'Confirmação final do fechamento',message:'O sistema conciliará automaticamente os pagamentos registrados. Digite seu PIN para confirmar o fechamento.',label:'PIN do operador',inputMode:'numeric',confirmLabel:'Confirmar e fechar'}))?.trim();
-    if(!pin)return;
-    const verified:any=await productionDb.verifyOperatorPin(currentSession.operatorId,pin);
-    if(!verified?.ok)throw new Error(verified?.code==='LOCKED'?'PIN bloqueado temporariamente por tentativas inválidas.':'PIN inválido. Fechamento não realizado.');
     const result:any=await productionDb.closeCashSession(currentSession.id,countedCash,notes,declarations);
     setFeedback(`Caixa fechado. Esperado físico: ${money(result?.expected_physical_cash)} · Contado: ${money(result?.counted_cash)} · Diferença física: ${money(result?.physical_cash_difference)}.`);
   });
