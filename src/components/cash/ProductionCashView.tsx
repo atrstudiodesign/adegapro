@@ -8,6 +8,8 @@ import { adegaPrompt } from '../ui/AdegaDialog';
 interface Props { currentUser: User; currentSession?: CashSession; onSessionUpdated: () => void | Promise<void>; }
 
 export const ProductionCashView: React.FC<Props> = ({ currentUser, currentSession, onSessionUpdated }) => {
+  const [closingOpen,setClosingOpen]=useState(false);
+  const [closingValues,setClosingValues]=useState({cash:'',pix:'',debit:'',credit:''});
   const [registers,setRegisters]=useState<CashRegister[]>([]);
   const [sessions,setSessions]=useState<CashSession[]>([]);
   const [movements,setMovements]=useState<CashMovement[]>([]);
@@ -175,14 +177,30 @@ td:last-child{width:40%;text-align:center;font-weight:600}
 
   const askAmount=async(title:string,label:string,def='0')=>{const raw=await adegaPrompt({title,label,defaultValue:def,inputMode:'decimal',confirmLabel:'Continuar'});if(raw===null)return null;const n=Number(raw.replace(',','.'));if(!Number.isFinite(n)||n<0)throw new Error('Valor inválido em '+label+'.');return n;};
   const close=()=>void run(async()=>{
-    if(!currentSession)return;
-    const countedCash=await askAmount('Contagem física do caixa','Dinheiro contado fisicamente no caixa','0');
-    if(countedCash===null)return;
-    const result:any=await productionDb.closeCashSession(currentSession.id,countedCash);
+    if(!currentSession)throw new Error('Nenhum caixa aberto.');
+    const parse=(raw:string,label:string)=>{
+      const normalized=raw.trim().replace(/\\s/g,'').replace(/\\./g,'').replace(',','.');
+      if(!normalized)throw new Error('Preencha o valor de '+label+'.');
+      const value=Number(normalized);
+      if(!Number.isFinite(value)||value<0)throw new Error('Valor inválido de '+label+'.');
+      return value;
+    };
+    const declared={cash:parse(closingValues.cash,'dinheiro'),pix:parse(closingValues.pix,'PIX'),debit:parse(closingValues.debit,'débito'),credit:parse(closingValues.credit,'crédito')};
+    const result:any=await productionDb.closeCashSession(currentSession.id,declared.cash,undefined,declared);
+    setClosingOpen(false);
     setFeedback(`Caixa fechado. Esperado físico: ${money(result?.expected_physical_cash)} · Contado: ${money(result?.counted_cash)} · Diferença física: ${money(result?.physical_cash_difference)}.`);
   });
 
   return <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto space-y-5">
+    {closingOpen && currentSession && <div className="fixed inset-0 z-[210] bg-black/80 grid place-items-center p-4" role="dialog" aria-modal="true" aria-label="Contagem de fechamento de caixa">
+      <form onSubmit={e=>{e.preventDefault();close();}} className="w-full max-w-lg rounded-2xl border border-neutral-700 bg-neutral-900 p-5 space-y-4 text-white">
+        <h2 className="text-lg font-bold">Contagem do fechamento</h2>
+        <p className="text-xs text-neutral-400">Informe os valores contados de cada forma de pagamento. O fechamento será enviado diretamente, sem uma segunda confirmação.</p>
+        <div className="grid grid-cols-2 gap-3">{([['cash','Dinheiro'],['pix','PIX'],['debit','Débito'],['credit','Crédito']] as const).map(([key,label])=><label key={key} className="text-sm font-semibold space-y-1"><span>{label} (R$)</span><input required autoFocus={key==='cash'} inputMode="decimal" type="text" placeholder="0,00" value={closingValues[key]} onChange={e=>setClosingValues(prev=>({...prev,[key]:e.target.value}))} className="w-full rounded-xl bg-neutral-950 border border-neutral-600 p-3 text-white outline-none focus:border-amber-400"/></label>)}</div>
+        {error&&<p className="text-sm text-rose-400" role="alert">{error}</p>}
+        <div className="flex gap-3"><button type="button" disabled={busy} onClick={()=>setClosingOpen(false)} className="flex-1 rounded-xl bg-neutral-700 p-3">Cancelar</button><button type="submit" disabled={busy} className="flex-1 rounded-xl bg-amber-500 p-3 font-bold text-neutral-950 disabled:opacity-50">{busy?'Fechando...':'Fechar caixa'}</button></div>
+      </form>
+    </div>}
     <PageHeader eyebrow="Frente de loja" title="Caixa & sessões" description="Abertura, fechamento, sangria, suprimento e histórico com trilha auditada." actions={<button disabled={busy} onClick={()=>void load()} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs text-neutral-300 flex items-center gap-2"><RefreshCw size={14}/>Atualizar</button>}/>
     {error&&<div className="p-3 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-300 text-xs">{error}</div>}
     {feedback&&<div className="p-3 rounded-xl border border-emerald-800 bg-emerald-950/40 text-emerald-300 text-xs">{feedback}</div>}
@@ -191,7 +209,7 @@ td:last-child{width:40%;text-align:center;font-weight:600}
       <div className="flex flex-wrap items-center justify-between gap-3"><div><div className="font-black text-white">{currentSession.cashRegisterNumber} · ABERTO</div><div className="text-xs text-neutral-500">Operador: {currentSession.operatorName}</div></div><div className="text-right"><div className="text-[10px] text-neutral-500 uppercase">Vendas do turno</div><div className="text-2xl font-black text-amber-400">{money(currentSession.totalSales)}</div></div></div>
       <div className="grid grid-cols-2 gap-3"><MetricCard label="Vendas" value={money(currentSession.totalSales)} icon={Receipt} tone="emerald"/><MetricCard label="Sangria" value={money(currentSession.totalSangrias)} icon={ArrowUpRight} tone="violet"/></div>
 
-      <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-neutral-800"><button disabled={busy} onClick={()=>movement('SANGRIA')} className="px-4 py-2.5 rounded-xl border border-rose-800 bg-rose-950/30 text-rose-300 text-xs font-bold flex items-center justify-center gap-2"><ArrowUpRight size={15}/>Sangria</button><button disabled={busy} onClick={()=>movement('SUPRIMENTO')} className="px-4 py-2.5 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-2"><ArrowDownLeft size={15}/>Suprimento</button><button disabled={busy} onClick={close} className="sm:ml-auto px-4 py-2.5 rounded-xl bg-rose-600 disabled:opacity-40 text-white text-xs font-black flex items-center justify-center gap-2"><Lock size={15}/>Contar e fechar caixa</button></div>
+      <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-neutral-800"><button disabled={busy} onClick={()=>movement('SANGRIA')} className="px-4 py-2.5 rounded-xl border border-rose-800 bg-rose-950/30 text-rose-300 text-xs font-bold flex items-center justify-center gap-2"><ArrowUpRight size={15}/>Sangria</button><button disabled={busy} onClick={()=>movement('SUPRIMENTO')} className="px-4 py-2.5 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-2"><ArrowDownLeft size={15}/>Suprimento</button><button disabled={busy} onClick={()=>setClosingOpen(true)} className="sm:ml-auto px-4 py-2.5 rounded-xl bg-rose-600 disabled:opacity-40 text-white text-xs font-black flex items-center justify-center gap-2"><Lock size={15}/>Contar e fechar caixa</button></div>
     </div>}
     <div className="grid lg:grid-cols-2 gap-4">
       <section className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800"><h2 className="text-sm font-bold text-white mb-3">Movimentações</h2><div className="space-y-2">{movements.length===0?<p className="text-xs text-neutral-500">Nenhuma movimentação.</p>:movements.map(m=><div key={m.id} className="flex items-center justify-between gap-3 text-xs border-b border-neutral-800 pb-2"><span className={m.type==='SANGRIA'?'text-rose-300':'text-emerald-300'}>{m.type} · {m.reason}</span><div className="flex items-center gap-2"><strong>R$ {m.amount.toFixed(2)}</strong>{!String(m.reason||'').startsWith('ESTORNO:')&&currentSession?.status==='ABERTO'&&<button disabled={busy} onClick={()=>reverseMovement(m)} className="px-2 py-1 rounded-lg border border-amber-800 text-amber-300 text-[10px] font-black">ESTORNAR</button>}</div></div>)}</div></section>
