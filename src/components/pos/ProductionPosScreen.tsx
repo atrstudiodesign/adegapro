@@ -31,6 +31,12 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [store,setStore]=useState<Store|undefined>();
   const [selectedCategory,setSelectedCategory]=useState('ALL');
   const [query,setQuery]=useState('');
+  const [sortBy,setSortBy]=useState('name');
+  const [brandFilter,setBrandFilter]=useState('ALL');
+  const [stockFilter,setStockFilter]=useState('ALL');
+  const [priceFilter,setPriceFilter]=useState('ALL');
+  const [productView,setProductView]=useState<'grid'|'list'>('grid');
+  const [showIntegrations,setShowIntegrations]=useState(false);
   const [customerQuery,setCustomerQuery]=useState('');
   const [showCustomerResults,setShowCustomerResults]=useState(false);
   const [cart,setCart]=useState<Line[]>([]);
@@ -87,8 +93,14 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     }else if(selectedCategory!=='ALL'){
       base=products.filter(p=>p.categoryId===selectedCategory);
     }
-    return base.slice(0,36);
-  },[query,products,selectedCategory]);
+    if(brandFilter!=='ALL')base=base.filter(p=>p.brand===brandFilter);
+    if(stockFilter==='IN_STOCK')base=base.filter(p=>p.isCombo||p.currentStock>0);
+    if(stockFilter==='LOW')base=base.filter(p=>!p.isCombo&&p.currentStock>0&&p.currentStock<=5);
+    if(priceFilter==='UNDER_20')base=base.filter(p=>p.salePrice<20);
+    if(priceFilter==='20_50')base=base.filter(p=>p.salePrice>=20&&p.salePrice<=50);
+    if(priceFilter==='OVER_50')base=base.filter(p=>p.salePrice>50);
+    return [...base].sort((a,b)=>sortBy==='price_asc'?a.salePrice-b.salePrice:sortBy==='price_desc'?b.salePrice-a.salePrice:a.name.localeCompare(b.name,'pt-BR'));
+  },[query,products,selectedCategory,sortBy,brandFilter,stockFilter,priceFilter]);
 
   const filteredCustomers=useMemo(()=>{
     const q=normalizeSearch(customerQuery);
@@ -348,7 +360,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
       </div>
     </div>}
 
-    <div className="h-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_490px] overflow-y-auto xl:overflow-hidden">
+    <div className="h-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(350px,27%)] overflow-y-auto xl:overflow-hidden">
       <section className="min-w-0 p-3 sm:p-4 xl:overflow-y-auto border-r border-neutral-800/80">
         <div className="flex gap-3">
           <div className="relative flex-1">
@@ -363,8 +375,8 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         {message&&<div className="mt-3 p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{message}</div>}
 
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-          <button onClick={()=>onNavigate('integrations')} className="shrink-0 h-9 px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 flex items-center gap-2 text-[10px] font-black"><Cable size={13}/>Integrações</button>
-          {integrationProviders.map(p=>{const s=integrationStatus(p.id);return <button key={p.id} onClick={()=>onNavigate('integrations')} className={`shrink-0 h-9 px-3 rounded-lg border flex items-center gap-2 text-[9px] font-black ${s.online?'border-emerald-700/60 bg-emerald-950/30 text-emerald-300':s.active?'border-amber-700/60 bg-amber-950/30 text-amber-300':'border-neutral-800 bg-neutral-900 text-neutral-500'}`}>{s.online?<Wifi size={12}/>:<WifiOff size={12}/>}<span>{p.label}</span><span className="opacity-70">{s.label}</span></button>})}
+          <button onClick={()=>setShowIntegrations(v=>!v)} className="shrink-0 h-9 px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 flex items-center gap-2 text-[10px] font-black"><Cable size={13}/>Integrações</button>
+          {showIntegrations&&integrationProviders.map(p=>{const s=integrationStatus(p.id);return <button key={p.id} onClick={()=>onNavigate('integrations')} className={`shrink-0 h-9 px-3 rounded-lg border flex items-center gap-2 text-[9px] font-black ${s.online?'border-emerald-700/60 bg-emerald-950/30 text-emerald-300':s.active?'border-amber-700/60 bg-amber-950/30 text-amber-300':'border-neutral-800 bg-neutral-900 text-neutral-500'}`}>{s.online?<Wifi size={12}/>:<WifiOff size={12}/>}<span>{p.label}</span><span className="opacity-70">{s.label}</span></button>})}
         </div>
 
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -372,20 +384,28 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
           {categories.map(cat=><button key={cat.id} onClick={()=>setSelectedCategory(cat.id)} className={`shrink-0 px-5 h-11 rounded-xl border text-xs font-bold ${selectedCategory===cat.id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200'}`}>{cat.name}</button>)}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="mt-3 flex flex-wrap gap-2 items-center text-xs">
+          <label className="flex items-center gap-1 text-neutral-400">Ordenar <select aria-label="Ordenar produtos" value={sortBy} onChange={e=>setSortBy(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="name">Nome A–Z</option><option value="price_asc">Menor preço</option><option value="price_desc">Maior preço</option></select></label>
+          <label className="flex items-center gap-1 text-neutral-400">Marca <select aria-label="Filtrar marca" value={brandFilter} onChange={e=>setBrandFilter(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="ALL">Todas</option>{[...new Set(products.map(p=>p.brand).filter(Boolean))].sort().map(b=><option key={b} value={b}>{b}</option>)}</select></label>
+          <label className="flex items-center gap-1 text-neutral-400">Estoque <select aria-label="Filtrar estoque" value={stockFilter} onChange={e=>setStockFilter(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="ALL">Todos</option><option value="IN_STOCK">Disponível</option><option value="LOW">Baixo (até 5)</option></select></label>
+          <label className="flex items-center gap-1 text-neutral-400">Preço <select aria-label="Filtrar preço" value={priceFilter} onChange={e=>setPriceFilter(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="ALL">Todos</option><option value="UNDER_20">Até R$ 20</option><option value="20_50">R$ 20–50</option><option value="OVER_50">Acima de R$ 50</option></select></label>
+          <div className="ml-auto flex rounded-lg border border-neutral-700 overflow-hidden"><button onClick={()=>setProductView('grid')} className={`px-3 py-2 ${productView==='grid'?'bg-amber-400 text-black':'bg-[#10151b]'}`}>▦ Grade</button><button onClick={()=>setProductView('list')} className={`px-3 py-2 ${productView==='list'?'bg-amber-400 text-black':'bg-[#10151b]'}`}>☷ Lista</button></div>
+        </div>
+        <div className={`mt-3 grid gap-2 ${productView==='list'?'grid-cols-1 sm:grid-cols-2':'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5'}`}>
+
           {visibleProducts.map(p=>{
             const unavailable=!p.isCombo&&p.currentStock<=0;
             return <div key={p.id} className={`rounded-xl bg-[#0d1217] border border-neutral-800 overflow-hidden ${unavailable?'opacity-40':''}`}>
-              <button disabled={unavailable} onClick={()=>add(p)} className="w-full text-left">
-                <div className="aspect-[1.05/1] bg-[#0b0f13] grid place-items-center overflow-hidden">
-                  {p.imageUrl?<img src={p.imageUrl} alt={p.name} className="w-full h-full object-contain p-3" loading="lazy"/>:<Package size={34} className="text-neutral-700"/>}
+              <button disabled={unavailable} onClick={()=>add(p)} className="w-full text-left flex items-center min-h-[126px]">
+                <div className="w-[76px] h-[112px] shrink-0 bg-[#0b0f13] grid place-items-center overflow-hidden">
+                  {p.imageUrl?<img src={p.imageUrl} alt={p.name} className="w-full h-full object-contain p-1.5" loading="lazy"/>:<Package size={34} className="text-neutral-700"/>}
                 </div>
-                <div className="p-3">
-                  <div className="text-sm font-semibold leading-tight min-h-[2.25rem] line-clamp-2">{p.name}</div>
+                <div className="p-2 min-w-0 flex-1">
+                  <div className="text-xs font-semibold leading-tight min-h-[2rem] line-clamp-2">{p.name}</div>
                   <div className="text-[10px] text-neutral-500 mt-1">{p.packageSize||p.brand||p.sku}</div>
-                  <div className="mt-3 flex items-center justify-between gap-2">
-                    <span className="text-base font-black text-amber-400">{money(p.salePrice)}</span>
-                    <span className="w-8 h-8 rounded-lg bg-amber-400 text-neutral-950 grid place-items-center"><Plus size={17} strokeWidth={3}/></span>
+                  <div className="mt-2 flex items-center justify-between gap-1">
+                    <span className="text-sm font-black text-amber-400">{money(p.salePrice)}</span>
+                    <span className="w-7 h-7 shrink-0 rounded-lg bg-amber-400 text-neutral-950 grid place-items-center"><Plus size={17} strokeWidth={3}/></span>
                   </div>
                 </div>
               </button>
@@ -429,7 +449,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
             <div className="flex justify-between items-end pt-2"><span className="text-lg font-black">Total</span><span className="text-2xl font-black text-amber-400">{money(total)}</span></div>
           </div>
 
-          <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-3 text-xs text-emerald-300 font-bold">A forma de recebimento será informada somente no fechamento do caixa.</div>
+          <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-2 text-[10px] text-emerald-300 font-bold">A forma de recebimento será informada somente no fechamento do caixa.</div>
           <label className="block mt-3 text-[10px] text-neutral-400">Desconto<input type="number" min="0" step="0.01" value={discount||''} onChange={e=>setDiscount(Number(e.target.value)||0)} className="mt-1 w-full h-9 rounded-lg border border-neutral-700 bg-[#11171d] px-3 text-xs outline-none focus:border-amber-400"/></label>
 
           <button disabled={busy||cart.length===0||!currentSession} onClick={()=>void finalize()} className="mt-3 w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black text-sm disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center gap-2"><CheckCircle2 size={18}/>{busy?'PROCESSANDO...':'Finalizar Venda (F9)'}</button>
