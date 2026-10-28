@@ -783,6 +783,25 @@ async function getMultiStoreOverview() {
   });
 }
 
+
+// Full-history, store-scoped reporting. Pagination avoids silently truncating at 200 rows.
+async function getReportSales() {
+  const ctx = await getContext();
+  const all: any[] = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.from('sales')
+      .select('id,total,status,created_at')
+      .eq('tenant_id', ctx.tenantId).eq('store_id', ctx.storeId)
+      .order('created_at', { ascending: false }).order('id', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    all.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+  return all;
+}
+
 async function getSales(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -1428,6 +1447,7 @@ export const productionDb = {
   getDashboardAnalytics,
   getMultiStoreOverview,
   getSales,
+  getReportSales,
   getSaleDetails,
   updateSalePaymentMethod,
   cancelSale,
