@@ -10,7 +10,7 @@ const money=(v:any)=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionD
 const isHrRow=(r:any)=>r?.category==='RH'||r?.source==='RH'||r?.source==='RH_MANUAL';
 
 export const ProductionFinanceView:React.FC=()=>{
-  const[rows,setRows]=useState<any[]>([]);
+  const[rows,setRows]=useState<any[]>([]);const[cashHistory,setCashHistory]=useState<any[]>([]);const[fromDate,setFromDate]=useState('');const[toDate,setToDate]=useState('');
   const[payables,setPayables]=useState<any[]>([]);
   const[receivables,setReceivables]=useState<any[]>([]);
   const[hrSnapshot,setHrSnapshot]=useState<any>(null);
@@ -35,11 +35,11 @@ export const ProductionFinanceView:React.FC=()=>{
     setBusy(true);setError('');
     try{
       const base=await Promise.all([
-        productionDb.getFinancialTransactions(),
+        productionDb.getFinancialHistory(),
         productionDb.getAccountsPayable(),
         productionDb.getAccountsReceivable()
       ]);
-      setRows(base[0]);setPayables(base[1]);setReceivables(base[2]);
+      setRows(base[0]);setPayables(base[1]);setReceivables(base[2]);setCashHistory(await productionDb.getCashSessionHistory());
       if(canSeeHr){
         try{setHrSnapshot(await productionDb.getHrSnapshot());}
         catch{setHrSnapshot(null);}
@@ -50,6 +50,7 @@ export const ProductionFinanceView:React.FC=()=>{
   useEffect(()=>{void load();},[]);
 
   const totals=useMemo(()=>rows.reduce((a,r)=>{const v=Number(r.amount||0);if(r.transaction_type==='RECEITA')a.receita+=v;else a.despesa+=v;return a;},{receita:0,despesa:0}),[rows]);
+  const cashMetrics=useMemo(()=>{const included=cashHistory.filter(x=>{const t=new Date(x.opened_at).getTime();return (!fromDate||t>=new Date(fromDate+'T00:00:00').getTime())&&(!toDate||t<new Date(toDate+'T00:00:00').getTime()+86400000);});const closed=included.filter(x=>x.status==='FECHADO');const discrepancies=closed.filter(x=>x.cash_difference!==null&&Math.abs(Number(x.cash_difference))>=0.01);return{count:included.length,closed:closed.length,discrepancies:discrepancies.length,shortfall:discrepancies.filter(x=>Number(x.cash_difference)<0).reduce((s,x)=>s+Math.abs(Number(x.cash_difference)),0),surplus:discrepancies.filter(x=>Number(x.cash_difference)>0).reduce((s,x)=>s+Number(x.cash_difference),0),sessions:discrepancies};},[cashHistory,fromDate,toDate]);
   const hrRows=useMemo(()=>rows.filter(isHrRow),[rows]);
   const normalRows=useMemo(()=>rows.filter(r=>!isHrRow(r)),[rows]);
   const filteredRows=useMemo(()=>{
@@ -60,13 +61,15 @@ export const ProductionFinanceView:React.FC=()=>{
     return normalRows.filter(r=>{
       const ts=new Date(r.created_at).getTime();
       if(!Number.isFinite(ts)||ts<start||ts>=end)return false;
+      if(fromDate&&ts<new Date(fromDate+'T00:00:00').getTime())return false;
+      if(toDate&&ts>=new Date(toDate+'T00:00:00').getTime()+86400000)return false;
       if(typeFilter==='RECEITA'&&r.transaction_type!=='RECEITA')return false;
       if(typeFilter==='DESPESA'&&r.transaction_type!=='DESPESA')return false;
       if(typeFilter==='VENDA'&&r.source!=='VENDA')return false;
       if(q&&!([r.description,r.operator_name,r.source,r.amount,r.id].some(v=>String(v??'').toLocaleLowerCase('pt-BR').includes(q))))return false;
       return true;
     });
-  },[normalRows,period,typeFilter,search]);
+  },[normalRows,period,typeFilter,search,fromDate,toDate]);
   const filteredTotals=useMemo(()=>filteredRows.reduce((a,r)=>{const v=Number(r.amount||0);if(r.transaction_type==='RECEITA')a.receita+=v;else a.despesa+=v;return a;},{receita:0,despesa:0}),[filteredRows]);
   const groups=useMemo(()=>{
     const grouped=new Map<string,{key:string;date:string;operator:string;source:string;type:string;amount:number;rows:any[]}>();
@@ -89,7 +92,7 @@ export const ProductionFinanceView:React.FC=()=>{
   const toggleGroup=(key:string)=>setExpandedGroups(prev=>prev.includes(key)?prev.filter(x=>x!==key):[...prev,key]);
   const exportCsv=()=>{
     const cells=[['Data','Usuario','Descricao','Origem','Tipo','Valor'],...filteredRows.map(r=>[new Date(r.created_at).toLocaleString('pt-BR'),r.operator_name||'Sistema',r.description||'',r.source||'',r.transaction_type||'',Number(r.amount||0).toFixed(2).replace('.',',')])];
-    const csv='\uFEFF'+cells.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\\r\\n');
+    const csv='\uFEFF'+cells.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
     const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='adega-extrato-financeiro.csv';link.click();URL.revokeObjectURL(url);
   };
@@ -155,6 +158,12 @@ export const ProductionFinanceView:React.FC=()=>{
       <MetricCard label="A receber" value={money(ar)} icon={WalletCards} tone="violet"/>
     </div>
 
+    <section className="rounded-2xl border border-neutral-700 p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-black">Histórico financeiro e conferência de caixa</h2><p className="text-xs text-neutral-400">Consulta desde o primeiro registro da loja, com filtro por datas e exportação do extrato filtrado.</p></div><button onClick={exportCsv} className="px-4 py-2 rounded-lg border border-neutral-600 text-xs font-bold">Exportar CSV filtrado</button></div>
+      <div className="flex flex-wrap gap-3 items-end"><label className="text-xs">De<input type="date" value={fromDate} onChange={e=>{setFromDate(e.target.value);changeFilters();}} className="input block mt-1"/></label><label className="text-xs">Até<input type="date" value={toDate} onChange={e=>{setToDate(e.target.value);changeFilters();}} className="input block mt-1"/></label><button onClick={()=>{setFromDate('');setToDate('');setPeriod('all');changeFilters();}} className="px-3 py-2 rounded-lg border border-neutral-700 text-xs">Todo o histórico</button></div>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3"><MetricCard label="Caixas registrados" value={cashMetrics.count} icon={WalletCards}/><MetricCard label="Caixas fechados" value={cashMetrics.closed} icon={ShieldCheck}/><MetricCard label="Caixas com diferença" value={cashMetrics.discrepancies} icon={AlertTriangle} tone={cashMetrics.discrepancies?'rose':'emerald'}/><MetricCard label="Quebras (faltas)" value={money(cashMetrics.shortfall)} icon={ArrowDownCircle} tone="rose"/><MetricCard label="Sobras" value={money(cashMetrics.surplus)} icon={ArrowUpCircle} tone="emerald"/></div>
+      {cashMetrics.sessions.length>0&&<div className="overflow-x-auto max-h-64 overflow-y-auto"><table className="w-full text-xs min-w-[650px]"><thead><tr className="text-neutral-400"><th className="text-left p-2">Abertura</th><th className="text-right p-2">Esperado</th><th className="text-right p-2">Contado</th><th className="text-right p-2">Diferença</th><th className="text-left p-2">Caixa ID</th></tr></thead><tbody>{cashMetrics.sessions.map(x=><tr key={x.id} className="border-t border-neutral-800"><td className="p-2">{new Date(x.opened_at).toLocaleString('pt-BR')}</td><td className="p-2 text-right">{money(x.expected_cash)}</td><td className="p-2 text-right">{money(x.counted_cash)}</td><td className="p-2 text-right font-bold">{money(x.cash_difference)}</td><td className="p-2 font-mono">{x.id.slice(0,8)}</td></tr>)}</tbody></table></div>}
+    </section>
     <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 overflow-hidden">
       <div className="p-4 border-b border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex gap-3 items-start">

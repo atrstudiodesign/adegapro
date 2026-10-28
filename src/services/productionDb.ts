@@ -892,6 +892,40 @@ async function adjustStock(productId: string, quantity: number, reason: string) 
   return data;
 }
 
+
+async function getFinancialHistory() {
+  const ctx = await getContext();
+  const all: any[] = [];
+  const size = 500;
+  for (let offset=0;;offset+=size) {
+    const {data,error}=await supabase.from('financial_transactions').select('*')
+      .eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId)
+      .order('created_at',{ascending:false}).order('id',{ascending:false})
+      .range(offset,offset+size-1);
+    if(error) throw error;
+    all.push(...(data||[]));
+    if(!data||data.length<size) break;
+  }
+  return all;
+}
+
+async function getCashSessionHistory() {
+  const ctx=await getContext();
+  const all:any[]=[];
+  const size=500;
+  for(let offset=0;;offset+=size){
+    const {data,error}=await supabase.from('cash_sessions')
+      .select('id,opened_at,closed_at,status,initial_balance,expected_cash,counted_cash,cash_difference,total_sales,total_withdrawals,total_supplies,total_expenses')
+      .eq('tenant_id',ctx.tenantId).eq('store_id',ctx.storeId)
+      .order('opened_at',{ascending:false}).order('id',{ascending:false})
+      .range(offset,offset+size-1);
+    if(error)throw error;
+    all.push(...(data||[]));
+    if(!data||data.length<size)break;
+  }
+  return all;
+}
+
 async function getFinancialTransactions(limit = 300) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -1495,6 +1529,8 @@ export const productionDb = {
   getStockMovements,
   adjustStock,
   getFinancialTransactions,
+  getFinancialHistory,
+  getCashSessionHistory,
   getAuditLogs,
   getPixConfig,
   savePixConfig,
