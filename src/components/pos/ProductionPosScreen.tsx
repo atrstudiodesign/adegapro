@@ -427,7 +427,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
             {showCustomerResults&&customerQuery&&<div className="absolute left-0 right-0 top-full mt-1 z-30 rounded-xl border border-neutral-700 bg-[#0c1116] shadow-2xl overflow-hidden">
               {filteredCustomers.map(c=><button key={c.id} onClick={()=>{setCustomerId(c.id);setCustomerQuery(c.name);setShowCustomerResults(false)}} className="w-full p-3 text-left hover:bg-neutral-800 border-b border-neutral-800 last:border-b-0"><div className="text-xs font-bold">{c.name}</div><div className="text-[10px] text-neutral-500">{c.phone||c.whatsapp||c.cpf||'Sem contato'}</div></button>)}
             </div>}
-          </div>
+          </div>}
           <div className="mt-2 p-2.5 rounded-lg border border-neutral-800 bg-[#0a0f14] flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-neutral-800 grid place-items-center"><UserRound size={18}/></div>
             <div className="min-w-0 flex-1"><div className="text-xs font-black truncate">{selectedCustomer?.name||'+ Cliente Final'}</div><div className="text-[10px] text-neutral-500 truncate">{selectedCustomer?(selectedCustomer.cpf||selectedCustomer.phone||'Cliente cadastrado'):'Consumidor não identificado'}</div></div>
