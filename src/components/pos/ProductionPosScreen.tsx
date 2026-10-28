@@ -433,7 +433,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
         <section className="mt-3 rounded-xl border border-neutral-800 bg-[#0d1217] p-3">
           <div className="flex items-center justify-between"><h2 className="text-sm font-black">Carrinho de Vendas <span className="text-neutral-400 font-normal">({cart.reduce((s,l)=>s+l.quantity,0)} itens)</span></h2><button onClick={()=>setCart([])} className="px-2.5 py-1.5 rounded-lg border border-neutral-700 text-[10px] font-black flex items-center gap-1"><Trash2 size={12}/>Limpar</button></div>
-          <div className="mt-2 divide-y divide-neutral-800">
+          <div className="mt-2 divide-y divide-neutral-800 max-h-[35vh] overflow-y-auto">
             {cart.length===0?<div className="py-10 text-center text-neutral-600 text-xs">Adicione produtos ao carrinho.</div>:cart.map(l=><div key={l.product.id} className="py-2 flex items-center gap-2">
               <div className="w-10 h-10 rounded-lg bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0">{l.product.imageUrl?<img src={l.product.imageUrl} alt="" className="w-full h-full object-contain p-1"/>:<Package size={18} className="m-2.5 text-neutral-700"/>}</div>
               <div className="min-w-0 flex-1"><div className="text-xs font-semibold truncate">{l.product.name}</div><div className="text-[9px] text-neutral-500">SKU: {l.product.sku||'—'}</div></div>
@@ -449,9 +449,15 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
             <div className="flex justify-between items-end pt-2"><span className="text-lg font-black">Total</span><span className="text-2xl font-black text-amber-400">{money(total)}</span></div>
           </div>
 
-          <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-2 text-[10px] text-emerald-300 font-bold">A forma de recebimento será informada somente no fechamento do caixa.</div>
+          <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-2 text-[10px] text-emerald-300 font-bold">Selecione a forma de recebimento antes de finalizar a venda.</div>
           <label className="block mt-3 text-[10px] text-neutral-400">Desconto<input type="number" min="0" step="0.01" value={discount||''} onChange={e=>setDiscount(Number(e.target.value)||0)} className="mt-1 w-full h-9 rounded-lg border border-neutral-700 bg-[#11171d] px-3 text-xs outline-none focus:border-amber-400"/></label>
 
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <button onClick={()=>setMethod('DINHEIRO')} className={`rounded-lg border p-2 text-xs font-bold ${method==='DINHEIRO'?'bg-emerald-800 border-emerald-400':'border-neutral-700'}`}><Banknote size={17} className="mx-auto mb-1"/>Dinheiro</button>
+            <button onClick={()=>setCardOpen(true)} className={`rounded-lg border p-2 text-xs font-bold ${method==='DEBITO'||method==='CREDITO'?'bg-blue-800 border-blue-400':'border-neutral-700'}`}><CreditCard size={17} className="mx-auto mb-1"/>Cartão</button>
+            <button onClick={()=>{setMethod('PIX');setPixStatus('PENDING');setPixOpen(true)}} className={`rounded-lg border p-2 text-xs font-bold ${method==='PIX'?'bg-cyan-800 border-cyan-400':'border-neutral-700'}`}><QrCode size={17} className="mx-auto mb-1"/>PIX</button>
+          </div>
+          {method==='DINHEIRO'&&<label className="block mt-2 text-xs text-neutral-400">Valor recebido<input value={tendered} onChange={e=>setTendered(e.target.value)} inputMode="decimal" placeholder={money(total)} className="mt-1 w-full h-9 rounded-lg border border-neutral-700 bg-[#10151b] px-3 text-white"/>{tendered&&<span className="block mt-1 text-emerald-400">Troco: {money(change)}</span>}</label>}
           <button disabled={busy||cart.length===0||!currentSession} onClick={()=>void finalize()} className="mt-3 w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black text-sm disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center gap-2"><CheckCircle2 size={18}/>{busy?'PROCESSANDO...':'Finalizar Venda (F9)'}</button>
         </section>
 
