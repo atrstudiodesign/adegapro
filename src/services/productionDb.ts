@@ -802,6 +802,45 @@ async function getReportSales() {
   return all;
 }
 
+
+async function getFinancialExceptions() {
+  const ctx = await getContext();
+  const sales = await getReportSales();
+  const relevant = sales.filter((s:any) => s.status === 'PAGA' || s.status === 'CANCELADA');
+  const ids = relevant.map((s:any) => s.id);
+  const payments: any[] = [];
+  const financial: any[] = [];
+  // Chunk IDs to avoid excessive URL sizes and preserve store/tenant scoping.
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    const [p, f] = await Promise.all([
+      supabase.from('sale_payments').select('id,sale_id,method,amount,change_amount,status,created_at')
+        .eq('tenant_id', ctx.tenantId).in('sale_id', chunk),
+      supabase.from('financial_transactions').select('id,reference_id,transaction_type,amount,source,created_at')
+        .eq('tenant_id', ctx.tenantId).eq('store_id', ctx.storeId).eq('source', 'VENDA').in('reference_id', chunk)
+    ]);
+    if (p.error) throw p.error;
+    if (f.error) throw f.error;
+    payments.push(...(p.data || []));
+    financial.push(...(f.data || []));
+  }
+  const paymentMap = new Map<string, any[]>();
+  for (const p of payments) paymentMap.set(p.sale_id, [...(paymentMap.get(p.sale_id) || []), p]);
+  const financeMap = new Map<string, any[]>();
+  for (const f of financial) financeMap.set(f.reference_id, [...(financeMap.get(f.reference_id) || []), f]);
+  return relevant.flatMap((s:any) => {
+    const ps = paymentMap.get(s.id) || [];
+    const fs = financeMap.get(s.id) || [];
+    const paymentNet = Math.round(ps.reduce((sum:number,p:any)=>sum+Number(p.amount||0)-Number(p.change_amount||0),0)*100)/100;
+    const financeNet = Math.round(fs.reduce((sum:number,f:any)=>sum+(f.transaction_type==='RECEITA'?1:-1)*Number(f.amount||0),0)*100)/100;
+    const issue = s.status==='CANCELADA' ? (ps.length?'CANCELLED_WITH_PAYMENT':null)
+      : !ps.length ? 'MISSING_PAYMENT'
+      : Math.abs(paymentNet-Number(s.total||0))>0.009 ? 'PAYMENT_MISMATCH' : null;
+    return issue ? [{id:s.id,sale_number:s.sale_number,created_at:s.created_at,status:s.status,
+      issue,total:Number(s.total||0),paymentNet,financeNet,payments:ps,financialCount:fs.length}] : [];
+  });
+}
+
 async function getSales(limit = 200) {
   const ctx = await getContext();
   const { data, error } = await supabase
@@ -1448,6 +1487,7 @@ export const productionDb = {
   getMultiStoreOverview,
   getSales,
   getReportSales,
+  getFinancialExceptions,
   getSaleDetails,
   updateSalePaymentMethod,
   cancelSale,
