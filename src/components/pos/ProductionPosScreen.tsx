@@ -31,6 +31,12 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
   const [store,setStore]=useState<Store|undefined>();
   const [selectedCategory,setSelectedCategory]=useState('ALL');
   const [query,setQuery]=useState('');
+  const [sortBy,setSortBy]=useState('name');
+  const [brandFilter,setBrandFilter]=useState('ALL');
+  const [stockFilter,setStockFilter]=useState('ALL');
+  const [priceFilter,setPriceFilter]=useState('ALL');
+  const [productView,setProductView]=useState<'grid'|'list'>('grid');
+  const [showIntegrations,setShowIntegrations]=useState(false);
   const [customerQuery,setCustomerQuery]=useState('');
   const [showCustomerResults,setShowCustomerResults]=useState(false);
   const [cart,setCart]=useState<Line[]>([]);
@@ -87,8 +93,14 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     }else if(selectedCategory!=='ALL'){
       base=products.filter(p=>p.categoryId===selectedCategory);
     }
-    return base.slice(0,36);
-  },[query,products,selectedCategory]);
+    if(brandFilter!=='ALL')base=base.filter(p=>p.brand===brandFilter);
+    if(stockFilter==='IN_STOCK')base=base.filter(p=>p.isCombo||p.currentStock>0);
+    if(stockFilter==='LOW')base=base.filter(p=>!p.isCombo&&p.currentStock>0&&p.currentStock<=5);
+    if(priceFilter==='UNDER_20')base=base.filter(p=>p.salePrice<20);
+    if(priceFilter==='20_50')base=base.filter(p=>p.salePrice>=20&&p.salePrice<=50);
+    if(priceFilter==='OVER_50')base=base.filter(p=>p.salePrice>50);
+    return [...base].sort((a,b)=>sortBy==='price_asc'?a.salePrice-b.salePrice:sortBy==='price_desc'?b.salePrice-a.salePrice:a.name.localeCompare(b.name,'pt-BR'));
+  },[query,products,selectedCategory,sortBy,brandFilter,stockFilter,priceFilter]);
 
   const filteredCustomers=useMemo(()=>{
     const q=normalizeSearch(customerQuery);
@@ -309,7 +321,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
     />
     {cardOpen&&<div className="fixed inset-0 z-[96] bg-black/80 backdrop-blur-sm grid place-items-center p-4"><div className="w-full max-w-md rounded-2xl border border-amber-500/40 bg-[#0d1217] p-5 shadow-2xl"><div className="flex items-start justify-between gap-3"><div><div className="text-[10px] uppercase tracking-wider text-amber-400 font-black">Pagamento no cartão</div><h2 className="text-xl font-black mt-1">{money(total)}</h2><p className="text-xs text-neutral-500 mt-1">Selecione como o cliente vai pagar na máquina.</p></div><button onClick={()=>setCardOpen(false)} className="text-neutral-400 hover:text-white"><X size={20}/></button></div><div className="grid grid-cols-2 gap-3 mt-5"><button onClick={()=>{setMethod('DEBITO');setCardOpen(false);}} className="h-20 rounded-2xl border border-neutral-700 bg-neutral-950 hover:border-amber-400 flex flex-col items-center justify-center gap-2 font-black"><CreditCard size={22}/><span>Débito</span></button><button onClick={()=>{setMethod('CREDITO');setCardOpen(false);}} className="h-20 rounded-2xl border border-neutral-700 bg-neutral-950 hover:border-amber-400 flex flex-col items-center justify-center gap-2 font-black"><CreditCard size={22}/><span>Crédito</span></button></div><button onClick={()=>setCardOpen(false)} className="mt-3 w-full h-11 rounded-xl border border-neutral-700 text-xs font-black">Cancelar</button></div></div>}
     {pixOpen&&<div className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm grid place-items-center p-4"><div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-[#0d1217] p-5 shadow-2xl"><div className="flex justify-between items-start"><div><div className="text-[10px] uppercase tracking-wider text-amber-400 font-black">Pagamento PIX manual</div><h2 className="text-xl font-black mt-1">{money(total)}</h2><p className="text-xs text-neutral-500">{pixConfig?.merchant_name||store?.tradeName||'Loja'}</p></div><button onClick={()=>setPixOpen(false)}><X size={20}/></button></div><div className="mt-4 bg-white rounded-2xl p-3 w-fit mx-auto">{pixQr&&<img src={pixQr} alt="QR Code PIX" className="w-[260px] h-[260px]"/>}</div><div className="mt-3 p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-center"><div className="text-[9px] text-neutral-500">CHAVE PIX</div><div className="text-xs font-mono break-all mt-1">{pixConfig?.pix_key}</div></div><div className="grid grid-cols-3 gap-2 mt-4"><button onClick={()=>setPixStatus('PENDING')} className={`py-3 rounded-xl border font-black text-xs ${pixStatus==='PENDING'?'bg-amber-500 text-black border-amber-400':'border-neutral-700'}`}>PENDENTE</button><button onClick={()=>{setPixStatus('CANCELLED');setPixOpen(false);}} className={`py-3 rounded-xl border font-black text-xs ${pixStatus==='CANCELLED'?'bg-rose-600 border-rose-500':'border-neutral-700'}`}>CANCELADO</button><button onClick={()=>setPixStatus('PAID')} className={`py-3 rounded-xl border font-black text-xs ${pixStatus==='PAID'?'bg-emerald-600 border-emerald-500':'border-neutral-700'}`}>PAGO</button></div><button disabled={pixStatus!=='PAID'||busy} onClick={()=>{setPixOpen(false);void finalize();}} className="mt-3 w-full py-3 rounded-xl bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-600 text-neutral-950 font-black">Finalizar venda</button><p className="text-[9px] text-neutral-600 text-center mt-2">Confirmação manual pelo operador. O sistema não consulta o banco.</p></div></div>}
-    <div className="flex-1 min-h-0 bg-[#070b0f] text-white overflow-hidden">
+    <div className="flex-1 min-h-0 bg-[#070b0f] text-white overflow-hidden flex flex-col">
     {!currentSession&&<div className="fixed inset-0 z-[80] bg-black/55 backdrop-blur-[2px] grid place-items-center p-4">
       <div className="w-full max-w-[520px] rounded-2xl border border-amber-400 bg-[#0d1217] shadow-[0_28px_90px_rgba(0,0,0,.65)] p-5 sm:p-6">
         <div className="flex justify-end"><button onClick={()=>onNavigate('dashboard')} className="text-neutral-400 hover:text-white"><X size={20}/></button></div>
@@ -348,7 +360,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
       </div>
     </div>}
 
-    <div className="h-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_490px] overflow-y-auto xl:overflow-hidden">
+    <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(350px,27%)] overflow-y-auto xl:overflow-hidden">
       <section className="min-w-0 p-3 sm:p-4 xl:overflow-y-auto border-r border-neutral-800/80">
         <div className="flex gap-3">
           <div className="relative flex-1">
@@ -363,8 +375,8 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         {message&&<div className="mt-3 p-3 rounded-xl border border-emerald-800 bg-emerald-950/30 text-emerald-300 text-xs">{message}</div>}
 
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-          <button onClick={()=>onNavigate('integrations')} className="shrink-0 h-9 px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 flex items-center gap-2 text-[10px] font-black"><Cable size={13}/>Integrações</button>
-          {integrationProviders.map(p=>{const s=integrationStatus(p.id);return <button key={p.id} onClick={()=>onNavigate('integrations')} className={`shrink-0 h-9 px-3 rounded-lg border flex items-center gap-2 text-[9px] font-black ${s.online?'border-emerald-700/60 bg-emerald-950/30 text-emerald-300':s.active?'border-amber-700/60 bg-amber-950/30 text-amber-300':'border-neutral-800 bg-neutral-900 text-neutral-500'}`}>{s.online?<Wifi size={12}/>:<WifiOff size={12}/>}<span>{p.label}</span><span className="opacity-70">{s.label}</span></button>})}
+          <button onClick={()=>setShowIntegrations(v=>!v)} className="shrink-0 h-9 px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 flex items-center gap-2 text-[10px] font-black"><Cable size={13}/>Integrações</button>
+          {showIntegrations&&integrationProviders.map(p=>{const s=integrationStatus(p.id);return <button key={p.id} onClick={()=>onNavigate('integrations')} className={`shrink-0 h-9 px-3 rounded-lg border flex items-center gap-2 text-[9px] font-black ${s.online?'border-emerald-700/60 bg-emerald-950/30 text-emerald-300':s.active?'border-amber-700/60 bg-amber-950/30 text-amber-300':'border-neutral-800 bg-neutral-900 text-neutral-500'}`}>{s.online?<Wifi size={12}/>:<WifiOff size={12}/>}<span>{p.label}</span><span className="opacity-70">{s.label}</span></button>})}
         </div>
 
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -372,20 +384,28 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
           {categories.map(cat=><button key={cat.id} onClick={()=>setSelectedCategory(cat.id)} className={`shrink-0 px-5 h-11 rounded-xl border text-xs font-bold ${selectedCategory===cat.id?'bg-amber-400 border-amber-300 text-neutral-950':'bg-[#10151b] border-neutral-700 text-neutral-200'}`}>{cat.name}</button>)}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="mt-3 flex flex-wrap gap-2 items-center text-xs">
+          <label className="flex items-center gap-1 text-neutral-400">Ordenar <select aria-label="Ordenar produtos" value={sortBy} onChange={e=>setSortBy(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="name">Nome A–Z</option><option value="price_asc">Menor preço</option><option value="price_desc">Maior preço</option></select></label>
+          <label className="flex items-center gap-1 text-neutral-400">Marca <select aria-label="Filtrar marca" value={brandFilter} onChange={e=>setBrandFilter(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="ALL">Todas</option>{[...new Set(products.map(p=>p.brand).filter(Boolean))].sort().map(b=><option key={b} value={b}>{b}</option>)}</select></label>
+          <label className="flex items-center gap-1 text-neutral-400">Estoque <select aria-label="Filtrar estoque" value={stockFilter} onChange={e=>setStockFilter(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="ALL">Todos</option><option value="IN_STOCK">Disponível</option><option value="LOW">Baixo (até 5)</option></select></label>
+          <label className="flex items-center gap-1 text-neutral-400">Preço <select aria-label="Filtrar preço" value={priceFilter} onChange={e=>setPriceFilter(e.target.value)} className="bg-[#10151b] border border-neutral-700 rounded-lg px-2 py-2 text-white"><option value="ALL">Todos</option><option value="UNDER_20">Até R$ 20</option><option value="20_50">R$ 20–50</option><option value="OVER_50">Acima de R$ 50</option></select></label>
+          <div className="ml-auto flex rounded-lg border border-neutral-700 overflow-hidden"><button onClick={()=>setProductView('grid')} className={`px-3 py-2 ${productView==='grid'?'bg-amber-400 text-black':'bg-[#10151b]'}`}>▦ Grade</button><button onClick={()=>setProductView('list')} className={`px-3 py-2 ${productView==='list'?'bg-amber-400 text-black':'bg-[#10151b]'}`}>☷ Lista</button></div>
+        </div>
+        <div className={`mt-3 grid gap-2 ${productView==='list'?'grid-cols-1 sm:grid-cols-2':'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5'}`}>
+
           {visibleProducts.map(p=>{
             const unavailable=!p.isCombo&&p.currentStock<=0;
             return <div key={p.id} className={`rounded-xl bg-[#0d1217] border border-neutral-800 overflow-hidden ${unavailable?'opacity-40':''}`}>
-              <button disabled={unavailable} onClick={()=>add(p)} className="w-full text-left">
-                <div className="aspect-[1.05/1] bg-[#0b0f13] grid place-items-center overflow-hidden">
-                  {p.imageUrl?<img src={p.imageUrl} alt={p.name} className="w-full h-full object-contain p-3" loading="lazy"/>:<Package size={34} className="text-neutral-700"/>}
+              <button disabled={unavailable} onClick={()=>add(p)} className="w-full text-left flex items-center min-h-[126px]">
+                <div className="w-[76px] h-[112px] shrink-0 bg-[#0b0f13] grid place-items-center overflow-hidden">
+                  {p.imageUrl?<img src={p.imageUrl} alt={p.name} className="w-full h-full object-contain p-1.5" loading="lazy"/>:<Package size={34} className="text-neutral-700"/>}
                 </div>
-                <div className="p-3">
-                  <div className="text-sm font-semibold leading-tight min-h-[2.25rem] line-clamp-2">{p.name}</div>
+                <div className="p-2 min-w-0 flex-1">
+                  <div className="text-xs font-semibold leading-tight min-h-[2rem] line-clamp-2">{p.name}</div>
                   <div className="text-[10px] text-neutral-500 mt-1">{p.packageSize||p.brand||p.sku}</div>
-                  <div className="mt-3 flex items-center justify-between gap-2">
-                    <span className="text-base font-black text-amber-400">{money(p.salePrice)}</span>
-                    <span className="w-8 h-8 rounded-lg bg-amber-400 text-neutral-950 grid place-items-center"><Plus size={17} strokeWidth={3}/></span>
+                  <div className="mt-2 flex items-center justify-between gap-1">
+                    <span className="text-sm font-black text-amber-400">{money(p.salePrice)}</span>
+                    <span className="w-7 h-7 shrink-0 rounded-lg bg-amber-400 text-neutral-950 grid place-items-center"><Plus size={17} strokeWidth={3}/></span>
                   </div>
                 </div>
               </button>
@@ -413,7 +433,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
 
         <section className="mt-3 rounded-xl border border-neutral-800 bg-[#0d1217] p-3">
           <div className="flex items-center justify-between"><h2 className="text-sm font-black">Carrinho de Vendas <span className="text-neutral-400 font-normal">({cart.reduce((s,l)=>s+l.quantity,0)} itens)</span></h2><button onClick={()=>setCart([])} className="px-2.5 py-1.5 rounded-lg border border-neutral-700 text-[10px] font-black flex items-center gap-1"><Trash2 size={12}/>Limpar</button></div>
-          <div className="mt-2 divide-y divide-neutral-800">
+          <div className="mt-2 divide-y divide-neutral-800 max-h-[35vh] overflow-y-auto">
             {cart.length===0?<div className="py-10 text-center text-neutral-600 text-xs">Adicione produtos ao carrinho.</div>:cart.map(l=><div key={l.product.id} className="py-2 flex items-center gap-2">
               <div className="w-10 h-10 rounded-lg bg-neutral-950 border border-neutral-800 overflow-hidden shrink-0">{l.product.imageUrl?<img src={l.product.imageUrl} alt="" className="w-full h-full object-contain p-1"/>:<Package size={18} className="m-2.5 text-neutral-700"/>}</div>
               <div className="min-w-0 flex-1"><div className="text-xs font-semibold truncate">{l.product.name}</div><div className="text-[9px] text-neutral-500">SKU: {l.product.sku||'—'}</div></div>
@@ -429,9 +449,15 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
             <div className="flex justify-between items-end pt-2"><span className="text-lg font-black">Total</span><span className="text-2xl font-black text-amber-400">{money(total)}</span></div>
           </div>
 
-          <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-3 text-xs text-emerald-300 font-bold">A forma de recebimento será informada somente no fechamento do caixa.</div>
+          <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-2 text-[10px] text-emerald-300 font-bold">Selecione a forma de recebimento antes de finalizar a venda.</div>
           <label className="block mt-3 text-[10px] text-neutral-400">Desconto<input type="number" min="0" step="0.01" value={discount||''} onChange={e=>setDiscount(Number(e.target.value)||0)} className="mt-1 w-full h-9 rounded-lg border border-neutral-700 bg-[#11171d] px-3 text-xs outline-none focus:border-amber-400"/></label>
 
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <button onClick={()=>setMethod('DINHEIRO')} className={`rounded-lg border p-2 text-xs font-bold ${method==='DINHEIRO'?'bg-emerald-800 border-emerald-400':'border-neutral-700'}`}><Banknote size={17} className="mx-auto mb-1"/>Dinheiro</button>
+            <button onClick={()=>setCardOpen(true)} className={`rounded-lg border p-2 text-xs font-bold ${method==='DEBITO'||method==='CREDITO'?'bg-blue-800 border-blue-400':'border-neutral-700'}`}><CreditCard size={17} className="mx-auto mb-1"/>Cartão</button>
+            <button onClick={()=>{setMethod('PIX');setPixStatus('PENDING');setPixOpen(true)}} className={`rounded-lg border p-2 text-xs font-bold ${method==='PIX'?'bg-cyan-800 border-cyan-400':'border-neutral-700'}`}><QrCode size={17} className="mx-auto mb-1"/>PIX</button>
+          </div>
+          {method==='DINHEIRO'&&<label className="block mt-2 text-xs text-neutral-400">Valor recebido<input value={tendered} onChange={e=>setTendered(e.target.value)} inputMode="decimal" placeholder={money(total)} className="mt-1 w-full h-9 rounded-lg border border-neutral-700 bg-[#10151b] px-3 text-white"/>{tendered&&<span className="block mt-1 text-emerald-400">Troco: {money(change)}</span>}</label>}
           <button disabled={busy||cart.length===0||!currentSession} onClick={()=>void finalize()} className="mt-3 w-full h-12 rounded-xl bg-amber-400 text-neutral-950 font-black text-sm disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center gap-2"><CheckCircle2 size={18}/>{busy?'PROCESSANDO...':'Finalizar Venda (F9)'}</button>
         </section>
 
@@ -446,6 +472,7 @@ export const ProductionPosScreen:React.FC<Props>=({currentUser,currentSession,on
         </section>
       </aside>
     </div>
+    <footer className="hidden xl:flex h-12 border-t border-neutral-800 bg-[#080d12] px-4 items-center gap-6 text-xs"><span className="text-emerald-400">PDV Online</span><span>Caixa: {currentSession ? "ABERTO" : "FECHADO"}</span><span>Operador: {currentUser.name}</span><span className="ml-auto">F8 Escanear · F9 Finalizar · F10 Imprimir</span></footer>
   </div>
   </>;
 };
